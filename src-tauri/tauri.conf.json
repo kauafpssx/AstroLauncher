@@ -57,7 +57,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNFOThGRjRCN0Q0QjM5N0UKUldSK09VdDlTLytZUGpVRjEwNk9GSndZemkwMm9rZXlhaEpvalBoQmMwRmhlV3lnNWVDN1RVdXgK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIzODdENTdGQUVCRjYwRUYKUldUdllMK3VmOVdIc3dheUFDaXd2eVNLSWl6WGVmWDkveHBoRlFBOE92UldWbjk1eUZQUEcxQkwK",
       "endpoints": ["https://github.com/kauafpssx/AstroLauncher/releases/latest/download/latest.json"]
     }
   }
