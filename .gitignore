@@ -27,3 +27,6 @@ dist-ssr
 src-tauri/target
 src-tauri/gen
 
+
+# Tauri updater signing keys (never commit)
+.keys

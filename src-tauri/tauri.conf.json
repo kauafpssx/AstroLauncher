@@ -43,6 +43,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -52,6 +53,12 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEUzNjQ3NDI4NUE3MEQ0MDEKUldRQjFIQmFLSFJrNDlNaHdjTDJzbEpXMi94bGxscDJqMzBjdVp3dCtRVGs0bVk3S0ZCVjZ2WCsK",
+      "endpoints": ["https://github.com/kauafpssx/AstroLauncher/releases/latest/download/latest.json"]
     }
   }
 }
