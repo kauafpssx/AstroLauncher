@@ -35,6 +35,7 @@ pub async fn download_assets(
     index_bytes: &[u8],
     index_id: &str,
     assets_dir: &Path,
+    cancelled: &Arc<std::sync::atomic::AtomicBool>,
     reporter: &ProgressReporter,
 ) -> anyhow::Result<()> {
     let index_path = assets_dir.join("indexes").join(format!("{index_id}.json"));
@@ -53,9 +54,13 @@ pub async fn download_assets(
         let objects_dir = objects_dir.clone();
         let reporter = reporter.clone();
         let completed = completed.clone();
+        let cancelled = cancelled.clone();
         let hash = object.hash;
         let size = object.size;
         async move {
+            if cancelled.load(std::sync::atomic::Ordering::SeqCst) {
+                anyhow::bail!("Inicialização cancelada");
+            }
             let prefix = &hash[0..2];
             let dest = objects_dir.join(prefix).join(&hash);
             let url = format!("{ASSETS_BASE_URL}/{prefix}/{hash}");

@@ -1,8 +1,13 @@
 pub mod account_commands;
 pub mod astropack_commands;
+pub mod custom_icon_commands;
+pub mod discord_commands;
+pub mod folder_commands;
 pub mod instance_commands;
 pub mod instance_workspace_commands;
 pub mod minecraft_commands;
 pub mod mod_commands;
+pub mod playtime_commands;
 pub mod settings_commands;
+pub mod skin_commands;
 pub mod splash_commands;

@@ -1,4 +1,6 @@
-use tauri::State;
+use std::sync::Arc;
+
+use tauri::{AppHandle, Emitter, State};
 
 use crate::application::dto::{
     GetModProjectInput, GetModVersionsInput, InstallCustomModInput, InstallModInput, InstallModpackInput, InstalledModDTO,
@@ -47,6 +49,26 @@ pub fn delete_instance_mod(state: State<AppState>, instance_id: String, id: Stri
 }
 
 #[tauri::command]
-pub async fn install_modrinth_modpack(state: State<'_, AppState>, input: InstallModpackInput) -> Result<InstanceDTO, String> {
-    state.modpack_installer.install_modrinth_modpack(input).await.map_err(|e| e.to_string())
+pub async fn install_modrinth_modpack(app: AppHandle, state: State<'_, AppState>, input: InstallModpackInput) -> Result<InstanceDTO, String> {
+    let app_clone = app.clone();
+    state
+        .modpack_installer
+        .install_modrinth_modpack(input, Arc::new(move |event| { let _ = app_clone.emit("modpack://event", event); }))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn install_curseforge_modpack(app: AppHandle, state: State<'_, AppState>, input: InstallModpackInput) -> Result<InstanceDTO, String> {
+    let app_clone = app.clone();
+    state
+        .modpack_installer
+        .install_curseforge_modpack(input, Arc::new(move |event| { let _ = app_clone.emit("modpack://event", event); }))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn cancel_modpack_install(state: State<AppState>) {
+    state.modpack_installer.cancel();
 }

@@ -1,7 +1,6 @@
 import { Blocks, Flame, Upload } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 
 import type { Platform } from './PlatformSidebar'
 
@@ -37,15 +36,13 @@ export function SourcePlaceholder({ platform, onAction }: SourcePlaceholderProps
   const { icon: Icon, title, description, action } = COPY[platform]
 
   return (
-    <Card>
-      <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-        <Icon className="size-10 text-muted-foreground" />
-        <p className="font-medium">{title}</p>
-        <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
-        <Button variant="outline" className="mt-2" onClick={onAction}>
-          {action}
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed py-16 text-center">
+      <Icon className="size-10 text-muted-foreground" />
+      <p className="font-medium">{title}</p>
+      <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
+      <Button variant="outline" className="mt-2" onClick={onAction}>
+        {action}
+      </Button>
+    </div>
   )
 }

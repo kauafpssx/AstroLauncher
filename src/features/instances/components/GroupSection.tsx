@@ -1,15 +1,27 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Image, LayoutGrid, Pencil } from 'lucide-react'
 import { useState } from 'react'
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { useDroppable } from '@dnd-kit/core'
+
+import { EntityContextMenu } from '@/components/common/EntityContextMenu'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { resolveIconSrc } from '@/lib/icon-src'
 import { cn } from '@/lib/utils'
+import type { FolderDTO } from '@/types/folder'
 import type { InstanceDTO } from '@/types/instance'
 
-import { InstanceCard } from './InstanceCard'
+import { IconPickerDialog } from './IconPickerDialog'
+import { InstanceCardGrid } from './InstanceCardGrid'
 
 interface GroupSectionProps {
-  title: string
+  name: string
+  iconPath: string | null
   instances: InstanceDTO[]
+  folders: FolderDTO[]
   selectedId: string | null
   runningId: string | null
   onSelect: (id: string) => void
@@ -18,11 +30,16 @@ interface GroupSectionProps {
   onEdit: (id: string) => void
   onDelete: (id: string) => void
   onExport: (id: string) => void
+  onMoveToFolder: (id: string, folderId: string | null) => void
+  onRename: () => void
+  onPickIconPath: (iconPath: string) => void
 }
 
 export function GroupSection({
-  title,
+  name,
+  iconPath,
   instances,
+  folders,
   selectedId,
   runningId,
   onSelect,
@@ -31,32 +48,87 @@ export function GroupSection({
   onEdit,
   onDelete,
   onExport,
+  onMoveToFolder,
+  onRename,
+  onPickIconPath,
 }: GroupSectionProps) {
   const [open, setOpen] = useState(true)
+  const [iconPickerOpen, setIconPickerOpen] = useState(false)
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'root',
+    data: { type: 'drop-zone' },
+  })
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex items-center gap-1.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-        <ChevronDown className={cn('size-4 transition-transform', !open && '-rotate-90')} />
-        {title}
-        <span className="text-xs text-muted-foreground">({instances.length})</span>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="flex flex-wrap gap-3 py-2">
-        {instances.map((instance) => (
-          <InstanceCard
-            key={instance.id}
-            instance={instance}
-            selected={instance.id === selectedId}
-            isRunning={instance.id === runningId}
+    <div
+      ref={setNodeRef}
+      className={cn(
+        'rounded-lg transition-colors',
+        isOver && 'bg-accent/40 ring-primary/30 ring-2',
+      )}
+    >
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <EntityContextMenu
+          stopPropagation
+          actions={[
+            {
+              key: 'rename',
+              icon: Pencil,
+              label: 'Renomear',
+              onSelect: onRename,
+            },
+            {
+              key: 'icon',
+              icon: Image,
+              label: 'Escolher Ícone',
+              onSelect: () => setIconPickerOpen(true),
+            },
+          ]}
+        >
+          <CollapsibleTrigger className="text-muted-foreground hover:bg-accent/50 hover:text-foreground flex w-full items-center gap-1.5 rounded-md py-2 pr-1 text-sm font-medium">
+            <ChevronDown
+              className={cn(
+                'size-4 transition-transform',
+                !open && '-rotate-90',
+              )}
+            />
+            {iconPath ? (
+              <img
+                src={resolveIconSrc(iconPath)}
+                alt=""
+                className="size-4 [image-rendering:pixelated]"
+              />
+            ) : (
+              <LayoutGrid className="size-4" />
+            )}
+            {name}
+            <span className="text-muted-foreground text-xs">
+              ({instances.length})
+            </span>
+          </CollapsibleTrigger>
+        </EntityContextMenu>
+        <CollapsibleContent>
+          <InstanceCardGrid
+            instances={instances}
+            selectedId={selectedId}
+            runningId={runningId}
+            folders={folders}
+            emptyHint="Nenhuma instância fora de pastas. Arraste para cá para sair de uma pasta."
             onSelect={onSelect}
             onLaunch={onLaunch}
             onStop={onStop}
             onEdit={onEdit}
             onDelete={onDelete}
             onExport={onExport}
+            onMoveToFolder={onMoveToFolder}
           />
-        ))}
-      </CollapsibleContent>
-    </Collapsible>
+        </CollapsibleContent>
+      </Collapsible>
+      <IconPickerDialog
+        open={iconPickerOpen}
+        onOpenChange={setIconPickerOpen}
+        onSelect={onPickIconPath}
+      />
+    </div>
   )
 }

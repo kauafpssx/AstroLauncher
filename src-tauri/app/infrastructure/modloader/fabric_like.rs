@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+use super::profile::LoaderProfile;
+
 pub const FABRIC_META_BASE: &str = "https://meta.fabricmc.net/v2";
 pub const QUILT_META_BASE: &str = "https://meta.quiltmc.org/v3";
 
@@ -12,19 +14,6 @@ struct LoaderVersionEntry {
 struct LoaderInfo {
     version: String,
     stable: bool,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct LoaderProfile {
-    #[serde(rename = "mainClass")]
-    pub main_class: String,
-    pub libraries: Vec<ProfileLibrary>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct ProfileLibrary {
-    pub name: String,
-    pub url: String,
 }
 
 /// Fabric and Quilt both expose a Fabric-Meta-compatible API (Quilt was
@@ -53,13 +42,4 @@ pub async fn fetch_profile(client: &reqwest::Client, meta_base: &str, game_versi
     let url = format!("{meta_base}/versions/loader/{game_version}/{loader_version}/profile/json");
     let profile: LoaderProfile = client.get(&url).send().await?.error_for_status()?.json().await?;
     Ok(profile)
-}
-
-/// Loader libraries are plain Maven coordinates with a repository base URL —
-/// unlike Mojang's manifest, there's no size/sha1 provided up front.
-pub fn library_download_url(library: &ProfileLibrary) -> String {
-    let parts: Vec<&str> = library.name.split(':').collect();
-    let (group, artifact, version) = (parts[0], parts[1], parts[2]);
-    let relative = format!("{}/{}/{}/{}-{}.jar", group.replace('.', "/"), artifact, version, artifact, version);
-    format!("{}/{}", library.url.trim_end_matches('/'), relative)
 }

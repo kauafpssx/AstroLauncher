@@ -26,6 +26,7 @@ pub struct CreateInstanceInput {
     pub loader: Option<String>,
     pub loader_version: Option<String>,
     pub folder_id: Option<String>,
+    pub icon_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -39,4 +40,5 @@ pub struct UpdateInstanceInput {
     pub java_args: Option<String>,
     pub min_memory: i64,
     pub max_memory: i64,
+    pub icon_path: Option<String>,
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,9 +24,14 @@ export function AccountSheet({ open, onOpenChange, account, onSubmit }: AccountS
   const [username, setUsername] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
+  // Prefill the input during render when the sheet opens (or the target
+  // account changes) instead of doing it in an effect.
+  const sheetKey = `${open}:${account?.id ?? 'new'}`
+  const [prevSheetKey, setPrevSheetKey] = useState(sheetKey)
+  if (prevSheetKey !== sheetKey) {
+    setPrevSheetKey(sheetKey)
     if (open) setUsername(account?.username ?? '')
-  }, [open, account])
+  }
 
   const handleSubmit = async () => {
     if (!username.trim()) return

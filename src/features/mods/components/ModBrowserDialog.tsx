@@ -1,16 +1,15 @@
 import { open as openFileDialog } from '@tauri-apps/plugin-dialog'
-import { AlertTriangle, Blocks, Flame, Loader2, Search, Upload } from 'lucide-react'
+import { AlertTriangle, Loader2, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EntityAvatar } from '@/components/common/EntityAvatar'
+import { SearchInput } from '@/components/common/SearchInput'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
@@ -31,9 +30,9 @@ import { ModReviewPanel } from './ModReviewPanel'
 type SortBy = 'relevance' | 'downloads'
 type SelectionMap = Record<string, { result: ModSearchResult; version: ModVersion }>
 
-const SOURCES: { id: ModSource; label: string; icon: typeof Blocks }[] = [
-  { id: 'modrinth', label: 'Modrinth', icon: Blocks },
-  { id: 'curseforge', label: 'CurseForge', icon: Flame },
+const SOURCES: { id: ModSource; label: string; logo: string }[] = [
+  { id: 'modrinth', label: 'Modrinth', logo: '/providers/modrinth.svg' },
+  { id: 'curseforge', label: 'CurseForge', logo: '/providers/curseforge.png' },
 ]
 
 function selectionKey(source: ModSource, projectId: string) {
@@ -77,7 +76,11 @@ export function ModBrowserDialog({
 
   const requestIdRef = useRef(0)
 
-  useEffect(() => {
+  // Reset the whole browsing state when the dialog closes — done during render
+  // ("adjust state when a prop changes") instead of in an effect.
+  const [prevOpen, setPrevOpen] = useState(open)
+  if (prevOpen !== open) {
+    setPrevOpen(open)
     if (!open) {
       setQuery('')
       setResults([])
@@ -86,14 +89,14 @@ export function ModBrowserDialog({
       setError(null)
       setView('browse')
     }
-  }, [open])
+  }
 
   useEffect(() => {
     if (!open) return
-    setError(null)
     const requestId = ++requestIdRef.current
 
     const handle = setTimeout(() => {
+      setError(null)
       setIsSearching(true)
       ModAPI.search({ source, query, projectType: kind, gameVersion: gameVersion ?? null, loader: effectiveLoader })
         .then((data) => {
@@ -184,20 +187,17 @@ export function ModBrowserDialog({
           <div className="flex min-h-0 flex-1">
             <div className="flex min-w-0 flex-1 flex-col border-r">
               <div className="flex items-center gap-2 border-b p-3">
-                <div className="relative flex-1">
-                  <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder={`Buscar ${kindLabel.toLowerCase()}...`}
-                    className="pl-8"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    autoFocus
-                  />
-                </div>
+                <SearchInput
+                  containerClassName="flex-1"
+                  placeholder={`Buscar ${kindLabel.toLowerCase()}...`}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  autoFocus
+                />
                 <ToggleGroup type="single" value={source} onValueChange={(v) => v && setSource(v as ModSource)}>
                   {SOURCES.map((s) => (
                     <ToggleGroupItem key={s.id} value={s.id}>
-                      <s.icon /> {s.label}
+                      <img src={s.logo} alt="" className="size-4" /> {s.label}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
@@ -210,24 +210,14 @@ export function ModBrowserDialog({
                 <Alert variant="destructive" className="m-3">
                   <AlertTriangle />
                   <AlertTitle>Não foi possível buscar</AlertTitle>
-                  <AlertDescription>
-                    {error}
-                    {error.includes('API key') && (
-                      <>
-                        {' '}
-                        <Link to="/settings" onClick={() => onOpenChange(false)}>
-                          Ir para Configurações
-                        </Link>
-                      </>
-                    )}
-                  </AlertDescription>
+                  <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
               {isSearching ? (
                 <CenteredSpinner />
               ) : (
-                <ScrollArea className="min-h-0 flex-1">
+                <ScrollArea type="always" className="min-h-0 flex-1">
                   <div className="flex flex-col gap-0.5 p-2">
                     {!error && sortedResults.length === 0 && (
                       <p className="p-4 text-center text-sm text-muted-foreground">Nenhum resultado.</p>

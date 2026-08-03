@@ -1,8 +1,8 @@
-import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { PageHeader } from '@/components/common/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -41,12 +41,7 @@ export function SettingsPage() {
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-          <ArrowLeft />
-        </Button>
-        <span className="font-medium">Configurações</span>
-      </header>
+      <PageHeader title="Configurações" onBack={() => navigate('/')} />
 
       <div className="flex-1 overflow-y-auto p-6">
         <Card className="max-w-xl">

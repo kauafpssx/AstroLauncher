@@ -21,8 +21,9 @@ pub async fn export_instance(
     instance_id: String,
     dest_path: String,
     selection: ExportSelection,
+    icon_data_uri: Option<String>,
 ) -> Result<ExportResultDTO, String> {
-    state.astropack.export_instance(&instance_id, &dest_path, selection).await.map_err(|e| e.to_string())
+    state.astropack.export_instance(&instance_id, &dest_path, selection, icon_data_uri).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

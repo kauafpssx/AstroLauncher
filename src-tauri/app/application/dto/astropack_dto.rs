@@ -13,9 +13,11 @@ pub struct AstroPackManifest {
     pub max_memory: i64,
     pub contents: Vec<AstroPackContentEntry>,
     #[serde(default)]
+    pub icon: Option<String>,
+    #[serde(default)]
     pub settings: Option<String>,
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: Vec<AstroPackNoteEntry>,
     #[serde(default)]
     pub worlds: Vec<String>,
     #[serde(default)]
@@ -35,6 +37,13 @@ pub struct AstroPackContentEntry {
     pub file_name: String,
     pub download_url: Option<String>,
     pub icon_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AstroPackNoteEntry {
+    pub title: String,
+    pub content: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -77,6 +86,7 @@ pub enum AstroPackEventDTO {
     Progress {
         kind: String,
         name: String,
+        icon_url: Option<String>,
         current: u64,
         total: u64,
     },

@@ -2,6 +2,8 @@ mod v1_initial;
 mod v2_account_ordering;
 mod v3_mod_icon;
 mod v4_mod_kind;
+mod v5_instance_position;
+mod v6_folder_icon;
 
 use rusqlite::{Connection, Result};
 
@@ -12,6 +14,8 @@ const MIGRATIONS: &[(u32, MigrationFn)] = &[
     (v2_account_ordering::VERSION, v2_account_ordering::up),
     (v3_mod_icon::VERSION, v3_mod_icon::up),
     (v4_mod_kind::VERSION, v4_mod_kind::up),
+    (v5_instance_position::VERSION, v5_instance_position::up),
+    (v6_folder_icon::VERSION, v6_folder_icon::up),
 ];
 
 pub fn run(conn: &Connection) -> Result<()> {

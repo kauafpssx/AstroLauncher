@@ -2,28 +2,15 @@ import { FolderOpen, Globe, RefreshCw, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
+import { formatBytes } from '@/lib/format'
 import type { WorldDTO } from '@/types/world'
 
 interface WorldsTabProps {
   instanceId: string
-}
-
-function formatSize(bytes: number): string {
-  const mb = bytes / (1024 * 1024)
-  return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb.toFixed(1)} MB`
 }
 
 export function WorldsTab({ instanceId }: WorldsTabProps) {
@@ -32,7 +19,6 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
   const load = async () => {
-    setIsLoading(true)
     try {
       setWorlds(await InstanceWorkspaceAPI.listWorlds(instanceId))
     } catch (err) {
@@ -43,8 +29,14 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
   }
 
   useEffect(() => {
-    load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false
+    InstanceWorkspaceAPI.listWorlds(instanceId)
+      .then((data) => !cancelled && setWorlds(data))
+      .catch((err) => !cancelled && toast.error(`Falha ao listar mundos: ${String(err)}`))
+      .finally(() => !cancelled && setIsLoading(false))
+    return () => {
+      cancelled = true
+    }
   }, [instanceId])
 
   const handleDelete = async () => {
@@ -65,7 +57,14 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">Mundos salvos nesta instância.</p>
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" onClick={load}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setIsLoading(true)
+              load()
+            }}
+          >
             <RefreshCw /> Atualizar
           </Button>
           <Button variant="outline" size="sm" onClick={() => InstanceWorkspaceAPI.openFolder(instanceId)}>
@@ -96,7 +95,7 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
             {worlds.map((world) => (
               <TableRow key={world.name}>
                 <TableCell className="font-medium">{world.name}</TableCell>
-                <TableCell className="text-muted-foreground">{formatSize(world.sizeBytes)}</TableCell>
+                <TableCell className="text-muted-foreground">{formatBytes(world.sizeBytes)}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {world.lastModified ? new Date(world.lastModified).toLocaleString('pt-BR') : '—'}
                 </TableCell>
@@ -111,22 +110,17 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
         </Table>
       </div>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir mundo</AlertDialogTitle>
-            <AlertDialogDescription>
-              Isso vai apagar <strong>{deleteTarget}</strong> permanentemente. Essa ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDelete}>
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Excluir mundo"
+        description={
+          <>
+            Isso vai apagar <strong>{deleteTarget}</strong> permanentemente. Essa ação não pode ser desfeita.
+          </>
+        }
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }

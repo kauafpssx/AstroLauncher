@@ -4,12 +4,15 @@ use std::sync::Arc;
 use crate::application::dto::{InstallCustomModInput, InstallModInput, InstalledModDTO};
 use crate::domain::entities::InstalledMod;
 use crate::domain::errors::InstanceError;
-use crate::domain::repositories::ModRepository;
+use crate::domain::repositories::{InstanceRepository, ModRepository};
+use crate::infrastructure::discord::DiscordRpcHandle;
 use crate::infrastructure::downloader::file_downloader;
 use crate::infrastructure::filesystem::paths;
 
 pub struct ModManagerService {
     mod_repository: Arc<dyn ModRepository>,
+    instance_repository: Arc<dyn InstanceRepository>,
+    discord: DiscordRpcHandle,
     http_client: reqwest::Client,
     app_data_dir: PathBuf,
 }
@@ -25,8 +28,14 @@ fn target_folder(kind: &str) -> &'static str {
 }
 
 impl ModManagerService {
-    pub fn new(mod_repository: Arc<dyn ModRepository>, http_client: reqwest::Client, app_data_dir: PathBuf) -> Self {
-        Self { mod_repository, http_client, app_data_dir }
+    pub fn new(
+        mod_repository: Arc<dyn ModRepository>,
+        instance_repository: Arc<dyn InstanceRepository>,
+        discord: DiscordRpcHandle,
+        http_client: reqwest::Client,
+        app_data_dir: PathBuf,
+    ) -> Self {
+        Self { mod_repository, instance_repository, discord, http_client, app_data_dir }
     }
 
     pub fn list(&self, instance_id: &str, kind: &str) -> Result<Vec<InstalledModDTO>, InstanceError> {
@@ -35,6 +44,18 @@ impl ModManagerService {
     }
 
     pub async fn install(&self, input: InstallModInput) -> anyhow::Result<InstalledModDTO> {
+        let instance_name = self
+            .instance_repository
+            .find_by_id(&input.instance_id)
+            .map(|i| i.name)
+            .unwrap_or_else(|_| input.instance_id.clone());
+        let details = match input.kind.as_str() {
+            "resourcepack" => "Baixando texturas",
+            "shader" => "Baixando shaders",
+            _ => "Baixando mods",
+        };
+        let _presence = self.discord.guard(details, format!("{instance_name} — {}", input.mod_name));
+
         let target_dir = paths::instance_dir(&self.app_data_dir, &input.instance_id).join(target_folder(&input.kind));
         let dest = target_dir.join(&input.file_name);
 

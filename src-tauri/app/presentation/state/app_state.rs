@@ -2,12 +2,15 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use crate::application::use_cases::{
-    AstroPackService, CreateAccountUseCase, CreateInstanceUseCase, DeleteAccountUseCase, DeleteInstanceUseCase,
-    FetchVersionManifestUseCase, InstanceWorkspaceService, LaunchInstanceUseCase, ListAccountsUseCase, ListInstancesUseCase,
-    ModBrowserService, ModManagerService, ModpackInstallerService, ReorderAccountsUseCase, SetDefaultAccountUseCase,
-    SettingsService, StopInstanceUseCase, UpdateAccountUseCase, UpdateInstanceUseCase,
+    AstroPackService, CreateAccountUseCase, CreateFolderUseCase, CreateInstanceUseCase, CustomIconService,
+    DeleteAccountUseCase, DeleteFolderUseCase, DeleteInstanceUseCase, FetchVersionManifestUseCase,
+    InstanceWorkspaceService, LaunchInstanceUseCase, ListAccountsUseCase, ListFoldersUseCase, ListInstancesUseCase,
+    ModBrowserService, ModManagerService, ModpackInstallerService, MoveInstanceToFolderUseCase, PlaytimeService,
+    ReorderAccountsUseCase, ReorderFoldersUseCase, ReorderInstancesUseCase, SetDefaultAccountUseCase, SettingsService,
+    SkinBrowserService, StopInstanceUseCase, UpdateAccountUseCase, UpdateFolderUseCase, UpdateInstanceUseCase,
 };
-use crate::domain::repositories::{AccountRepository, InstanceRepository, ModRepository};
+use crate::domain::repositories::{AccountRepository, FolderRepository, InstanceRepository, ModRepository, PlaytimeRepository};
+use crate::infrastructure::discord::DiscordRpcHandle;
 use crate::infrastructure::process::manager::ProcessManager;
 
 pub struct AppState {
@@ -15,6 +18,8 @@ pub struct AppState {
     pub create_instance: CreateInstanceUseCase,
     pub update_instance: UpdateInstanceUseCase,
     pub delete_instance: DeleteInstanceUseCase,
+    pub move_instance_to_folder: MoveInstanceToFolderUseCase,
+    pub reorder_instances: ReorderInstancesUseCase,
     pub instance_workspace: InstanceWorkspaceService,
     pub fetch_version_manifest: FetchVersionManifestUseCase,
     pub launch_instance: LaunchInstanceUseCase,
@@ -25,22 +30,38 @@ pub struct AppState {
     pub delete_account: DeleteAccountUseCase,
     pub set_default_account: SetDefaultAccountUseCase,
     pub reorder_accounts: ReorderAccountsUseCase,
+    pub list_folders: ListFoldersUseCase,
+    pub create_folder: CreateFolderUseCase,
+    pub update_folder: UpdateFolderUseCase,
+    pub delete_folder: DeleteFolderUseCase,
+    pub reorder_folders: ReorderFoldersUseCase,
     pub settings: SettingsService,
     pub mod_browser: ModBrowserService,
     pub mod_manager: ModManagerService,
     pub modpack_installer: ModpackInstallerService,
     pub astropack: AstroPackService,
+    pub custom_icon: CustomIconService,
+    pub skin_browser: SkinBrowserService,
+    pub playtime: Arc<PlaytimeService>,
+    pub discord: DiscordRpcHandle,
 }
 
 impl AppState {
     pub fn new(
         instance_repository: Arc<dyn InstanceRepository>,
         account_repository: Arc<dyn AccountRepository>,
+        folder_repository: Arc<dyn FolderRepository>,
         mod_repository: Arc<dyn ModRepository>,
+        playtime_repository: Arc<dyn PlaytimeRepository>,
         http_client: reqwest::Client,
         app_data_dir: PathBuf,
+        discord_client_id: String,
+        discord_logo_asset_key: String,
     ) -> Self {
         let process_manager = ProcessManager::new();
+        let playtime_service = Arc::new(PlaytimeService::new(instance_repository.clone(), playtime_repository));
+        let discord = DiscordRpcHandle::spawn(discord_client_id, discord_logo_asset_key);
+        discord.set_idle();
 
         Self {
             list_instances: ListInstancesUseCase::new(instance_repository.clone()),
@@ -51,27 +72,53 @@ impl AppState {
                 process_manager.clone(),
                 app_data_dir.clone(),
             ),
+            move_instance_to_folder: MoveInstanceToFolderUseCase::new(instance_repository.clone()),
+            reorder_instances: ReorderInstancesUseCase::new(instance_repository.clone()),
             instance_workspace: InstanceWorkspaceService::new(instance_repository.clone(), app_data_dir.clone()),
             settings: SettingsService::new(app_data_dir.clone()),
             mod_browser: ModBrowserService::new(http_client.clone(), app_data_dir.clone()),
-            mod_manager: ModManagerService::new(mod_repository.clone(), http_client.clone(), app_data_dir.clone()),
-            modpack_installer: ModpackInstallerService::new(instance_repository.clone(), http_client.clone(), app_data_dir.clone()),
-            astropack: AstroPackService::new(instance_repository.clone(), mod_repository, http_client.clone(), app_data_dir.clone()),
+            mod_manager: ModManagerService::new(
+                mod_repository.clone(),
+                instance_repository.clone(),
+                discord.clone(),
+                http_client.clone(),
+                app_data_dir.clone(),
+            ),
+            modpack_installer: ModpackInstallerService::new(
+                instance_repository.clone(),
+                mod_repository.clone(),
+                discord.clone(),
+                http_client.clone(),
+                app_data_dir.clone(),
+            ),
+            astropack: AstroPackService::new(instance_repository.clone(), mod_repository.clone(), http_client.clone(), app_data_dir.clone()),
+            custom_icon: CustomIconService::new(app_data_dir.clone()),
+            skin_browser: SkinBrowserService::new(http_client.clone()),
             fetch_version_manifest: FetchVersionManifestUseCase::new(http_client.clone()),
             launch_instance: LaunchInstanceUseCase::new(
                 instance_repository,
                 account_repository.clone(),
+                mod_repository,
+                playtime_service.clone(),
+                discord.clone(),
                 process_manager.clone(),
                 http_client,
                 app_data_dir,
             ),
             stop_instance: StopInstanceUseCase::new(process_manager),
+            playtime: playtime_service,
+            discord,
             list_accounts: ListAccountsUseCase::new(account_repository.clone()),
             create_account: CreateAccountUseCase::new(account_repository.clone()),
             update_account: UpdateAccountUseCase::new(account_repository.clone()),
             delete_account: DeleteAccountUseCase::new(account_repository.clone()),
             set_default_account: SetDefaultAccountUseCase::new(account_repository.clone()),
             reorder_accounts: ReorderAccountsUseCase::new(account_repository),
+            list_folders: ListFoldersUseCase::new(folder_repository.clone()),
+            create_folder: CreateFolderUseCase::new(folder_repository.clone()),
+            update_folder: UpdateFolderUseCase::new(folder_repository.clone()),
+            delete_folder: DeleteFolderUseCase::new(folder_repository.clone()),
+            reorder_folders: ReorderFoldersUseCase::new(folder_repository),
         }
     }
 }

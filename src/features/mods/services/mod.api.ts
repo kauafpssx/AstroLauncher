@@ -39,7 +39,11 @@ export const ModAPI = {
   deleteInstalled(instanceId: string, id: string): Promise<void> {
     return apiInvoke<void>('delete_instance_mod', { instanceId, id })
   },
-  installModpack(input: InstallModpackInput): Promise<InstanceDTO> {
-    return apiInvoke<InstanceDTO>('install_modrinth_modpack', { input })
+  installModpack(source: ModSource, input: InstallModpackInput): Promise<InstanceDTO> {
+    const command = source === 'curseforge' ? 'install_curseforge_modpack' : 'install_modrinth_modpack'
+    return apiInvoke<InstanceDTO>(command, { input })
+  },
+  cancelModpackInstall(): Promise<void> {
+    return apiInvoke<void>('cancel_modpack_install')
   },
 }

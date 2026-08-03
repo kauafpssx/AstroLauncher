@@ -24,6 +24,7 @@ interface LaunchStore {
 
   launch: (id: string) => Promise<void>
   stop: (id: string) => Promise<void>
+  cancel: () => Promise<void>
   close: () => void
 }
 
@@ -76,6 +77,15 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
       set((state) => (state.runningInstanceId === id ? { runningInstanceId: null } : state))
     } catch (err) {
       toast.error(`Falha ao encerrar: ${String(err)}`)
+    }
+  },
+
+  cancel: async () => {
+    set({ isOpen: false, instanceId: null, error: null, progress: null })
+    try {
+      await apiInvoke<void>('cancel_launch')
+    } catch (err) {
+      toast.error(`Falha ao cancelar: ${String(err)}`)
     }
   },
 

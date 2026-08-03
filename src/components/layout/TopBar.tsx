@@ -1,4 +1,4 @@
-import { Download, FolderCog, HelpCircle, Plus, RefreshCw, Settings } from 'lucide-react'
+import { Download, Plus, RefreshCw, Shirt } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { AccountDropdown } from '@/components/layout/AccountDropdown'
@@ -20,18 +20,22 @@ export function TopBar({ onCreateInstance, onImportInstance }: TopBarProps) {
       </Button>
       <Separator orientation="vertical" className="mx-1 !h-6 !self-auto" />
       {onImportInstance && (
-        <Button variant="ghost" size="icon" title="Importar .astropack" onClick={onImportInstance}>
+        <Button
+          variant="ghost"
+          size="icon"
+          title="Importar .astropack"
+          onClick={onImportInstance}
+        >
           <Download />
         </Button>
       )}
-      <Button variant="ghost" size="icon" title="Gerenciar pastas">
-        <FolderCog />
-      </Button>
-      <Button variant="ghost" size="icon" title="Configurações" onClick={() => navigate('/settings')}>
-        <Settings />
-      </Button>
-      <Button variant="ghost" size="icon" title="Central de ajuda">
-        <HelpCircle />
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Skins"
+        onClick={() => navigate('/skins')}
+      >
+        <Shirt />
       </Button>
       <div className="ml-auto flex items-center gap-1">
         <AccountDropdown />

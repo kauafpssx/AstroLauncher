@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct LauncherSettings {
     pub curseforge_api_key: Option<String>,
+    #[serde(default)]
+    pub root_group_name: Option<String>,
+    #[serde(default)]
+    pub root_group_icon: Option<String>,
 }
 
 fn settings_path(app_data_dir: &Path) -> PathBuf {
@@ -26,4 +30,17 @@ pub fn write(app_data_dir: &Path, settings: &LauncherSettings) -> anyhow::Result
     }
     std::fs::write(&path, serde_json::to_string_pretty(settings)?)?;
     Ok(())
+}
+
+/// Resolves the CurseForge API key: first the one configured by the user in
+/// settings.json, falling back to the key baked in at build time via the
+/// `CURSEFORGE_API_KEY` env var (set from a GitHub Actions secret, so it is
+/// never committed or logged). Returns `None` when neither is available.
+pub fn resolve_curseforge_api_key(app_data_dir: &Path) -> Option<String> {
+    let configured = read(app_data_dir).curseforge_api_key.filter(|k| !k.trim().is_empty());
+    configured.or_else(build_time_curseforge_api_key)
+}
+
+fn build_time_curseforge_api_key() -> Option<String> {
+    option_env!("CURSEFORGE_API_KEY").map(str::to_string).filter(|k| !k.trim().is_empty())
 }

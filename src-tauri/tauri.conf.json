@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "AstroLauncher",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.astrolauncher.app",
   "build": {
     "frontendDist": "../dist",
@@ -14,12 +14,13 @@
       {
         "label": "main",
         "title": "AstroLauncher",
-        "width": 800,
-        "height": 600,
+        "width": 1024,
+        "height": 768,
         "resizable": true,
         "fullscreen": false,
         "visible": false,
-        "backgroundColor": "#0A0A0A"
+        "backgroundColor": "#0A0A0A",
+        "dragDropEnabled": false
       },
       {
         "label": "splash",
@@ -37,7 +38,11 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPDATA/assets/icons/*"]
+      }
     }
   },
   "bundle": {
@@ -59,6 +64,10 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIzODdENTdGQUVCRjYwRUYKUldUdllMK3VmOVdIc3dheUFDaXd2eVNLSWl6WGVmWDkveHBoRlFBOE92UldWbjk1eUZQUEcxQkwK",
       "endpoints": ["https://github.com/kauafpssx/AstroLauncher/releases/latest/download/latest.json"]
+    },
+    "discord": {
+      "clientId": "1533653025842008145",
+      "logoAssetKey": "logo"
     }
   }
 }

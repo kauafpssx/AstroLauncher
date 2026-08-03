@@ -26,6 +26,8 @@ pub struct ModSearchResultDTO {
     pub icon_url: Option<String>,
     pub downloads: u64,
     pub author: String,
+    pub loader: Option<String>,
+    pub game_version: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -74,8 +76,10 @@ pub struct ModProjectDTO {
     pub project_id: String,
     pub name: String,
     pub description: String,
-    /// Full markdown body, when the source provides one (Modrinth only for
-    /// now — CurseForge serves description as HTML via a separate endpoint).
+    /// The project's full page body — Modrinth serves this as markdown,
+    /// CurseForge as raw HTML from a separate `/description` endpoint. Both
+    /// render fine through the same markdown-with-embedded-HTML pipeline on
+    /// the frontend.
     pub body: Option<String>,
     pub icon_url: Option<String>,
     pub downloads: u64,
@@ -113,6 +117,7 @@ pub struct InstallCustomModInput {
 pub struct InstallModpackInput {
     pub instance_name: String,
     pub download_url: String,
+    pub icon_url: Option<String>,
     pub folder_id: Option<String>,
 }
 

@@ -1,4 +1,6 @@
 import { apiInvoke } from '@/lib/api/client'
+import type { ConfigFileDTO } from '@/types/config-file'
+import type { NoteDTO } from '@/types/note'
 import type { ScreenshotDTO } from '@/types/screenshot'
 import type { ServerEntryDTO } from '@/types/server'
 import type { WorldDTO } from '@/types/world'
@@ -7,11 +9,32 @@ export const InstanceWorkspaceAPI = {
   readLog(id: string): Promise<string> {
     return apiInvoke<string>('read_instance_log', { id })
   },
-  readNotes(id: string): Promise<string> {
-    return apiInvoke<string>('read_instance_notes', { id })
+  listNotes(id: string): Promise<NoteDTO[]> {
+    return apiInvoke<NoteDTO[]>('list_instance_notes', { id })
   },
-  writeNotes(id: string, content: string): Promise<void> {
-    return apiInvoke<void>('write_instance_notes', { id, content })
+  readNote(id: string, noteId: string): Promise<string> {
+    return apiInvoke<string>('read_instance_note', { id, noteId })
+  },
+  writeNote(id: string, noteId: string, content: string): Promise<void> {
+    return apiInvoke<void>('write_instance_note', { id, noteId, content })
+  },
+  createNote(id: string, title: string): Promise<NoteDTO> {
+    return apiInvoke<NoteDTO>('create_instance_note', { id, title })
+  },
+  renameNote(id: string, noteId: string, newTitle: string): Promise<NoteDTO> {
+    return apiInvoke<NoteDTO>('rename_instance_note', { id, noteId, newTitle })
+  },
+  deleteNote(id: string, noteId: string): Promise<void> {
+    return apiInvoke<void>('delete_instance_note', { id, noteId })
+  },
+  listConfigFiles(id: string): Promise<ConfigFileDTO[]> {
+    return apiInvoke<ConfigFileDTO[]>('list_instance_config_files', { id })
+  },
+  readConfigFile(id: string, path: string): Promise<string> {
+    return apiInvoke<string>('read_instance_config_file', { id, path })
+  },
+  writeConfigFile(id: string, path: string, content: string): Promise<void> {
+    return apiInvoke<void>('write_instance_config_file', { id, path, content })
   },
   openFolder(id: string): Promise<void> {
     return apiInvoke<void>('open_instance_folder', { id })

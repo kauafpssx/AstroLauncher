@@ -1,9 +1,10 @@
-import { Image as ImageIcon, Search } from 'lucide-react'
+import { Image as ImageIcon } from 'lucide-react'
 import { useState } from 'react'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
+import { EmptyState } from '@/components/common/EmptyState'
+import { SearchInput } from '@/components/common/SearchInput'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { useInstanceScreenshots } from '@/features/instances/hooks/useInstanceScreenshots'
 
 interface InsertImageDialogProps {
@@ -26,24 +27,12 @@ export function InsertImageDialog({ instanceId, open, onOpenChange, onSelect }: 
           <DialogTitle>Inserir Imagem</DialogTitle>
         </DialogHeader>
 
-        <div className="relative">
-          <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome..."
-            className="pl-8"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            autoFocus
-          />
-        </div>
+        <SearchInput placeholder="Buscar por nome..." value={query} onChange={(e) => setQuery(e.target.value)} autoFocus />
 
         {isLoading ? (
           <CenteredSpinner className="h-48" />
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 p-10 text-center text-muted-foreground">
-            <ImageIcon className="size-8" />
-            <p>Nenhuma screenshot encontrada.</p>
-          </div>
+          <EmptyState icon={ImageIcon} title="Nenhuma screenshot encontrada." className="p-10" />
         ) : (
           <div className="grid grid-cols-4 gap-2 overflow-y-auto pr-1">
             {filtered.map((shot) => (

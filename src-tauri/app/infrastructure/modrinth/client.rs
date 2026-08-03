@@ -1,4 +1,6 @@
-use serde::Deserialize;
+use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
 
 const BASE_URL: &str = "https://api.modrinth.com/v2";
 
@@ -15,11 +17,32 @@ pub struct SearchHit {
     pub icon_url: Option<String>,
     pub downloads: u64,
     pub author: String,
+    #[serde(default)]
+    pub categories: Vec<String>,
+    #[serde(default)]
+    pub versions: Vec<String>,
+}
+
+const LOADER_CATEGORIES: [&str; 4] = ["fabric", "forge", "quilt", "neoforge"];
+
+impl SearchHit {
+    /// Modrinth tags a modpack's loader as a regular category (alongside
+    /// things like "adventure" or "technology") rather than a separate field.
+    pub fn primary_loader(&self) -> Option<&str> {
+        self.categories.iter().find(|c| LOADER_CATEGORIES.contains(&c.as_str())).map(|c| c.as_str())
+    }
+
+    /// The newest Minecraft version this project supports — `versions` is
+    /// sorted oldest to newest, so the last entry is the most recent.
+    pub fn latest_game_version(&self) -> Option<&str> {
+        self.versions.last().map(String::as_str)
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Version {
     pub id: String,
+    pub project_id: String,
     pub name: String,
     pub version_number: String,
     pub game_versions: Vec<String>,
@@ -112,4 +135,43 @@ pub async fn get_versions(
     }
     let versions = client.get(url).send().await?.error_for_status()?.json::<Vec<Version>>().await?;
     Ok(versions)
+}
+
+#[derive(Debug, Serialize)]
+struct VersionFilesRequest<'a> {
+    hashes: &'a [String],
+    algorithm: &'a str,
+}
+
+/// Resolves many files at once by their sha1 hash — used to recover each
+/// modpack file's project/version metadata after downloading it, since the
+/// `.mrpack` manifest only lists hashes, not names.
+pub async fn get_versions_by_hashes(client: &reqwest::Client, sha1_hashes: &[String]) -> anyhow::Result<HashMap<String, Version>> {
+    if sha1_hashes.is_empty() {
+        return Ok(HashMap::new());
+    }
+    let url = format!("{BASE_URL}/version_files");
+    let body = VersionFilesRequest { hashes: sha1_hashes, algorithm: "sha1" };
+    let versions = client.post(url).json(&body).send().await?.error_for_status()?.json::<HashMap<String, Version>>().await?;
+    Ok(versions)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ProjectSummary {
+    pub id: String,
+    pub icon_url: Option<String>,
+}
+
+/// Resolves many projects' icons at once — used to fetch every modpack mod's
+/// icon up front instead of one call per project.
+pub async fn get_projects_by_ids(client: &reqwest::Client, project_ids: &[String]) -> anyhow::Result<Vec<ProjectSummary>> {
+    if project_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+    let ids_json = serde_json::to_string(project_ids)?;
+    let mut url = reqwest::Url::parse(&format!("{BASE_URL}/projects"))?;
+    url.query_pairs_mut().append_pair("ids", &ids_json);
+
+    let projects = client.get(url).send().await?.error_for_status()?.json::<Vec<ProjectSummary>>().await?;
+    Ok(projects)
 }

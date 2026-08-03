@@ -1,39 +1,78 @@
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use crate::application::dto::LaunchEventDTO;
-use crate::domain::repositories::{AccountRepository, InstanceRepository};
+use crate::application::use_cases::PlaytimeService;
+use crate::domain::repositories::{AccountRepository, InstanceRepository, ModRepository};
+use crate::infrastructure::discord::DiscordRpcHandle;
 use crate::infrastructure::downloader::progress::{ProgressReporter, ProgressUpdate};
 use crate::infrastructure::downloader::{asset_downloader, file_downloader};
 use crate::infrastructure::filesystem::paths;
 use crate::infrastructure::java;
 use crate::infrastructure::minecraft::rules::rules_allow;
 use crate::infrastructure::minecraft::{manifest, version_meta};
-use crate::infrastructure::modloader::fabric_like;
+use crate::infrastructure::modloader::profile::library_download_url;
+use crate::infrastructure::modloader::{fabric_like, forge_like, liteloader};
 use crate::infrastructure::process::launcher;
 use crate::infrastructure::process::manager::ProcessManager;
 
-/// Fabric/Quilt loader libraries have no advertised size — used only to keep
-/// the overall progress bar moving sensibly before they're downloaded.
+/// Fabric/Quilt/LiteLoader libraries have no advertised size — used only to
+/// keep the overall progress bar moving sensibly before they're downloaded.
 const ESTIMATED_LOADER_LIBRARY_BYTES: u64 = 300_000;
 
 pub struct LaunchInstanceUseCase {
     instance_repository: Arc<dyn InstanceRepository>,
     account_repository: Arc<dyn AccountRepository>,
+    mod_repository: Arc<dyn ModRepository>,
+    playtime_service: Arc<PlaytimeService>,
+    discord: DiscordRpcHandle,
     process_manager: Arc<ProcessManager>,
     http_client: reqwest::Client,
     app_data_dir: PathBuf,
+    /// Only one launch preparation runs from the UI at a time, so a single
+    /// shared flag is enough to signal cancellation into whichever download
+    /// step is currently running. Once Forge/NeoForge's own installer starts
+    /// (a blocking third-party call we don't control), cancellation can no
+    /// longer interrupt it — the flag only stops things before that point.
+    cancelled: Arc<AtomicBool>,
 }
 
 impl LaunchInstanceUseCase {
     pub fn new(
         instance_repository: Arc<dyn InstanceRepository>,
         account_repository: Arc<dyn AccountRepository>,
+        mod_repository: Arc<dyn ModRepository>,
+        playtime_service: Arc<PlaytimeService>,
+        discord: DiscordRpcHandle,
         process_manager: Arc<ProcessManager>,
         http_client: reqwest::Client,
         app_data_dir: PathBuf,
     ) -> Self {
-        Self { instance_repository, account_repository, process_manager, http_client, app_data_dir }
+        Self {
+            instance_repository,
+            account_repository,
+            mod_repository,
+            playtime_service,
+            discord,
+            process_manager,
+            http_client,
+            app_data_dir,
+            cancelled: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    /// Signals the currently-running launch preparation (if any) to stop
+    /// before its next checkpoint.
+    pub fn cancel(&self) {
+        self.cancelled.store(true, Ordering::SeqCst);
+    }
+
+    fn check_cancelled(&self) -> anyhow::Result<()> {
+        if self.cancelled.load(Ordering::SeqCst) {
+            anyhow::bail!("Inicialização cancelada");
+        }
+        Ok(())
     }
 
     pub async fn execute(
@@ -42,6 +81,7 @@ impl LaunchInstanceUseCase {
         on_event: Arc<dyn Fn(LaunchEventDTO) + Send + Sync>,
         on_exit: Arc<dyn Fn(&str) + Send + Sync>,
     ) -> anyhow::Result<()> {
+        self.cancelled.store(false, Ordering::SeqCst);
         let result = self.run(instance_id, on_event.clone(), on_exit).await;
         if let Err(err) = &result {
             (*on_event)(LaunchEventDTO::Error { message: err.to_string() });
@@ -70,6 +110,7 @@ impl LaunchInstanceUseCase {
                 .ok_or_else(|| anyhow::anyhow!("Nenhuma conta configurada. Adicione uma conta antes de iniciar o jogo."))?
         };
 
+        self.check_cancelled()?;
         (*on_event)(LaunchEventDTO::Stage { label: "Buscando informações da versão".to_string() });
         let versions = manifest::fetch_manifest(&self.http_client).await?;
         let entry = versions
@@ -79,6 +120,7 @@ impl LaunchInstanceUseCase {
             .ok_or_else(|| anyhow::anyhow!("Versão '{}' não encontrada no manifesto", instance.version))?;
         let meta = version_meta::fetch_version_meta(&self.http_client, &entry.url).await?;
 
+        self.check_cancelled()?;
         (*on_event)(LaunchEventDTO::Stage { label: "Verificando Java".to_string() });
         let required_major = meta.java_version.as_ref().map(|v| v.major_version).unwrap_or(8);
         let on_event_for_java = on_event.clone();
@@ -87,16 +129,26 @@ impl LaunchInstanceUseCase {
         })
         .await?;
 
-        let loader_profile = match instance.loader.as_deref().and_then(fabric_like::meta_base_for) {
-            Some(meta_base) => {
-                (*on_event)(LaunchEventDTO::Stage { label: format!("Preparando {}", instance.loader.as_deref().unwrap_or("loader")) });
+        self.check_cancelled()?;
+        if instance.loader.as_deref().is_some_and(forge_like::is_supported) {
+            return self.run_forge_like(&instance, &account, &java_bin, on_event, on_exit).await;
+        }
+
+        let loader_profile = match instance.loader.as_deref() {
+            Some(loader) if fabric_like::meta_base_for(loader).is_some() => {
+                let meta_base = fabric_like::meta_base_for(loader).unwrap();
+                (*on_event)(LaunchEventDTO::Stage { label: format!("Preparando {loader}") });
                 let loader_version = match &instance.loader_version {
                     Some(v) => v.clone(),
                     None => fabric_like::fetch_latest_stable_loader_version(&self.http_client, meta_base, &instance.version).await?,
                 };
                 Some(fabric_like::fetch_profile(&self.http_client, meta_base, &instance.version, &loader_version).await?)
             }
-            None => None,
+            Some("liteloader") => {
+                (*on_event)(LaunchEventDTO::Stage { label: "Preparando LiteLoader".to_string() });
+                Some(liteloader::fetch_profile(&self.http_client, &instance.version).await?)
+            }
+            _ => None,
         };
 
         (*on_event)(LaunchEventDTO::Stage { label: "Calculando downloads".to_string() });
@@ -147,6 +199,7 @@ impl LaunchInstanceUseCase {
         let mut library_paths = Vec::new();
         let mut lib_index = 0u64;
         for library in &meta.libraries {
+            self.check_cancelled()?;
             if !rules_allow(&library.rules) {
                 continue;
             }
@@ -176,19 +229,24 @@ impl LaunchInstanceUseCase {
         if let Some(profile) = &loader_profile {
             let total_loader_libs = profile.libraries.len() as u64;
             for (index, library) in profile.libraries.iter().enumerate() {
+                self.check_cancelled()?;
                 let dest = launcher::library_path(&libraries_dir, &library.name);
-                let url = fabric_like::library_download_url(library);
+                let url = library_download_url(library);
                 file_downloader::download_to_file(&self.http_client, &url, &dest, None).await?;
                 library_paths.push(dest);
                 reporter.report_item("Bibliotecas do Loader", &library.name, ESTIMATED_LOADER_LIBRARY_BYTES, index as u64 + 1, total_loader_libs);
             }
         }
 
-        asset_downloader::download_assets(&self.http_client, &asset_index, &asset_index_bytes, &meta.asset_index.id, &assets_dir, &reporter)
+        self.check_cancelled()?;
+        asset_downloader::download_assets(&self.http_client, &asset_index, &asset_index_bytes, &meta.asset_index.id, &assets_dir, &self.cancelled, &reporter)
             .await?;
 
+        self.check_cancelled()?;
         (*on_event)(LaunchEventDTO::Stage { label: "Iniciando jogo".to_string() });
         let main_class = loader_profile.as_ref().map(|p| p.main_class.as_str()).unwrap_or(&meta.main_class);
+        let no_extra_args: Vec<String> = Vec::new();
+        let extra_game_args = loader_profile.as_ref().map(|p| &p.extra_game_args).unwrap_or(&no_extra_args);
         let classpath = launcher::build_classpath(&library_paths, &client_jar);
         let log_path = instance_dir.join("logs").join("latest.log");
 
@@ -205,13 +263,142 @@ impl LaunchInstanceUseCase {
                 uuid: &account.uuid,
                 min_memory_mb: instance.min_memory,
                 max_memory_mb: instance.max_memory,
+                extra_jvm_args: &no_extra_args,
+                extra_game_args,
             },
             &classpath,
             &log_path,
         )?;
 
-        self.process_manager.register(instance.id.clone(), child, on_exit);
+        self.register_with_playtime(instance.id.clone(), instance.name.clone(), child, on_exit).await;
 
+        Ok(())
+    }
+
+    /// Registers the spawned process, wraps `on_exit` so the playtime
+    /// session opened for this launch is closed (and the instance total
+    /// updated) when the game exits, and updates Discord Rich Presence for
+    /// the session's duration. Both are best-effort — a failure must never
+    /// prevent the game from launching.
+    async fn register_with_playtime(
+        &self,
+        instance_id: String,
+        instance_name: String,
+        child: std::process::Child,
+        on_exit: Arc<dyn Fn(&str) + Send + Sync>,
+    ) {
+        let mod_count = {
+            let repository = self.mod_repository.clone();
+            let id = instance_id.clone();
+            tokio::task::spawn_blocking(move || repository.find_by_instance(&id))
+                .await
+                .ok()
+                .and_then(|r| r.ok())
+                .map(|mods| mods.len())
+                .unwrap_or(0)
+        };
+
+        let session_id = {
+            let service = self.playtime_service.clone();
+            let id = instance_id.clone();
+            match tokio::task::spawn_blocking(move || service.start_session(&id)).await {
+                Ok(Ok(session)) => Some(session.id),
+                Ok(Err(err)) => {
+                    tracing::warn!("could not start playtime session for {instance_id}: {err}");
+                    None
+                }
+                Err(err) => {
+                    tracing::warn!("playtime session task failed for {instance_id}: {err}");
+                    None
+                }
+            }
+        };
+
+        let on_exit = match session_id {
+            Some(session_id) => {
+                let service = self.playtime_service.clone();
+                let original = on_exit.clone();
+                Arc::new(move |id: &str| {
+                    if let Err(err) = service.end_session(&session_id) {
+                        tracing::warn!("could not end playtime session {session_id}: {err}");
+                    }
+                    (*original)(id);
+                })
+            }
+            None => on_exit,
+        };
+
+        let discord = self.discord.clone();
+        discord.set_playing(instance_name, mod_count, chrono::Utc::now().timestamp());
+        let discord_for_exit = discord.clone();
+        let on_exit = Arc::new(move |id: &str| {
+            discord_for_exit.set_idle();
+            (*on_exit)(id);
+        });
+
+        self.process_manager.register(instance_id, child, on_exit);
+    }
+
+    /// Forge/NeoForge: the installer, library/asset downloads, and final
+    /// command are all delegated to `mc-launcher-core` (see
+    /// `infrastructure::modloader::forge_like`) since the modern installer
+    /// runs its own binary-patch processors — something worth reusing rather
+    /// than reimplementing. The crate's API is synchronous, so the whole
+    /// sequence runs inside one `spawn_blocking`.
+    async fn run_forge_like(
+        &self,
+        instance: &crate::domain::entities::Instance,
+        account: &crate::domain::entities::Account,
+        java_bin: &str,
+        on_event: Arc<dyn Fn(LaunchEventDTO) + Send + Sync>,
+        on_exit: Arc<dyn Fn(&str) + Send + Sync>,
+    ) -> anyhow::Result<()> {
+        let loader = instance.loader.clone().unwrap();
+        let mc_version = instance.version.clone();
+        let requested_version = instance.loader_version.clone();
+        let app_data_dir = self.app_data_dir.clone();
+        let instance_dir = paths::instance_dir(&self.app_data_dir, &instance.id);
+        let natives_dir = instance_dir.join("natives");
+        let java_bin_path: PathBuf = java_bin.into();
+        let username = account.username.clone();
+        let uuid = account.uuid.clone();
+        let on_event_blocking = on_event.clone();
+        let instance_dir_for_build = instance_dir.clone();
+
+        let command = tokio::task::spawn_blocking(move || -> anyhow::Result<forge_like::BuiltCommand> {
+            (*on_event_blocking)(LaunchEventDTO::Stage { label: format!("Preparando {loader}") });
+            let loader_version = match requested_version {
+                Some(v) => v,
+                None => forge_like::resolve_loader_version(&loader, &mc_version)?,
+            };
+
+            forge_like::ensure_vanilla_json_on_disk(&app_data_dir, &mc_version)?;
+
+            (*on_event_blocking)(LaunchEventDTO::Stage { label: format!("Baixando instalador do {loader}") });
+            let url = forge_like::installer_url(&loader, &loader_version)?;
+            let installer_path = forge_like::download_installer(&app_data_dir, &loader, &loader_version, &url)?;
+
+            (*on_event_blocking)(LaunchEventDTO::Stage { label: format!("Instalando {loader} (isso pode levar um tempo)") });
+            forge_like::run_installer(&java_bin_path, &installer_path, &app_data_dir, &loader)?;
+
+            let version_id = forge_like::installed_version_id(&loader, &mc_version, &loader_version)?;
+            let merged = forge_like::load_merged_version(&app_data_dir, &version_id)?;
+
+            (*on_event_blocking)(LaunchEventDTO::Stage { label: "Baixando bibliotecas e assets".to_string() });
+            let on_event_files = on_event_blocking.clone();
+            forge_like::install_files(&merged, &app_data_dir, move |label| {
+                (*on_event_files)(LaunchEventDTO::Stage { label });
+            })?;
+
+            (*on_event_blocking)(LaunchEventDTO::Stage { label: "Montando comando de inicialização".to_string() });
+            forge_like::build_command(&app_data_dir, &merged, &java_bin_path, &instance_dir_for_build, &natives_dir, &username, &uuid)
+        })
+        .await??;
+
+        (*on_event)(LaunchEventDTO::Stage { label: "Iniciando jogo".to_string() });
+        let log_path = instance_dir.join("logs").join("latest.log");
+        let child = launcher::spawn_with_parts(&command.executable, &command.args, &command.working_dir, &log_path)?;
+        self.register_with_playtime(instance.id.clone(), instance.name.clone(), child, on_exit).await;
         Ok(())
     }
 }

@@ -1,13 +1,13 @@
-import { ArrowLeft, Layers, Server } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { InstalledContentTab } from '@/features/mods/components/InstalledContentTab'
+import { useDiscordPresence } from '@/hooks/useDiscordPresence'
 import { useInstanceStore } from '@/stores/instance.store'
 
-import { ComingSoonTab } from '../components/edit-instance/ComingSoonTab'
+import { ConfigEditorTab } from '../components/edit-instance/ConfigEditorTab'
 import type { EditInstanceTab } from '../components/edit-instance/EditInstanceSidebar'
 import { EditInstanceSidebar } from '../components/edit-instance/EditInstanceSidebar'
 import { LogTab } from '../components/edit-instance/LogTab'
@@ -18,14 +18,6 @@ import { SettingsTab } from '../components/edit-instance/SettingsTab'
 import { WorldsTab } from '../components/edit-instance/WorldsTab'
 import { useInstances } from '../hooks/useInstances'
 
-const COMING_SOON: Record<string, { icon: typeof Server; title: string; description: string }> = {
-  'other-logs': {
-    icon: Layers,
-    title: 'Other Logs em breve',
-    description: 'Histórico de logs antigos ainda não está disponível.',
-  },
-}
-
 export function EditInstancePage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -34,6 +26,8 @@ export function EditInstancePage() {
   const [tab, setTab] = useState<EditInstanceTab>('settings')
 
   const instance = instances.find((i) => i.id === id)
+
+  useDiscordPresence('Editando uma instância', instance?.name ?? 'Carregando...')
 
   if (!instance) {
     return (
@@ -51,22 +45,16 @@ export function EditInstancePage() {
 
   return (
     <div className="flex h-screen">
-      <EditInstanceSidebar instanceName={instance.name} active={tab} onChange={setTab} />
+      <EditInstanceSidebar instanceName={instance.name} active={tab} onChange={setTab} onBack={goBack} />
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-3">
-          <Button variant="ghost" size="icon" onClick={goBack}>
-            <ArrowLeft />
-          </Button>
-          <span className="font-medium">Editar Instância</span>
-        </header>
-
-        {tab === 'log' ? (
-          <div className="min-h-0 flex-1 p-6">
-            <LogTab instanceId={instance.id} />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        {tab === 'log' || tab === 'config-editor' ? (
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col p-6">
+            {tab === 'log' && <LogTab instanceId={instance.id} />}
+            {tab === 'config-editor' && <ConfigEditorTab instanceId={instance.id} />}
           </div>
         ) : (
-          <ScrollArea className="min-h-0 flex-1">
+          <ScrollArea type="always" className="min-h-0 flex-1">
             <div className="flex h-full flex-col p-6">
               {tab === 'settings' && <SettingsTab instance={instance} />}
               {tab === 'worlds' && <WorldsTab instanceId={instance.id} />}
@@ -87,13 +75,6 @@ export function EditInstancePage() {
               )}
               {tab === 'servers' && <ServersTab instanceId={instance.id} />}
               {tab === 'screenshots' && <ScreenshotsTab instanceId={instance.id} />}
-              {COMING_SOON[tab] && (
-                <ComingSoonTab
-                  icon={COMING_SOON[tab].icon}
-                  title={COMING_SOON[tab].title}
-                  description={COMING_SOON[tab].description}
-                />
-              )}
             </div>
           </ScrollArea>
         )}

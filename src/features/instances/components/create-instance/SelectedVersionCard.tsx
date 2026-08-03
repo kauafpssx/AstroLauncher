@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatDate } from '@/lib/format'
 import type { VersionDTO, VersionType } from '@/types/version'
 
 const TYPE_LABEL: Record<VersionType, string> = {
@@ -15,25 +15,21 @@ interface SelectedVersionCardProps {
 
 export function SelectedVersionCard({ version }: SelectedVersionCardProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm text-primary">Versão Selecionada</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {version ? (
-          <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5">
+      <h3 className="text-sm font-medium">Versão Selecionada</h3>
+      {version ? (
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
             <span className="text-2xl font-semibold">{version.id}</span>
-            <span className="text-sm text-muted-foreground">
-              Lançamento: {new Date(version.releaseTime).toLocaleDateString('pt-BR')}
-            </span>
-            <Badge variant="outline" className="mt-1 w-fit">
-              {TYPE_LABEL[version.type]}
-            </Badge>
+            <Badge variant="outline">{TYPE_LABEL[version.type]}</Badge>
           </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">Nenhuma versão selecionada</p>
-        )}
-      </CardContent>
-    </Card>
+          <span className="text-sm text-muted-foreground">
+            Lançamento: {formatDate(version.releaseTime)}
+          </span>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">Nenhuma versão selecionada</p>
+      )}
+    </div>
   )
 }

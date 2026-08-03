@@ -28,6 +28,7 @@ impl UpdateInstanceUseCase {
         instance.java_args = input.java_args;
         instance.min_memory = input.min_memory;
         instance.max_memory = input.max_memory;
+        instance.icon_path = input.icon_path;
 
         self.repository.save(&instance)?;
         Ok(instance_mapper::to_dto(&instance))

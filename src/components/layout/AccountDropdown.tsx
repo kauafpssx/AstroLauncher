@@ -1,8 +1,7 @@
 import { ChevronDown, UserCircle2, UserCog } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -11,16 +10,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { AccountsDialog } from '@/features/accounts/components/AccountsDialog'
 import { AddAccountDialog } from '@/features/accounts/components/AddAccountDialog'
 import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { useAccountStore, useDefaultAccount } from '@/stores/account.store'
 
 export function AccountDropdown() {
-  const navigate = useNavigate()
   const { accounts } = useAccounts()
   const defaultAccount = useDefaultAccount()
   const setDefaultAccount = useAccountStore((s) => s.setDefaultAccount)
   const [addOpen, setAddOpen] = useState(false)
+  const [manageOpen, setManageOpen] = useState(false)
 
   if (accounts.length === 0) {
     return (
@@ -39,9 +39,7 @@ export function AccountDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="gap-2">
-          <Avatar className="size-5">
-            <AvatarFallback className="text-[10px]">{active.username.slice(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
+          <EntityAvatar name={active.username} className="size-5" fallbackClassName="text-[10px]" />
           {active.username}
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </Button>
@@ -49,18 +47,17 @@ export function AccountDropdown() {
       <DropdownMenuContent align="start" className="w-56">
         {accounts.map((account) => (
           <DropdownMenuItem key={account.id} onSelect={() => setDefaultAccount(account.id)}>
-            <Avatar className="size-5">
-              <AvatarFallback className="text-[10px]">{account.username.slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
+            <EntityAvatar name={account.username} className="size-5" fallbackClassName="text-[10px]" />
             {account.username}
             {account.isDefault && <span className="ml-auto text-xs text-muted-foreground">ativa</span>}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => navigate('/accounts')}>
+        <DropdownMenuItem onSelect={() => setManageOpen(true)}>
           <UserCog /> Gerenciar contas
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <AccountsDialog open={manageOpen} onOpenChange={setManageOpen} />
     </DropdownMenu>
   )
 }

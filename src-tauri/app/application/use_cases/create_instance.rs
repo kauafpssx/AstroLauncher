@@ -24,6 +24,7 @@ impl CreateInstanceUseCase {
         instance.loader = input.loader;
         instance.loader_version = input.loader_version;
         instance.folder_id = input.folder_id;
+        instance.icon_path = input.icon_path;
 
         self.repository.save(&instance)?;
         Ok(instance_mapper::to_dto(&instance))

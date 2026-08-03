@@ -24,9 +24,7 @@ impl ModBrowserService {
     }
 
     fn curseforge_api_key(&self) -> anyhow::Result<String> {
-        json_settings_repository::read(&self.app_data_dir)
-            .curseforge_api_key
-            .filter(|k| !k.trim().is_empty())
+        json_settings_repository::resolve_curseforge_api_key(&self.app_data_dir)
             .ok_or_else(|| anyhow::anyhow!("Configure sua API key do CurseForge em Configurações antes de buscar."))
     }
 
@@ -45,6 +43,8 @@ impl ModBrowserService {
                     .into_iter()
                     .map(|hit| ModSearchResultDTO {
                         source: ModSource::Modrinth,
+                        loader: hit.primary_loader().map(str::to_string),
+                        game_version: hit.latest_game_version().map(str::to_string),
                         project_id: hit.project_id,
                         name: hit.title,
                         description: hit.description,
@@ -70,6 +70,8 @@ impl ModBrowserService {
                     .into_iter()
                     .map(|entry| ModSearchResultDTO {
                         source: ModSource::Curseforge,
+                        loader: entry.primary_loader().map(str::to_string),
+                        game_version: entry.latest_game_version().map(str::to_string),
                         project_id: entry.id.to_string(),
                         name: entry.name,
                         description: entry.summary,
@@ -161,12 +163,13 @@ impl ModBrowserService {
                 let api_key = self.curseforge_api_key()?;
                 let project_id: u32 = input.project_id.parse().map_err(|_| anyhow::anyhow!("ID de projeto inválido"))?;
                 let entry = curseforge::client::get_mod(&self.http_client, &api_key, project_id).await?;
+                let body = curseforge::client::get_description(&self.http_client, &api_key, project_id).await.ok();
                 Ok(ModProjectDTO {
                     source: ModSource::Curseforge,
                     project_id: input.project_id,
                     name: entry.name,
                     description: entry.summary,
-                    body: None,
+                    body,
                     icon_url: entry.logo.map(|l| l.url),
                     downloads: entry.download_count,
                     source_url: None,

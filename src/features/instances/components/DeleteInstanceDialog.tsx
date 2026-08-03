@@ -1,6 +1,5 @@
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -8,6 +7,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
 import type { InstanceDTO } from '@/types/instance'
 
 interface DeleteInstanceDialogProps {
@@ -18,32 +18,37 @@ interface DeleteInstanceDialogProps {
 }
 
 export function DeleteInstanceDialog({ instance, isRunning, onOpenChange, onConfirm }: DeleteInstanceDialogProps) {
+  if (!isRunning) {
+    return (
+      <ConfirmDeleteDialog
+        open={!!instance}
+        onOpenChange={onOpenChange}
+        title="Excluir instância"
+        description={
+          <>
+            Isso vai apagar <strong>{instance?.name}</strong> e todos os arquivos da instância (saves, config, mods)
+            permanentemente. Essa ação não pode ser desfeita.
+          </>
+        }
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        onConfirm={onConfirm}
+      />
+    )
+  }
+
   return (
     <AlertDialog open={!!instance} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir instância</AlertDialogTitle>
           <AlertDialogDescription>
-            {isRunning ? (
-              <>
-                <strong className="text-destructive">{instance?.name}</strong> está em execução. Encerre o jogo antes de
-                excluir esta instância.
-              </>
-            ) : (
-              <>
-                Isso vai apagar <strong>{instance?.name}</strong> e todos os arquivos da instância (saves, config, mods)
-                permanentemente. Essa ação não pode ser desfeita.
-              </>
-            )}
+            <strong className="text-destructive">{instance?.name}</strong> está em execução. Encerre o jogo antes de
+            excluir esta instância.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          {!isRunning && (
-            <AlertDialogAction variant="destructive" onClick={onConfirm}>
-              Excluir
-            </AlertDialogAction>
-          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

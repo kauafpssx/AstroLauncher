@@ -1,13 +1,13 @@
 import { listen } from '@tauri-apps/api/event'
 import { Check, Loader2, PackageCheck, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EntityAvatar } from '@/components/common/EntityAvatar'
+import { ProgressGroup } from '@/components/common/ProgressGroup'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { groupByContentKind } from '@/lib/content-kind'
 
@@ -50,14 +50,43 @@ export function ImportAstropackDialog({ open, onOpenChange, filePath, onImported
   const [current, setCurrent] = useState(0)
   const [total, setTotal] = useState(0)
   const [importError, setImportError] = useState<string | null>(null)
-  const doneRef = useRef(false)
+  const [isDone, setIsDone] = useState(false)
+
+  // Reset the wizard during render whenever a new file is picked (the effect
+  // below only performs the preview fetch).
+  const previewKey = `${open}:${filePath}`
+  const [prevPreviewKey, setPrevPreviewKey] = useState(previewKey)
+  if (prevPreviewKey !== previewKey) {
+    setPrevPreviewKey(previewKey)
+    setStep('loading')
+    setManifest(null)
+    setPreviewError(null)
+    setIsDone(false)
+  }
+
+  // Reset the progress UI during render whenever an import actually starts, so
+  // start() below only subscribes to events and awaits the backend.
+  const importPhaseKey = `${previewKey}:${step === 'importing' ? 'importing' : 'idle'}`
+  const [prevImportPhaseKey, setPrevImportPhaseKey] = useState(importPhaseKey)
+  if (prevImportPhaseKey !== importPhaseKey) {
+    setPrevImportPhaseKey(importPhaseKey)
+    if (step === 'importing' && manifest) {
+      const selectedContents = manifest.contents.filter((entry) => {
+        if (entry.kind === 'resourcepack') return selection.resourcepacks
+        if (entry.kind === 'shader') return selection.shaders
+        return selection.mods
+      })
+      setEntries(selectedContents.map((entry) => ({ kind: entry.kind, name: entry.name, iconUrl: entry.iconUrl, status: 'pending' as EntryStatus })))
+      setCurrent(0)
+      setTotal(selectedContents.length + (selection.worlds ? manifest.worlds.length : 0) + (selection.screenshots ? manifest.screenshots.length : 0))
+      setImportError(null)
+      setIsDone(false)
+    }
+  }
 
   useEffect(() => {
     if (!open || !filePath) return
     let cancelled = false
-    setStep('loading')
-    setManifest(null)
-    setPreviewError(null)
 
     AstroPackAPI.previewAstropack(filePath)
       .then((result) => {
@@ -66,7 +95,7 @@ export function ImportAstropackDialog({ open, onOpenChange, filePath, onImported
         setSelection({
           settings: !!result.settings,
           worlds: result.worlds.length > 0,
-          notes: !!result.notes,
+          notes: result.notes.length > 0,
           mods: result.contents.some((e) => e.kind === 'mod'),
           resourcepacks: result.contents.some((e) => e.kind === 'resourcepack'),
           shaders: result.contents.some((e) => e.kind === 'shader'),
@@ -91,19 +120,8 @@ export function ImportAstropackDialog({ open, onOpenChange, filePath, onImported
 
     let unlisten: (() => void) | undefined
     let cancelled = false
-    doneRef.current = false
 
     async function start() {
-      const selectedContents = manifest!.contents.filter((entry) => {
-        if (entry.kind === 'resourcepack') return selection.resourcepacks
-        if (entry.kind === 'shader') return selection.shaders
-        return selection.mods
-      })
-      setEntries(selectedContents.map((entry) => ({ kind: entry.kind, name: entry.name, iconUrl: entry.iconUrl, status: 'pending' as EntryStatus })))
-      setCurrent(0)
-      setTotal(selectedContents.length + (selection.worlds ? manifest!.worlds.length : 0) + (selection.screenshots ? manifest!.screenshots.length : 0))
-      setImportError(null)
-
       unlisten = await listen<AstroPackEvent>('astropack://event', (event) => {
         const payload = event.payload
         if (payload.type === 'progress') {
@@ -125,7 +143,7 @@ export function ImportAstropackDialog({ open, onOpenChange, filePath, onImported
       try {
         const result = await AstroPackAPI.importAstropack({ filePath, selection })
         if (cancelled) return
-        doneRef.current = true
+        setIsDone(true)
         setEntries((prev) => prev.map((e) => ({ ...e, status: 'done' as EntryStatus })))
         setCurrent((c) => (total > 0 ? total : c))
         toast.success(`Instância "${result.name}" importada com sucesso`)
@@ -147,14 +165,14 @@ export function ImportAstropackDialog({ open, onOpenChange, filePath, onImported
   }, [open, step, filePath, manifest])
 
   const overallPercent = total > 0 ? (current / total) * 100 : 0
-  const isImporting = step === 'importing' && !doneRef.current && !importError
-  const canClose = step !== 'importing' || doneRef.current || !!importError
+  const isImporting = step === 'importing' && !isDone && !importError
+  const canClose = step !== 'importing' || isDone || !!importError
 
   const categoryItems: AstroPackCategoryItem[] = manifest
     ? [
         { key: 'settings', label: 'Configurações do jogo (options.txt)', count: !!manifest.settings, checked: selection.settings },
         { key: 'worlds', label: 'Mundos', count: manifest.worlds.length, checked: selection.worlds },
-        { key: 'notes', label: 'Notas', count: !!manifest.notes, checked: selection.notes },
+        { key: 'notes', label: 'Notas', count: manifest.notes.length, checked: selection.notes },
         { key: 'mods', label: 'Mods', count: manifest.contents.filter((e) => e.kind === 'mod').length, checked: selection.mods },
         {
           key: 'resourcepacks',
@@ -250,15 +268,7 @@ export function ImportAstropackDialog({ open, onOpenChange, filePath, onImported
 
         {step === 'importing' && (
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Progresso geral</span>
-                <span>
-                  {current}/{total}
-                </span>
-              </div>
-              <Progress value={overallPercent} />
-            </div>
+            <ProgressGroup label="Progresso geral" value={overallPercent} rightLabel={`${current}/${total}`} />
 
             {entries.length === 0 && isImporting ? (
               <CenteredSpinner className="py-6" iconClassName="size-5" />

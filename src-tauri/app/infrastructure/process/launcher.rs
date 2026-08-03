@@ -18,6 +18,12 @@ pub struct LaunchOptions<'a> {
     pub uuid: &'a str,
     pub min_memory_mb: i64,
     pub max_memory_mb: i64,
+    /// Extra JVM flags some loaders require (e.g. Forge's module `--add-opens`
+    /// set on 1.17+) — inserted before `-cp`. Empty for vanilla/Fabric/Quilt.
+    pub extra_jvm_args: &'a [String],
+    /// Extra game arguments some loaders require (e.g. LiteLoader's
+    /// `--tweakClass`) — appended after Mojang's standard set.
+    pub extra_game_args: &'a [String],
 }
 
 /// Resolves a Maven coordinate (`group:artifact:version[:classifier]`) to the
@@ -58,38 +64,51 @@ pub fn build_classpath(libraries: &[PathBuf], client_jar: &Path) -> String {
 }
 
 pub fn spawn_game(options: LaunchOptions, classpath: &str, log_path: &Path) -> anyhow::Result<std::process::Child> {
+    let mut args: Vec<String> = Vec::new();
+    args.push(format!("-Xms{}M", options.min_memory_mb));
+    args.push(format!("-Xmx{}M", options.max_memory_mb));
+    args.push(format!("-Djava.library.path={}", options.natives_dir.display()));
+    args.extend(options.extra_jvm_args.iter().cloned());
+    args.push("-cp".to_string());
+    args.push(classpath.to_string());
+    args.push(options.main_class.to_string());
+    args.push("--username".to_string());
+    args.push(options.username.to_string());
+    args.push("--version".to_string());
+    args.push(options.version_meta.id.clone());
+    args.push("--gameDir".to_string());
+    args.push(options.game_dir.display().to_string());
+    args.push("--assetsDir".to_string());
+    args.push(options.assets_dir.display().to_string());
+    args.push("--assetIndex".to_string());
+    args.push(options.version_meta.asset_index.id.clone());
+    args.push("--uuid".to_string());
+    args.push(options.uuid.to_string());
+    args.push("--accessToken".to_string());
+    args.push("0".to_string());
+    args.push("--userType".to_string());
+    args.push("legacy".to_string());
+    args.push("--versionType".to_string());
+    args.push("release".to_string());
+    args.extend(options.extra_game_args.iter().cloned());
+
+    spawn_with_parts(Path::new(options.java_bin), &args, options.game_dir, log_path)
+}
+
+/// Spawns a Java process with a pre-built argument list, piping stdout/stderr
+/// to the instance's log file. Shared by the vanilla/Fabric/Quilt/LiteLoader
+/// argument builder above and the Forge/NeoForge branch, which builds its
+/// argument list via `mc-launcher-core`'s command builder instead.
+pub fn spawn_with_parts(java_bin: &Path, args: &[String], game_dir: &Path, log_path: &Path) -> anyhow::Result<std::process::Child> {
     if let Some(parent) = log_path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    std::fs::create_dir_all(options.game_dir)?;
+    std::fs::create_dir_all(game_dir)?;
     let log_file = std::fs::File::create(log_path)?;
 
-    Command::new(options.java_bin)
-        .current_dir(options.game_dir)
-        .arg(format!("-Xms{}M", options.min_memory_mb))
-        .arg(format!("-Xmx{}M", options.max_memory_mb))
-        .arg(format!("-Djava.library.path={}", options.natives_dir.display()))
-        .arg("-cp")
-        .arg(classpath)
-        .arg(options.main_class)
-        .arg("--username")
-        .arg(options.username)
-        .arg("--version")
-        .arg(&options.version_meta.id)
-        .arg("--gameDir")
-        .arg(options.game_dir)
-        .arg("--assetsDir")
-        .arg(options.assets_dir)
-        .arg("--assetIndex")
-        .arg(&options.version_meta.asset_index.id)
-        .arg("--uuid")
-        .arg(options.uuid)
-        .arg("--accessToken")
-        .arg("0")
-        .arg("--userType")
-        .arg("legacy")
-        .arg("--versionType")
-        .arg("release")
+    Command::new(java_bin)
+        .current_dir(game_dir)
+        .args(args)
         .stdout(Stdio::from(log_file.try_clone()?))
         .stderr(Stdio::from(log_file))
         .spawn()

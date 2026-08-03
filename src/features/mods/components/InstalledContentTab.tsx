@@ -42,7 +42,6 @@ export function InstalledContentTab({ instanceId, gameVersion, loader, kind }: I
   const labels = LABELS[kind]
 
   const load = async () => {
-    setIsLoading(true)
     try {
       setItems(await ModAPI.listInstalled(instanceId, kind))
     } catch (err) {
@@ -53,8 +52,14 @@ export function InstalledContentTab({ instanceId, gameVersion, loader, kind }: I
   }
 
   useEffect(() => {
-    load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false
+    ModAPI.listInstalled(instanceId, kind)
+      .then((data) => !cancelled && setItems(data))
+      .catch((err) => !cancelled && toast.error(`Falha ao listar: ${String(err)}`))
+      .finally(() => !cancelled && setIsLoading(false))
+    return () => {
+      cancelled = true
+    }
   }, [instanceId, kind])
 
   const handleToggle = async (item: InstalledMod, enabled: boolean) => {

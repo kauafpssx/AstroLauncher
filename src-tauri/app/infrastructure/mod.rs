@@ -1,4 +1,5 @@
 pub mod curseforge;
+pub mod discord;
 pub mod downloader;
 pub mod filesystem;
 pub mod java;
@@ -6,4 +7,5 @@ pub mod minecraft;
 pub mod modloader;
 pub mod modrinth;
 pub mod persistence;
+pub mod playermc;
 pub mod process;

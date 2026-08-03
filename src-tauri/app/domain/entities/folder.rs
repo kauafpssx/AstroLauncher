@@ -4,6 +4,7 @@ pub struct Folder {
     pub name: String,
     pub position: i64,
     pub collapsed: bool,
+    pub icon_path: Option<String>,
 }
 
 impl Folder {
@@ -13,6 +14,7 @@ impl Folder {
             name,
             position,
             collapsed: false,
+            icon_path: None,
         }
     }
 }

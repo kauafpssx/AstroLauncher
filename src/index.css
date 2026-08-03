@@ -146,8 +146,8 @@
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -155,12 +155,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in oklch, var(--muted-foreground), transparent 80%);
+  background: color-mix(in oklch, var(--muted-foreground), transparent 40%);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in oklch, var(--muted-foreground), transparent 60%);
+  background: color-mix(in oklch, var(--muted-foreground), transparent 20%);
 }
 
 ::-webkit-scrollbar-button {
@@ -169,5 +169,5 @@
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklch, var(--muted-foreground), transparent 80%) transparent;
+  scrollbar-color: color-mix(in oklch, var(--muted-foreground), transparent 40%) transparent;
 }

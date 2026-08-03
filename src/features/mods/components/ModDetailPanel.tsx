@@ -1,30 +1,15 @@
 import { BookOpen, Check, Code2, ExternalLink, MessageCircle, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import Markdown from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
-import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EntityAvatar } from '@/components/common/EntityAvatar'
+import { MarkdownBody } from '@/components/common/MarkdownBody'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ModAPI } from '@/features/mods/services/mod.api'
+import { useLinkPreviewStore } from '@/stores/link-preview.store'
 import type { ModProject, ModSearchResult, ModVersion } from '@/types/mods'
-
-// Modrinth descriptions often mix raw HTML into the markdown (centered
-// images, anchor ids on headings, <sup> footnotes) — extend the default
-// sanitize schema instead of dropping it, so it renders instead of vanishing.
-const markdownSchema = {
-  ...defaultSchema,
-  tagNames: [...(defaultSchema.tagNames ?? []), 'center', 'sup', 'sub'],
-  attributes: {
-    ...defaultSchema.attributes,
-    '*': [...(defaultSchema.attributes?.['*'] ?? []), 'id', 'align'],
-    img: [...(defaultSchema.attributes?.img ?? []), 'src', 'alt', 'title', 'width', 'height'],
-  },
-}
 
 interface ModDetailPanelProps {
   result: ModSearchResult
@@ -39,13 +24,22 @@ export function ModDetailPanel({ result, gameVersion, loader, isSelected, onTogg
   const [versions, setVersions] = useState<ModVersion[]>([])
   const [versionId, setVersionId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const openLink = useLinkPreviewStore((s) => s.open)
 
-  useEffect(() => {
-    let cancelled = false
+  // Reset the panel during render whenever another mod is selected (the effect
+  // below only performs the fetch, so setState stays out of effects).
+  const detailKey = `${result.source}:${result.projectId}`
+  const [prevDetailKey, setPrevDetailKey] = useState(detailKey)
+  if (prevDetailKey !== detailKey) {
+    setPrevDetailKey(detailKey)
     setIsLoading(true)
     setProject(null)
     setVersions([])
     setVersionId(null)
+  }
+
+  useEffect(() => {
+    let cancelled = false
 
     Promise.all([
       ModAPI.getProject(result.source, result.projectId),
@@ -87,35 +81,29 @@ export function ModDetailPanel({ result, gameVersion, loader, isSelected, onTogg
         {project && (project.sourceUrl || project.issuesUrl || project.wikiUrl || project.discordUrl) && (
           <div className="flex flex-col gap-1.5 border-t pt-3 text-sm">
             {project.sourceUrl && (
-              <a href={project.sourceUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:underline">
+              <a href={project.sourceUrl} onClick={(e) => (e.preventDefault(), openLink(project.sourceUrl!))} className="flex items-center gap-2 hover:underline">
                 <Code2 className="size-4" /> Repositório
               </a>
             )}
             {project.wikiUrl && (
-              <a href={project.wikiUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:underline">
+              <a href={project.wikiUrl} onClick={(e) => (e.preventDefault(), openLink(project.wikiUrl!))} className="flex items-center gap-2 hover:underline">
                 <BookOpen className="size-4" /> Wiki / Documentação
               </a>
             )}
             {project.issuesUrl && (
-              <a href={project.issuesUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:underline">
+              <a href={project.issuesUrl} onClick={(e) => (e.preventDefault(), openLink(project.issuesUrl!))} className="flex items-center gap-2 hover:underline">
                 <ExternalLink className="size-4" /> Issues
               </a>
             )}
             {project.discordUrl && (
-              <a href={project.discordUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:underline">
+              <a href={project.discordUrl} onClick={(e) => (e.preventDefault(), openLink(project.discordUrl!))} className="flex items-center gap-2 hover:underline">
                 <MessageCircle className="size-4" /> Discord
               </a>
             )}
           </div>
         )}
 
-        {project?.body && (
-          <div className="prose prose-sm dark:prose-invert max-w-none border-t pt-3 break-words">
-            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, [rehypeSanitize, markdownSchema]]}>
-              {project.body}
-            </Markdown>
-          </div>
-        )}
+        {project?.body && <MarkdownBody className="prose prose-sm dark:prose-invert max-w-none border-t pt-3 break-words">{project.body}</MarkdownBody>}
       </div>
 
       <div className="flex flex-col gap-2 border-t p-4">

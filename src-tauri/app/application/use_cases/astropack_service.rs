@@ -6,8 +6,8 @@ use anyhow::Context;
 use base64::Engine;
 
 use crate::application::dto::{
-    AstroPackContentEntry, AstroPackEventDTO, AstroPackManifest, AstroPackServerEntry, ExportResultDTO, ExportSelection,
-    ExportSummaryDTO, InstanceDTO,
+    AstroPackContentEntry, AstroPackEventDTO, AstroPackManifest, AstroPackNoteEntry, AstroPackServerEntry, ExportResultDTO,
+    ExportSelection, ExportSummaryDTO, InstanceDTO,
 };
 use crate::application::mappers::instance_mapper;
 use crate::domain::entities::{InstalledMod, Instance};
@@ -68,6 +68,34 @@ fn count_files(dir: &Path, ext: &str) -> usize {
         .unwrap_or(0)
 }
 
+/// Reads every note as an export entry. Falls back to the legacy single
+/// `notes.txt` when the instance hasn't been opened (and thus migrated to
+/// `notes/`) since multi-note support landed.
+fn read_all_notes(instance_dir: &Path) -> Vec<AstroPackNoteEntry> {
+    let notes_dir = instance_dir.join("notes");
+    if notes_dir.exists() {
+        let mut entries = Vec::new();
+        if let Ok(dir_entries) = std::fs::read_dir(&notes_dir) {
+            for entry in dir_entries.flatten() {
+                let path = entry.path();
+                if path.extension().and_then(|e| e.to_str()) != Some("md") {
+                    continue;
+                }
+                let Some(title) = path.file_stem().and_then(|s| s.to_str()) else { continue };
+                if let Ok(content) = std::fs::read_to_string(&path) {
+                    entries.push(AstroPackNoteEntry { title: title.to_string(), content });
+                }
+            }
+        }
+        entries.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+        entries
+    } else if let Ok(content) = std::fs::read_to_string(instance_dir.join("notes.txt")) {
+        if content.trim().is_empty() { Vec::new() } else { vec![AstroPackNoteEntry { title: "Nota 1".to_string(), content }] }
+    } else {
+        Vec::new()
+    }
+}
+
 fn count_dirs(dir: &Path) -> usize {
     std::fs::read_dir(dir).map(|entries| entries.flatten().filter(|e| e.path().is_dir()).count()).unwrap_or(0)
 }
@@ -99,7 +127,7 @@ impl AstroPackService {
             resourcepacks: enabled.iter().filter(|m| m.kind == "resourcepack").count(),
             shaders: enabled.iter().filter(|m| m.kind == "shader").count(),
             worlds: count_dirs(&instance_dir.join("saves")),
-            has_notes: instance_dir.join("notes.txt").exists(),
+            has_notes: instance_dir.join("notes").exists() || instance_dir.join("notes.txt").exists(),
             has_settings: instance_dir.join("options.txt").exists(),
             servers: servers_dat::read_servers(&instance_dir.join("servers.dat")).map(|s| s.len()).unwrap_or(0),
             screenshots: count_files(&instance_dir.join("screenshots"), "png"),
@@ -119,8 +147,7 @@ impl AstroPackService {
                 version.files.iter().find(|f| f.primary).or_else(|| version.files.first()).map(|f| f.url.clone())
             }
             "curseforge" => {
-                let settings = json_settings_repository::read(&self.app_data_dir);
-                let api_key = settings.curseforge_api_key.filter(|k| !k.trim().is_empty())?;
+                let api_key = json_settings_repository::resolve_curseforge_api_key(&self.app_data_dir)?;
                 let mod_id: u32 = project_id.parse().ok()?;
                 let files = curseforge::client::get_files(&self.http_client, &api_key, mod_id, None, None).await.ok()?;
                 let file = files.into_iter().find(|f| f.display_name == version_name)?;
@@ -130,7 +157,13 @@ impl AstroPackService {
         }
     }
 
-    pub async fn export_instance(&self, instance_id: &str, dest_path: &str, selection: ExportSelection) -> anyhow::Result<ExportResultDTO> {
+    pub async fn export_instance(
+        &self,
+        instance_id: &str,
+        dest_path: &str,
+        selection: ExportSelection,
+        icon_data_uri: Option<String>,
+    ) -> anyhow::Result<ExportResultDTO> {
         let instance = self.instance_repository.find_by_id(instance_id)?;
         let instance_dir = paths::instance_dir(&self.app_data_dir, instance_id);
         let mods = self.mod_repository.find_by_instance(instance_id)?;
@@ -178,7 +211,7 @@ impl AstroPackService {
         }
 
         let settings = if selection.settings { std::fs::read_to_string(instance_dir.join("options.txt")).ok() } else { None };
-        let notes = if selection.notes { std::fs::read_to_string(instance_dir.join("notes.txt")).ok() } else { None };
+        let notes = if selection.notes { read_all_notes(&instance_dir) } else { Vec::new() };
 
         let mut world_names = Vec::new();
         if selection.worlds {
@@ -238,6 +271,7 @@ impl AstroPackService {
             min_memory: instance.min_memory,
             max_memory: instance.max_memory,
             contents,
+            icon: icon_data_uri,
             settings,
             notes,
             worlds: world_names,
@@ -291,6 +325,7 @@ impl AstroPackService {
         instance.java_args = manifest.java_args.clone();
         instance.min_memory = manifest.min_memory;
         instance.max_memory = manifest.max_memory;
+        instance.icon_path = manifest.icon.clone();
         self.instance_repository.save(&instance)?;
 
         let instance_dir = paths::instance_dir(&self.app_data_dir, &instance.id);
@@ -313,7 +348,13 @@ impl AstroPackService {
         let mut current: u64 = 0;
 
         for entry in &selected_contents {
-            on_event(AstroPackEventDTO::Progress { kind: entry.kind.clone(), name: entry.name.clone(), current, total });
+            on_event(AstroPackEventDTO::Progress {
+                kind: entry.kind.clone(),
+                name: entry.name.clone(),
+                icon_url: entry.icon_url.clone(),
+                current,
+                total,
+            });
             current += 1;
 
             let target_subdir = target_folder(&entry.kind);
@@ -364,16 +405,19 @@ impl AstroPackService {
             }
         }
 
-        if selection.notes {
-            if let Some(notes) = &manifest.notes {
-                let _ = std::fs::write(instance_dir.join("notes.txt"), notes);
+        if selection.notes && !manifest.notes.is_empty() {
+            let notes_dir = instance_dir.join("notes");
+            let _ = std::fs::create_dir_all(&notes_dir);
+            for note in &manifest.notes {
+                let safe_title = note.title.replace(['/', '\\'], "-");
+                let _ = std::fs::write(notes_dir.join(format!("{safe_title}.md")), &note.content);
             }
         }
 
         if selection.worlds {
             let saves_dir = instance_dir.join("saves");
             for world_name in &manifest.worlds {
-                on_event(AstroPackEventDTO::Progress { kind: "world".to_string(), name: world_name.clone(), current, total });
+                on_event(AstroPackEventDTO::Progress { kind: "world".to_string(), name: world_name.clone(), icon_url: None, current, total });
                 current += 1;
 
                 let prefix = format!("content/worlds/{world_name}/");
@@ -406,7 +450,7 @@ impl AstroPackService {
             let shots_dir = instance_dir.join("screenshots");
             let _ = std::fs::create_dir_all(&shots_dir);
             for name in &manifest.screenshots {
-                on_event(AstroPackEventDTO::Progress { kind: "screenshot".to_string(), name: name.clone(), current, total });
+                on_event(AstroPackEventDTO::Progress { kind: "screenshot".to_string(), name: name.clone(), icon_url: None, current, total });
                 current += 1;
 
                 let zip_entry_name = format!("content/screenshots/{name}");

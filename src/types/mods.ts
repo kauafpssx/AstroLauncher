@@ -11,6 +11,8 @@ export interface ModSearchResult {
   iconUrl: string | null
   downloads: number
   author: string
+  loader: string | null
+  gameVersion: string | null
 }
 
 export interface ModVersion {
@@ -77,6 +79,7 @@ export interface InstallModInput {
 export interface InstallModpackInput {
   instanceName: string
   downloadUrl: string
+  iconUrl?: string | null
   folderId?: string | null
 }
 

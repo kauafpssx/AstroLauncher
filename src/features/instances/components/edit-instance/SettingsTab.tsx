@@ -1,19 +1,20 @@
-import { useMemo, useState } from 'react'
+import { Lock } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+import { NumberStepperInput } from '@/components/common/NumberStepperInput'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
 import { Textarea } from '@/components/ui/textarea'
-import { useVersions } from '@/features/instances/hooks/useVersions'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { InstanceDTO } from '@/types/instance'
 
+import { IconPickerButton } from '../IconPickerButton'
 import { LoaderSelectionCard } from '../create-instance/LoaderSelectionCard'
 import type { LoaderId } from '../create-instance/LoaderSelectionCard'
+import { InstanceAPI } from '../../services/instance.api'
 
 interface SettingsTabProps {
   instance: InstanceDTO
@@ -23,31 +24,43 @@ function toLoaderId(loader: string | null): LoaderId {
   return (loader as LoaderId | null) ?? 'vanilla'
 }
 
+const MIN_MEMORY_MB = 1024
+const FALLBACK_TOTAL_MEMORY_MB = 16384
+
 export function SettingsTab({ instance }: SettingsTabProps) {
   const updateInstance = useInstanceStore((s) => s.updateInstance)
-  const { versions } = useVersions()
 
   const [name, setName] = useState(instance.name)
-  const [version, setVersion] = useState(instance.version)
-  const [loader, setLoader] = useState<LoaderId>(toLoaderId(instance.loader))
+  const version = instance.version
+  const [iconPath, setIconPath] = useState(instance.iconPath)
+  const loader = toLoaderId(instance.loader)
   const [minMemory, setMinMemory] = useState(instance.minMemory)
   const [maxMemory, setMaxMemory] = useState(instance.maxMemory)
   const [javaArgs, setJavaArgs] = useState(instance.javaArgs ?? '')
   const [isSaving, setIsSaving] = useState(false)
+  const [totalMemoryMb, setTotalMemoryMb] = useState(FALLBACK_TOTAL_MEMORY_MB)
 
-  const releaseVersions = useMemo(() => {
-    const list = versions.filter((v) => v.type === 'release')
-    if (!list.some((v) => v.id === version)) {
-      const current = versions.find((v) => v.id === version)
-      if (current) list.unshift(current)
-    }
-    return list
-  }, [versions, version])
+  useEffect(() => {
+    InstanceAPI.getTotalSystemMemoryMb()
+      .then(setTotalMemoryMb)
+      .catch(() => {})
+  }, [])
+
+  const updateMinMemory = (value: number) => {
+    const clamped = Math.min(Math.max(value, MIN_MEMORY_MB), totalMemoryMb)
+    setMinMemory(clamped)
+    if (clamped > maxMemory) setMaxMemory(clamped)
+  }
+
+  const updateMaxMemory = (value: number) => {
+    const clamped = Math.max(Math.min(value, totalMemoryMb), MIN_MEMORY_MB)
+    setMaxMemory(clamped)
+    if (clamped < minMemory) setMinMemory(clamped)
+  }
 
   const isDirty =
     name !== instance.name ||
-    version !== instance.version ||
-    loader !== toLoaderId(instance.loader) ||
+    iconPath !== instance.iconPath ||
     minMemory !== instance.minMemory ||
     maxMemory !== instance.maxMemory ||
     javaArgs !== (instance.javaArgs ?? '')
@@ -61,10 +74,11 @@ export function SettingsTab({ instance }: SettingsTabProps) {
         name: name.trim(),
         version,
         loader: loader === 'vanilla' ? null : loader,
-        loaderVersion: null,
+        loaderVersion: instance.loaderVersion,
         javaArgs: javaArgs.trim() || null,
         minMemory,
         maxMemory,
+        iconPath,
       })
       toast.success('Instância atualizada')
     } catch (err) {
@@ -76,79 +90,79 @@ export function SettingsTab({ instance }: SettingsTabProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="edit-name">Nome da Instância</Label>
-            <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="edit-version">Versão</Label>
-            <Select value={version} onValueChange={setVersion}>
-              <SelectTrigger id="edit-version" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {releaseVersions.map((v) => (
-                  <SelectItem key={v.id} value={v.id}>
-                    {v.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-3">
+        <h3 className="text-sm font-medium">Informações</h3>
+        <div className="flex items-stretch gap-4">
+          <IconPickerButton
+            iconPath={iconPath}
+            onSelect={setIconPath}
+            className="w-28 shrink-0 self-stretch overflow-hidden"
+            rounded="rounded-xl"
+            fallbackIconClassName="size-10"
+          />
 
-      <LoaderSelectionCard selected={loader} onSelect={setLoader} />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Memória</CardTitle>
-          <CardDescription>Quantidade de RAM alocada para a JVM ao iniciar esta instância.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between text-sm">
-              <Label>Mínima</Label>
-              <span className="text-muted-foreground">{minMemory} MB</span>
+          <div className="flex flex-1 flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="edit-name">Nome da Instância</Label>
+              <Input
+                id="edit-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+              />
             </div>
-            <Slider
-              value={[minMemory]}
-              min={512}
-              max={maxMemory}
-              step={256}
-              onValueChange={([v]) => setMinMemory(v)}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between text-sm">
-              <Label>Máxima</Label>
-              <span className="text-muted-foreground">{maxMemory} MB</span>
+            <div className="flex flex-col gap-1.5">
+              <Label className="flex items-center gap-1.5">
+                Versão
+                <Lock className="size-3 text-muted-foreground" />
+              </Label>
+              <div className="flex h-9 items-center rounded-md border bg-muted px-3 text-sm text-muted-foreground">{version}</div>
             </div>
-            <Slider
-              value={[maxMemory]}
-              min={minMemory}
-              max={16384}
-              step={256}
-              onValueChange={([v]) => setMaxMemory(v)}
-            />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Não é possível alterar a versão de uma instância existente. Crie uma nova instância para usar outra versão.
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Argumentos da JVM</CardTitle>
-          <CardDescription>Argumentos Java adicionais, opcional (ex: -XX:+UseG1GC).</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Textarea value={javaArgs} onChange={(e) => setJavaArgs(e.target.value)} rows={3} placeholder="Nenhum" />
-        </CardContent>
-      </Card>
+      <LoaderSelectionCard selected={loader} onSelect={() => {}} disabled />
+
+      <div className="flex flex-col gap-6 border-t pt-4">
+        <div>
+          <h3 className="text-sm font-medium">Memória</h3>
+          <p className="text-xs text-muted-foreground">Quantidade de RAM alocada para a JVM ao iniciar esta instância.</p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between text-sm">
+            <Label>Mínima</Label>
+            <div className="flex items-center gap-1.5">
+              <NumberStepperInput value={minMemory} min={MIN_MEMORY_MB} max={totalMemoryMb} step={256} onChange={updateMinMemory} />
+              <span className="text-muted-foreground">MB</span>
+            </div>
+          </div>
+          <Slider value={[minMemory]} min={MIN_MEMORY_MB} max={totalMemoryMb} step={256} onValueChange={([v]) => updateMinMemory(v)} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between text-sm">
+            <Label>Máxima</Label>
+            <div className="flex items-center gap-1.5">
+              <NumberStepperInput value={maxMemory} min={MIN_MEMORY_MB} max={totalMemoryMb} step={256} onChange={updateMaxMemory} />
+              <span className="text-muted-foreground">MB</span>
+            </div>
+          </div>
+          <Slider value={[maxMemory]} min={MIN_MEMORY_MB} max={totalMemoryMb} step={256} onValueChange={([v]) => updateMaxMemory(v)} />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 border-t pt-4">
+        <div>
+          <h3 className="text-sm font-medium">Argumentos da JVM</h3>
+          <p className="text-xs text-muted-foreground">Argumentos Java adicionais, opcional (ex: -XX:+UseG1GC).</p>
+        </div>
+        <Textarea value={javaArgs} onChange={(e) => setJavaArgs(e.target.value)} rows={3} placeholder="Nenhum" />
+      </div>
 
       <div className="flex justify-end">
         <Button disabled={!isDirty || isSaving} onClick={handleSave}>

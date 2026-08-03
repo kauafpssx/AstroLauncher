@@ -2,16 +2,7 @@ import { Pencil, Plus, Server, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -38,7 +29,6 @@ export function ServersTab({ instanceId }: ServersTabProps) {
   const [isSaving, setIsSaving] = useState(false)
 
   const load = async () => {
-    setIsLoading(true)
     try {
       setServers(await InstanceWorkspaceAPI.listServers(instanceId))
     } catch (err) {
@@ -49,8 +39,14 @@ export function ServersTab({ instanceId }: ServersTabProps) {
   }
 
   useEffect(() => {
-    load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false
+    InstanceWorkspaceAPI.listServers(instanceId)
+      .then((data) => !cancelled && setServers(data))
+      .catch((err) => !cancelled && toast.error(`Falha ao listar servidores: ${String(err)}`))
+      .finally(() => !cancelled && setIsLoading(false))
+    return () => {
+      cancelled = true
+    }
   }, [instanceId])
 
   const handleSave = async () => {
@@ -171,22 +167,17 @@ export function ServersTab({ instanceId }: ServersTabProps) {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir servidor</AlertDialogTitle>
-            <AlertDialogDescription>
-              Isso vai remover <strong>{deleteTarget?.name}</strong> da lista de servidores salvos.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDelete}>
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Excluir servidor"
+        description={
+          <>
+            Isso vai remover <strong>{deleteTarget?.name}</strong> da lista de servidores salvos.
+          </>
+        }
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }

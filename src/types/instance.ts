@@ -20,6 +20,7 @@ export interface CreateInstanceInput {
   loader?: string | null
   loaderVersion?: string | null
   folderId?: string | null
+  iconPath?: string | null
 }
 
 export interface UpdateInstanceInput {
@@ -31,4 +32,5 @@ export interface UpdateInstanceInput {
   javaArgs: string | null
   minMemory: number
   maxMemory: number
+  iconPath: string | null
 }

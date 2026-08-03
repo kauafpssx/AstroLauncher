@@ -1,11 +1,12 @@
-import { Box, Search } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { useMemo } from 'react'
 
+import { SearchInput } from '@/components/common/SearchInput'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { VersionDTO, VersionType } from '@/types/version'
 
@@ -24,6 +25,7 @@ interface VersionSelectionCardProps {
   typeFilters: VersionType[]
   selectedVersionId: string | null
   onSelect: (version: VersionDTO) => void
+  onRefresh: () => void
 }
 
 export function VersionSelectionCard({
@@ -34,6 +36,7 @@ export function VersionSelectionCard({
   typeFilters,
   selectedVersionId,
   onSelect,
+  onRefresh,
 }: VersionSelectionCardProps) {
   const filtered = useMemo(() => {
     return versions.filter((v) => {
@@ -44,30 +47,27 @@ export function VersionSelectionCard({
   }, [versions, search, typeFilters])
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col">
-      <CardHeader className="flex-row items-center justify-between gap-4 border-b pb-6">
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-            <Box className="size-4.5 text-primary" />
-          </div>
-          <div>
-            <CardTitle className="text-base">Versão do Jogo</CardTitle>
-            <CardDescription>Escolha a versão base da sua instância.</CardDescription>
-          </div>
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h3 className="text-base font-medium">Versão do Jogo</h3>
+          <p className="text-sm text-muted-foreground">Escolha a versão base da sua instância.</p>
         </div>
-        <div className="relative w-64">
-          <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
+        <div className="flex items-center gap-1.5">
+          <Button variant="outline" size="icon" title="Atualizar versões" onClick={onRefresh}>
+            <RefreshCw />
+          </Button>
+          <SearchInput
+            containerClassName="w-64"
             placeholder="Pesquisar versões..."
-            className="pl-8"
             value={search}
             onChange={(e) => {
               onSearchChange(e.target.value)
             }}
           />
         </div>
-      </CardHeader>
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-4 pt-2">
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-auto rounded-lg border">
           <Table>
             <TableHeader className="sticky top-0 bg-background">
@@ -108,9 +108,7 @@ export function VersionSelectionCard({
                       )}
                     >
                       <TableCell className="font-medium">{version.id}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(version.releaseTime).toLocaleDateString('pt-BR')}
-                      </TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(version.releaseTime)}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{TYPE_LABEL[version.type]}</Badge>
                       </TableCell>
@@ -120,7 +118,7 @@ export function VersionSelectionCard({
             </TableBody>
           </Table>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

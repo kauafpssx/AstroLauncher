@@ -17,6 +17,11 @@ export interface AstroPackServerEntry {
   ip: string
 }
 
+export interface AstroPackNoteEntry {
+  title: string
+  content: string
+}
+
 export interface AstroPackManifest {
   schemaVersion: number
   name: string
@@ -27,8 +32,9 @@ export interface AstroPackManifest {
   minMemory: number
   maxMemory: number
   contents: AstroPackContentEntry[]
+  icon: string | null
   settings: string | null
-  notes: string | null
+  notes: AstroPackNoteEntry[]
   worlds: string[]
   servers: AstroPackServerEntry[]
   screenshots: string[]
@@ -77,7 +83,7 @@ export interface ImportAstroPackInput {
 }
 
 export type AstroPackEvent =
-  | { type: 'progress'; kind: string; name: string; current: number; total: number }
+  | { type: 'progress'; kind: string; name: string; iconUrl: string | null; current: number; total: number }
   | { type: 'done'; instanceId: string }
   | { type: 'error'; message: string }
 
@@ -85,8 +91,8 @@ export const AstroPackAPI = {
   getExportSummary(instanceId: string): Promise<ExportSummary> {
     return apiInvoke<ExportSummary>('get_astropack_export_summary', { instanceId })
   },
-  exportInstance(instanceId: string, destPath: string, selection: ExportSelection): Promise<ExportResult> {
-    return apiInvoke<ExportResult>('export_instance', { instanceId, destPath, selection })
+  exportInstance(instanceId: string, destPath: string, selection: ExportSelection, iconDataUri: string | null): Promise<ExportResult> {
+    return apiInvoke<ExportResult>('export_instance', { instanceId, destPath, selection, iconDataUri })
   },
   previewAstropack(filePath: string): Promise<AstroPackManifest> {
     return apiInvoke<AstroPackManifest>('preview_astropack', { filePath })

@@ -84,27 +84,31 @@ export function LogTab({ instanceId }: LogTabProps) {
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-hidden">
-      <TabHeader description="Log do Minecraft.">
-        <Button variant="outline" size="sm" onClick={handleReload}>
-          <RefreshCw /> Recarregar
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleCopy}>
-          <Copy /> Copiar
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setContent('')}>
-          <Trash2 /> Limpar
-        </Button>
-      </TabHeader>
+      <TabHeader description="Log do Minecraft." />
 
-      <div className="flex items-center gap-4 text-sm">
-        <label className="flex items-center gap-2">
-          <Checkbox checked={autoScroll} onCheckedChange={handleAutoScrollChange} />
-          Auto rolagem
-        </label>
-        <label className="flex items-center gap-2">
-          <Checkbox checked={wrapLines} onCheckedChange={(v) => setWrapLines(v === true)} />
-          Quebrar linhas
-        </label>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4 text-sm">
+          <label className="flex items-center gap-2">
+            <Checkbox checked={autoScroll} onCheckedChange={handleAutoScrollChange} />
+            Auto rolagem
+          </label>
+          <label className="flex items-center gap-2">
+            <Checkbox checked={wrapLines} onCheckedChange={(v) => setWrapLines(v === true)} />
+            Quebrar linhas
+          </label>
+        </div>
+
+        <div className="flex gap-1.5">
+          <Button variant="outline" size="sm" onClick={handleReload}>
+            <RefreshCw /> Recarregar
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleCopy}>
+            <Copy /> Copiar
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setContent('')}>
+            <Trash2 /> Limpar
+          </Button>
+        </div>
       </div>
 
       <div className="relative min-h-0 flex-1">

@@ -1,5 +1,5 @@
 import { Check, Clipboard, Download, Minus, Pencil, Plus, RotateCcw, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -44,10 +44,14 @@ export function ScreenshotViewerDialog({
   const [draftName, setDraftName] = useState('')
   const [isSavingName, setIsSavingName] = useState(false)
 
-  useEffect(() => {
+  // Reset zoom/pan during render when a different screenshot opens (the
+  // linter forbids synchronous setState inside effects).
+  const [prevDataUri, setPrevDataUri] = useState(dataUri)
+  if (prevDataUri !== dataUri) {
+    setPrevDataUri(dataUri)
     setScale(1)
     setOffset({ x: 0, y: 0 })
-  }, [dataUri])
+  }
 
   const clampScale = (value: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, value))
 
@@ -140,7 +144,7 @@ export function ScreenshotViewerDialog({
             className="max-h-full max-w-full select-none object-contain"
             style={{
               transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-              transition: dragRef.current ? 'none' : 'transform 0.1s ease-out',
+              transition: isDragging ? 'none' : 'transform 0.1s ease-out',
             }}
           />
 

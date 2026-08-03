@@ -2,7 +2,9 @@ import { ArrowLeft, Check, Loader2, Puzzle, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+import { EmptyState } from '@/components/common/EmptyState'
 import { EntityAvatar } from '@/components/common/EntityAvatar'
+import { ProgressGroup } from '@/components/common/ProgressGroup'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -71,6 +73,8 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
                 iconUrl: project.iconUrl,
                 downloads: project.downloads,
                 author: '',
+                loader: loader ?? null,
+                gameVersion: gameVersion ?? null,
               }
               resolved.set(depKey, { key: depKey, result, version, isDependency: true })
               nextQueue.push({ result, version })
@@ -157,19 +161,14 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
         <span className="font-medium">Revisar e Instalar</span>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="flex flex-col gap-1 p-3">
+      <ScrollArea type="always" className="flex-1">
+        <div className="flex flex-col gap-1 p-2">
           {isResolving && (
             <p className="flex items-center justify-center gap-2 p-6 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" /> Resolvendo dependências...
             </p>
           )}
-          {!isResolving && entries.length === 0 && (
-            <div className="flex flex-col items-center gap-2 p-10 text-center text-muted-foreground">
-              <Puzzle className="size-8" />
-              <p>Nenhum mod selecionado.</p>
-            </div>
-          )}
+          {!isResolving && entries.length === 0 && <EmptyState icon={Puzzle} title="Nenhum mod selecionado." />}
           {entries.map((entry) => {
             const status = statuses[entry.key]
             return (
@@ -203,15 +202,7 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
       <div className="flex flex-col gap-3 border-t p-3">
         {isInstalling && (
           <div className="flex flex-col gap-2">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Progresso geral</span>
-                <span>
-                  {installedCount}/{entries.length}
-                </span>
-              </div>
-              <Progress value={overallPercent} />
-            </div>
+            <ProgressGroup label="Progresso geral" value={overallPercent} rightLabel={`${installedCount}/${entries.length}`} />
             <div className="flex flex-col gap-1">
               <p className="truncate text-xs font-medium">{currentName}</p>
               <Progress value={undefined} className="animate-pulse" />

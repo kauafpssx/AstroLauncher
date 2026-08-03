@@ -34,3 +34,27 @@ pub async fn launch_instance(app: AppHandle, state: State<'_, AppState>, id: Str
 pub fn stop_instance(state: State<AppState>, id: String) -> Result<(), String> {
     state.stop_instance.execute(&id).map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+pub fn cancel_launch(state: State<AppState>) {
+    state.launch_instance.cancel();
+}
+
+#[tauri::command]
+pub fn get_total_system_memory_mb() -> u64 {
+    let mut system = sysinfo::System::new();
+    system.refresh_memory();
+    system.total_memory() / (1024 * 1024)
+}
+
+/// Output device names as the OS reports them — Minecraft's `soundDevice`
+/// option stores the device name verbatim (empty string means "system default").
+#[tauri::command]
+pub fn list_audio_output_devices() -> Vec<String> {
+    use cpal::traits::{DeviceTrait, HostTrait};
+
+    let host = cpal::default_host();
+    host.output_devices()
+        .map(|devices| devices.filter_map(|d| d.description().ok().map(|desc| desc.name().to_string())).collect())
+        .unwrap_or_default()
+}

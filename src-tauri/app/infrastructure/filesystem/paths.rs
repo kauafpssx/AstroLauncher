@@ -12,6 +12,10 @@ pub fn assets_dir(app_data_dir: &Path) -> PathBuf {
     app_data_dir.join("assets")
 }
 
+pub fn custom_icons_dir(app_data_dir: &Path) -> PathBuf {
+    assets_dir(app_data_dir).join("icons")
+}
+
 pub fn instances_dir(app_data_dir: &Path) -> PathBuf {
     app_data_dir.join("instances")
 }

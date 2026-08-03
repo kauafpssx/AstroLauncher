@@ -9,8 +9,6 @@ export function useVersions() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchVersions = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
     try {
       const data = await VersionAPI.list()
       setVersions(data)
@@ -22,8 +20,11 @@ export function useVersions() {
   }, [])
 
   useEffect(() => {
-    fetchVersions()
-  }, [fetchVersions])
+    VersionAPI.list()
+      .then(setVersions)
+      .catch((err) => setError(String(err)))
+      .finally(() => setIsLoading(false))
+  }, [])
 
   return { versions, isLoading, error, refetch: fetchVersions }
 }
