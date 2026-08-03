@@ -297,7 +297,7 @@ Distribuído sob a **GNU General Public License v3.0**. Veja o arquivo [`LICENSE
 
 
 <p align="center">
-  Feito com 💜 no Brasil por <a href="http://instagram.com/kauafpss_">@kauafpss_/a>
+  Feito com 💜 no Brasil por <a href="http://instagram.com/kauafpss_"> @kauafpss_ /a>
 </p>
 
 <p align="center">
