@@ -175,7 +175,7 @@ dependencies = [
  "serde_json",
  "sha1 0.11.0",
  "sha2 0.10.9",
- "sysinfo 0.36.1",
+ "sysinfo",
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard-manager",
@@ -2696,7 +2696,7 @@ dependencies = [
  "serde_urlencoded",
  "sha1 0.11.0",
  "sha2 0.11.0",
- "sysinfo 0.39.6",
+ "sysinfo",
  "tempfile",
  "thiserror 2.0.19",
  "url",
@@ -4822,20 +4822,6 @@ dependencies = [
 
 [[package]]
 name = "sysinfo"
-version = "0.36.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "252800745060e7b9ffb7b2badbd8b31cfa4aa2e61af879d0a3bf2a317c20217d"
-dependencies = [
- "libc",
- "memchr",
- "ntapi",
- "objc2-core-foundation",
- "objc2-io-kit",
- "windows 0.61.3",
-]
-
-[[package]]
-name = "sysinfo"
 version = "0.39.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2071df9448915b71c4fe6d25deaf1c22f12bd234f01540b77312bb8e41361e6"
@@ -5330,7 +5316,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
