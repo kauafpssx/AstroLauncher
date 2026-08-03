@@ -34,7 +34,7 @@ Este Código de Conduta se aplica tanto nos espaços do projeto quanto em espaç
 
 ## Aplicação
 
-Casos de comportamento abusivo, de assédio ou inaceitável podem ser reportados contatando a equipe do projeto através da aba de **issues do repositório** (marcando a issue como confidencial se possível) ou diretamente pelo perfil do mantenedor em [github.com/kauafpssx](https://github.com/kauafpssx). Todas as reclamações serão analisadas e investigadas e resultarão em uma resposta considerada necessária e apropriada às circunstâncias. A equipe do projeto é obrigada a manter a confidencialidade em relação ao relator de um incidente. Mais detalhes de políticas específicas de aplicação podem ser publicados separadamente.
+Casos de comportamento abusivo, de assédio ou inaceitável podem ser reportados diretamente pelo perfil do mantenedor em [github.com/kauafpssx](https://github.com/kauafpssx). Todas as reclamações serão analisadas e investigadas e resultarão em uma resposta considerada necessária e apropriada às circunstâncias. A equipe do projeto é obrigada a manter a confidencialidade em relação ao relator de um incidente. Mais detalhes de políticas específicas de aplicação podem ser publicados separadamente.
 
 Mantenedores do projeto que não seguirem ou não fizerem cumprir o Código de Conduta de boa fé podem enfrentar repercussões temporárias ou permanentes, conforme determinado por outros membros da liderança do projeto.
 

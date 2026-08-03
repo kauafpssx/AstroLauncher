@@ -9,3 +9,6 @@ contact_links:
   - name: 🆘 Suporte
     url: https://github.com/kauafpssx/AstroLauncher/blob/main/SUPPORT.md
     about: Precisa de ajuda? Veja os canais de suporte do projeto.
+  - name: 🔒 Reportar vulnerabilidade de segurança
+    url: https://github.com/kauafpssx/AstroLauncher/security/advisories/new
+    about: Problema de segurança? Não abra issue pública, veja SECURITY.md.
