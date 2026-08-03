@@ -2,7 +2,7 @@
 
 ## 1.1 Propósito
 
-Desenvolver um launcher de Minecraft moderno, utilizando Rust no backend e React com shadcn/ui no frontend, empacotado com Tauri. O projeto é inspirado no PrismLauncher-Cracked, mas com foco em arquitetura limpa, estética moderna e facilidade de manutenção.
+Desenvolver um launcher de Minecraft moderno, utilizando Rust no backend e React com shadcn/ui no frontend, empacotado com Tauri. O projeto é minimamente inspirado no PrismLauncher, mas com foco em arquitetura limpa, estética moderna e facilidade de manutenção.
 
 ## 1.2 Público-Alvo
 
