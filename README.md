@@ -2,7 +2,7 @@
   <img src="public/logo.svg" alt="AstroLauncher" width="420" />
 </p>
 
-<h1 align="center">🪐 AstroLauncher</h1>
+<h1 align="center">AstroLauncher</h1>
 
 <p align="center">
   O launcher de Minecraft <b>moderno</b>, <b>rápido</b> e <b>bonito</b>: Rust + Tauri no backend, React + shadcn/ui no frontend. 🚀
