@@ -54,8 +54,14 @@ export function SkinsPage() {
     if (!query.trim()) return
     const handle = setTimeout(() => {
       SkinAPI.search({ query, page: 1, sortBy: 'popular-desc' })
-        .then((data) => requestIdRef.current === requestId && setMatchedSkins(data))
-        .catch((err) => requestIdRef.current === requestId && toast.error(`Falha ao buscar skins: ${String(err)}`))
+        .then(
+          (data) => requestIdRef.current === requestId && setMatchedSkins(data),
+        )
+        .catch(
+          (err) =>
+            requestIdRef.current === requestId &&
+            toast.error(`Falha ao buscar skins: ${String(err)}`),
+        )
     }, 200)
     return () => clearTimeout(handle)
   }, [query])
@@ -64,7 +70,11 @@ export function SkinsPage() {
     setIsLoadingMore(true)
     try {
       const nextPage = page + 1
-      const data = await SkinAPI.search({ query: '', page: nextPage, sortBy: 'popular-desc' })
+      const data = await SkinAPI.search({
+        query: '',
+        page: nextPage,
+        sortBy: 'popular-desc',
+      })
       setPopularSkins((prev) => [...prev, ...data])
       setPage(nextPage)
       setHasMore(data.length > 0)
@@ -77,7 +87,12 @@ export function SkinsPage() {
 
   const isSearching = query.trim().length > 0
   const matchedHashes = new Set(matchedSkins.map((s) => s.hash))
-  const combined = isSearching ? [...matchedSkins, ...popularSkins.filter((s) => !matchedHashes.has(s.hash))] : popularSkins
+  const combined = isSearching
+    ? [
+        ...matchedSkins,
+        ...popularSkins.filter((s) => !matchedHashes.has(s.hash)),
+      ]
+    : popularSkins
 
   return (
     <div className="flex h-screen flex-col">
@@ -94,12 +109,18 @@ export function SkinsPage() {
         {isLoading ? (
           <CenteredSpinner className="h-64" />
         ) : combined.length === 0 ? (
-          <p className="p-8 text-center text-sm text-muted-foreground">Nenhuma skin encontrada.</p>
+          <p className="text-muted-foreground p-8 text-center text-sm">
+            Nenhuma skin encontrada.
+          </p>
         ) : (
           <>
             <div className="grid grid-cols-4 gap-4 sm:grid-cols-6 xl:grid-cols-8">
               {combined.map((skin) => (
-                <motion.div key={skin.hash} layout transition={{ type: 'spring', stiffness: 350, damping: 32 }}>
+                <motion.div
+                  key={skin.hash}
+                  layout
+                  transition={{ type: 'spring', stiffness: 350, damping: 32 }}
+                >
                   <SkinCard
                     skin={skin}
                     matched={isSearching && matchedHashes.has(skin.hash)}
@@ -111,7 +132,11 @@ export function SkinsPage() {
             </div>
             {!isSearching && hasMore && (
               <div className="mt-4 flex justify-center">
-                <Button variant="outline" onClick={loadMore} disabled={isLoadingMore}>
+                <Button
+                  variant="outline"
+                  onClick={loadMore}
+                  disabled={isLoadingMore}
+                >
                   {isLoadingMore ? 'Carregando...' : 'Carregar mais'}
                 </Button>
               </div>
@@ -120,7 +145,10 @@ export function SkinsPage() {
         )}
       </div>
 
-      <SkinDetailDialog hash={selectedHash} onOpenChange={(open) => !open && setSelectedHash(null)} />
+      <SkinDetailDialog
+        hash={selectedHash}
+        onOpenChange={(open) => !open && setSelectedHash(null)}
+      />
     </div>
   )
 }

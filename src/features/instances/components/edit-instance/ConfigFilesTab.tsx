@@ -43,7 +43,9 @@ export function ConfigFilesTab({ instanceId }: ConfigFilesTabProps) {
   const loadList = async () => {
     setIsLoadingList(true)
     try {
-      const result = (await InstanceWorkspaceAPI.listConfigFiles(instanceId)).filter((f) => !MINECRAFT_OPTION_FILES.has(f.path))
+      const result = (
+        await InstanceWorkspaceAPI.listConfigFiles(instanceId)
+      ).filter((f) => !MINECRAFT_OPTION_FILES.has(f.path))
       setFiles(result)
       if (result.length > 0 && !result.some((f) => f.path === selected)) {
         setSelected(result[0].path)
@@ -60,13 +62,19 @@ export function ConfigFilesTab({ instanceId }: ConfigFilesTabProps) {
     InstanceWorkspaceAPI.listConfigFiles(instanceId)
       .then((result) => {
         if (cancelled) return
-        const filtered = result.filter((f) => !MINECRAFT_OPTION_FILES.has(f.path))
+        const filtered = result.filter(
+          (f) => !MINECRAFT_OPTION_FILES.has(f.path),
+        )
         setFiles(filtered)
         if (filtered.length > 0 && !filtered.some((f) => f.path === selected)) {
           setSelected(filtered[0].path)
         }
       })
-      .catch((err) => !cancelled && toast.error(`Falha ao listar arquivos de config: ${String(err)}`))
+      .catch(
+        (err) =>
+          !cancelled &&
+          toast.error(`Falha ao listar arquivos de config: ${String(err)}`),
+      )
       .finally(() => !cancelled && setIsLoadingList(false))
     return () => {
       cancelled = true
@@ -83,7 +91,10 @@ export function ConfigFilesTab({ instanceId }: ConfigFilesTabProps) {
         setContent(text)
         setOriginalContent(text)
       })
-      .catch((err) => !cancelled && toast.error(`Falha ao ler arquivo: ${String(err)}`))
+      .catch(
+        (err) =>
+          !cancelled && toast.error(`Falha ao ler arquivo: ${String(err)}`),
+      )
       .finally(() => !cancelled && setIsLoadingContent(false))
     return () => {
       cancelled = true
@@ -112,7 +123,9 @@ export function ConfigFilesTab({ instanceId }: ConfigFilesTabProps) {
         {isLoadingList ? (
           <CenteredSpinner className="h-full" />
         ) : files.length === 0 ? (
-          <p className="p-4 text-center text-sm text-muted-foreground">Nenhum arquivo de config encontrado.</p>
+          <p className="text-muted-foreground p-4 text-center text-sm">
+            Nenhum arquivo de config encontrado.
+          </p>
         ) : (
           <ul className="flex flex-col p-1">
             {files.map((file) => (
@@ -122,14 +135,18 @@ export function ConfigFilesTab({ instanceId }: ConfigFilesTabProps) {
                   onClick={() => setSelected(file.path)}
                   className={cn(
                     'flex w-full flex-col gap-0.5 rounded-md px-2.5 py-2 text-left text-sm',
-                    selected === file.path ? 'bg-primary/10 text-primary' : 'hover:bg-accent',
+                    selected === file.path
+                      ? 'bg-primary/10 text-primary'
+                      : 'hover:bg-accent',
                   )}
                 >
                   <span className="flex items-center gap-1.5 truncate font-medium">
-                    <FileCog className="size-3.5 shrink-0 text-muted-foreground" />
+                    <FileCog className="text-muted-foreground size-3.5 shrink-0" />
                     <span className="truncate">{file.path}</span>
                   </span>
-                  <span className="text-xs text-muted-foreground">{formatFileSize(file.sizeBytes)}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {formatFileSize(file.sizeBytes)}
+                  </span>
                 </button>
               </li>
             ))}
@@ -139,12 +156,18 @@ export function ConfigFilesTab({ instanceId }: ConfigFilesTabProps) {
 
       <div className="flex min-w-0 flex-1 flex-col gap-2 py-2 pr-2">
         <div className="flex shrink-0 items-center justify-between">
-          <span className="truncate text-sm font-medium text-muted-foreground">{selected ?? 'Selecione um arquivo'}</span>
+          <span className="text-muted-foreground truncate text-sm font-medium">
+            {selected ?? 'Selecione um arquivo'}
+          </span>
           <div className="flex gap-1.5">
             <Button variant="outline" size="sm" onClick={loadList}>
               <RefreshCw /> Recarregar
             </Button>
-            <SaveButton onClick={handleSave} disabled={!selected || !isDirty || isSaving} isSaving={isSaving} />
+            <SaveButton
+              onClick={handleSave}
+              disabled={!selected || !isDirty || isSaving}
+              isSaving={isSaving}
+            />
           </div>
         </div>
         {isLoadingContent ? (

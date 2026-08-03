@@ -14,5 +14,12 @@ export function useInstances() {
     fetchInstances()
   }, [fetchInstances])
 
-  return { instances, isLoading, error, createInstance, deleteInstance, refresh: fetchInstances }
+  return {
+    instances,
+    isLoading,
+    error,
+    createInstance,
+    deleteInstance,
+    refresh: fetchInstances,
+  }
 }

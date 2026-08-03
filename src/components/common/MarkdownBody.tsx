@@ -16,7 +16,14 @@ const markdownSchema = {
   attributes: {
     ...defaultSchema.attributes,
     '*': [...(defaultSchema.attributes?.['*'] ?? []), 'id', 'align'],
-    img: [...(defaultSchema.attributes?.img ?? []), 'src', 'alt', 'title', 'width', 'height'],
+    img: [
+      ...(defaultSchema.attributes?.img ?? []),
+      'src',
+      'alt',
+      'title',
+      'width',
+      'height',
+    ],
   },
 }
 
@@ -33,7 +40,12 @@ export function MarkdownBody({ children, className }: MarkdownBodyProps) {
     // Some project descriptions embed raw HTML/blockquotes styled for a
     // light background — force blockquote text to the theme's own color
     // instead of trusting the source's (often invisible-on-dark) styling.
-    <div className={cn('prose-blockquote:text-foreground prose-blockquote:not-italic', className)}>
+    <div
+      className={cn(
+        'prose-blockquote:text-foreground prose-blockquote:not-italic',
+        className,
+      )}
+    >
       <Markdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, [rehypeSanitize, markdownSchema]]}

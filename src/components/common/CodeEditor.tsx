@@ -37,7 +37,13 @@ const backgroundOverride = EditorView.theme(
   { dark: true },
 )
 
-export function CodeEditor({ value, onChange, language = 'plain', disabled, className }: CodeEditorProps) {
+export function CodeEditor({
+  value,
+  onChange,
+  language = 'plain',
+  disabled,
+  className,
+}: CodeEditorProps) {
   return (
     <CodeMirror
       value={value}

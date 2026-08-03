@@ -5,7 +5,14 @@ import { SearchInput } from '@/components/common/SearchInput'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { VersionDTO, VersionType } from '@/types/version'
@@ -41,7 +48,8 @@ export function VersionSelectionCard({
   const filtered = useMemo(() => {
     return versions.filter((v) => {
       const matchesSearch = v.id.toLowerCase().includes(search.toLowerCase())
-      const matchesType = typeFilters.length === 0 || typeFilters.includes(v.type)
+      const matchesType =
+        typeFilters.length === 0 || typeFilters.includes(v.type)
       return matchesSearch && matchesType
     })
   }, [versions, search, typeFilters])
@@ -51,10 +59,17 @@ export function VersionSelectionCard({
       <div className="flex items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-medium">Versão do Jogo</h3>
-          <p className="text-sm text-muted-foreground">Escolha a versão base da sua instância.</p>
+          <p className="text-muted-foreground text-sm">
+            Escolha a versão base da sua instância.
+          </p>
         </div>
         <div className="flex items-center gap-1.5">
-          <Button variant="outline" size="icon" title="Atualizar versões" onClick={onRefresh}>
+          <Button
+            variant="outline"
+            size="icon"
+            title="Atualizar versões"
+            onClick={onRefresh}
+          >
             <RefreshCw />
           </Button>
           <SearchInput
@@ -70,7 +85,7 @@ export function VersionSelectionCard({
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-auto rounded-lg border">
           <Table>
-            <TableHeader className="sticky top-0 bg-background">
+            <TableHeader className="bg-background sticky top-0">
               <TableRow>
                 <TableHead>Versão</TableHead>
                 <TableHead>Lançamento</TableHead>
@@ -89,7 +104,10 @@ export function VersionSelectionCard({
 
               {!isLoading && filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-32 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={3}
+                    className="text-muted-foreground h-32 text-center"
+                  >
                     Nenhuma versão encontrada.
                   </TableCell>
                 </TableRow>
@@ -104,13 +122,20 @@ export function VersionSelectionCard({
                       onClick={() => onSelect(version)}
                       className={cn(
                         'cursor-pointer border-l-2 border-l-transparent',
-                        selected && 'border-l-primary bg-primary/10 hover:bg-primary/10',
+                        selected &&
+                          'border-l-primary bg-primary/10 hover:bg-primary/10',
                       )}
                     >
-                      <TableCell className="font-medium">{version.id}</TableCell>
-                      <TableCell className="text-muted-foreground">{formatDate(version.releaseTime)}</TableCell>
+                      <TableCell className="font-medium">
+                        {version.id}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDate(version.releaseTime)}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{TYPE_LABEL[version.type]}</Badge>
+                        <Badge variant="outline">
+                          {TYPE_LABEL[version.type]}
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   )

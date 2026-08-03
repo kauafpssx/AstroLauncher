@@ -1,7 +1,11 @@
 import { create } from 'zustand'
 
 import { AccountAPI } from '@/features/accounts/services/account.api'
-import type { AccountDTO, CreateAccountInput, UpdateAccountInput } from '@/types/account'
+import type {
+  AccountDTO,
+  CreateAccountInput,
+  UpdateAccountInput,
+} from '@/types/account'
 
 interface AccountStore {
   accounts: AccountDTO[]
@@ -38,7 +42,9 @@ export const useAccountStore = create<AccountStore>((set, get) => ({
 
   updateAccount: async (input) => {
     const account = await AccountAPI.update(input)
-    set((state) => ({ accounts: state.accounts.map((a) => (a.id === account.id ? account : a)) }))
+    set((state) => ({
+      accounts: state.accounts.map((a) => (a.id === account.id ? account : a)),
+    }))
   },
 
   deleteAccount: async (id) => {
@@ -48,7 +54,9 @@ export const useAccountStore = create<AccountStore>((set, get) => ({
 
   setDefaultAccount: async (id) => {
     await AccountAPI.setDefault(id)
-    set((state) => ({ accounts: state.accounts.map((a) => ({ ...a, isDefault: a.id === id })) }))
+    set((state) => ({
+      accounts: state.accounts.map((a) => ({ ...a, isDefault: a.id === id })),
+    }))
   },
 
   reorderAccounts: async (orderedIds) => {
@@ -60,5 +68,7 @@ export const useAccountStore = create<AccountStore>((set, get) => ({
 }))
 
 export function useDefaultAccount(): AccountDTO | null {
-  return useAccountStore((state) => state.accounts.find((a) => a.isDefault) ?? null)
+  return useAccountStore(
+    (state) => state.accounts.find((a) => a.isDefault) ?? null,
+  )
 }

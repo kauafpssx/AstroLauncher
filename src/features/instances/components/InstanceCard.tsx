@@ -92,7 +92,9 @@ export function InstanceCard({
             className="size-16"
             fallbackIconClassName="size-8"
             clickOpensPicker={false}
-            onDoubleClick={() => (isRunning ? onStop(instance.id) : onLaunch(instance.id))}
+            onDoubleClick={() =>
+              isRunning ? onStop(instance.id) : onLaunch(instance.id)
+            }
             overlay={
               isRunning && (
                 <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full">

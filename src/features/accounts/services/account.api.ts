@@ -1,5 +1,9 @@
 import { apiInvoke } from '@/lib/api/client'
-import type { AccountDTO, CreateAccountInput, UpdateAccountInput } from '@/types/account'
+import type {
+  AccountDTO,
+  CreateAccountInput,
+  UpdateAccountInput,
+} from '@/types/account'
 
 export const AccountAPI = {
   list(): Promise<AccountDTO[]> {

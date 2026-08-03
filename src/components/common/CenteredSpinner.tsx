@@ -7,10 +7,23 @@ interface CenteredSpinnerProps {
   iconClassName?: string
 }
 
-export function CenteredSpinner({ className, iconClassName }: CenteredSpinnerProps) {
+export function CenteredSpinner({
+  className,
+  iconClassName,
+}: CenteredSpinnerProps) {
   return (
-    <div className={cn('flex min-h-0 flex-1 items-center justify-center', className)}>
-      <Loader2 className={cn('size-6 animate-spin text-muted-foreground', iconClassName)} />
+    <div
+      className={cn(
+        'flex min-h-0 flex-1 items-center justify-center',
+        className,
+      )}
+    >
+      <Loader2
+        className={cn(
+          'text-muted-foreground size-6 animate-spin',
+          iconClassName,
+        )}
+      />
     </div>
   )
 }

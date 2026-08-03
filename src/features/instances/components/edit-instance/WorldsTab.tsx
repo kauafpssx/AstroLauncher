@@ -4,7 +4,14 @@ import { toast } from 'sonner'
 
 import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 import { formatBytes } from '@/lib/format'
 import type { WorldDTO } from '@/types/world'
@@ -32,7 +39,10 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
     let cancelled = false
     InstanceWorkspaceAPI.listWorlds(instanceId)
       .then((data) => !cancelled && setWorlds(data))
-      .catch((err) => !cancelled && toast.error(`Falha ao listar mundos: ${String(err)}`))
+      .catch(
+        (err) =>
+          !cancelled && toast.error(`Falha ao listar mundos: ${String(err)}`),
+      )
       .finally(() => !cancelled && setIsLoading(false))
     return () => {
       cancelled = true
@@ -55,7 +65,9 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Mundos salvos nesta instância.</p>
+        <p className="text-muted-foreground text-sm">
+          Mundos salvos nesta instância.
+        </p>
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
@@ -67,7 +79,11 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
           >
             <RefreshCw /> Atualizar
           </Button>
-          <Button variant="outline" size="sm" onClick={() => InstanceWorkspaceAPI.openFolder(instanceId)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => InstanceWorkspaceAPI.openFolder(instanceId)}
+          >
             <FolderOpen /> Abrir Pasta
           </Button>
         </div>
@@ -86,7 +102,10 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
           <TableBody>
             {!isLoading && worlds.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={4}
+                  className="text-muted-foreground h-24 text-center"
+                >
                   <Globe className="mx-auto mb-2 size-6" />
                   Nenhum mundo encontrado.
                 </TableCell>
@@ -95,12 +114,20 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
             {worlds.map((world) => (
               <TableRow key={world.name}>
                 <TableCell className="font-medium">{world.name}</TableCell>
-                <TableCell className="text-muted-foreground">{formatBytes(world.sizeBytes)}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {world.lastModified ? new Date(world.lastModified).toLocaleString('pt-BR') : '—'}
+                  {formatBytes(world.sizeBytes)}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {world.lastModified
+                    ? new Date(world.lastModified).toLocaleString('pt-BR')
+                    : '—'}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon-sm" onClick={() => setDeleteTarget(world.name)}>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setDeleteTarget(world.name)}
+                  >
                     <Trash2 className="text-destructive" />
                   </Button>
                 </TableCell>
@@ -116,7 +143,8 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
         title="Excluir mundo"
         description={
           <>
-            Isso vai apagar <strong>{deleteTarget}</strong> permanentemente. Essa ação não pode ser desfeita.
+            Isso vai apagar <strong>{deleteTarget}</strong> permanentemente.
+            Essa ação não pode ser desfeita.
           </>
         }
         onConfirm={handleDelete}

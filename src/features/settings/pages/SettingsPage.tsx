@@ -4,7 +4,13 @@ import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/common/PageHeader'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SettingsAPI } from '@/features/settings/services/settings.api'
@@ -22,7 +28,9 @@ export function SettingsPage() {
         setApiKey(settings.curseforgeApiKey ?? '')
         setSavedApiKey(settings.curseforgeApiKey ?? '')
       })
-      .catch((err) => toast.error(`Falha ao carregar configurações: ${String(err)}`))
+      .catch((err) =>
+        toast.error(`Falha ao carregar configurações: ${String(err)}`),
+      )
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -48,7 +56,8 @@ export function SettingsPage() {
           <CardHeader>
             <CardTitle>CurseForge</CardTitle>
             <CardDescription>
-              Buscar mods e modpacks no CurseForge exige uma API key própria. Gere a sua em{' '}
+              Buscar mods e modpacks no CurseForge exige uma API key própria.
+              Gere a sua em{' '}
               <a
                 href="https://console.curseforge.com/"
                 target="_blank"
@@ -73,7 +82,10 @@ export function SettingsPage() {
               />
             </div>
             <div className="flex justify-end">
-              <Button disabled={apiKey === savedApiKey || isSaving} onClick={handleSave}>
+              <Button
+                disabled={apiKey === savedApiKey || isSaving}
+                onClick={handleSave}
+              >
                 {isSaving ? 'Salvando...' : 'Salvar'}
               </Button>
             </div>

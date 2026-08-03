@@ -116,14 +116,17 @@ export function SettingsTab({ instance }: SettingsTabProps) {
             <div className="flex flex-col gap-1.5">
               <Label className="flex items-center gap-1.5">
                 Versão
-                <Lock className="size-3 text-muted-foreground" />
+                <Lock className="text-muted-foreground size-3" />
               </Label>
-              <div className="flex h-9 items-center rounded-md border bg-muted px-3 text-sm text-muted-foreground">{version}</div>
+              <div className="bg-muted text-muted-foreground flex h-9 items-center rounded-md border px-3 text-sm">
+                {version}
+              </div>
             </div>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Não é possível alterar a versão de uma instância existente. Crie uma nova instância para usar outra versão.
+        <p className="text-muted-foreground text-xs">
+          Não é possível alterar a versão de uma instância existente. Crie uma
+          nova instância para usar outra versão.
         </p>
       </div>
 
@@ -132,36 +135,69 @@ export function SettingsTab({ instance }: SettingsTabProps) {
       <div className="flex flex-col gap-6 border-t pt-4">
         <div>
           <h3 className="text-sm font-medium">Memória</h3>
-          <p className="text-xs text-muted-foreground">Quantidade de RAM alocada para a JVM ao iniciar esta instância.</p>
+          <p className="text-muted-foreground text-xs">
+            Quantidade de RAM alocada para a JVM ao iniciar esta instância.
+          </p>
         </div>
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between text-sm">
             <Label>Mínima</Label>
             <div className="flex items-center gap-1.5">
-              <NumberStepperInput value={minMemory} min={MIN_MEMORY_MB} max={totalMemoryMb} step={256} onChange={updateMinMemory} />
+              <NumberStepperInput
+                value={minMemory}
+                min={MIN_MEMORY_MB}
+                max={totalMemoryMb}
+                step={256}
+                onChange={updateMinMemory}
+              />
               <span className="text-muted-foreground">MB</span>
             </div>
           </div>
-          <Slider value={[minMemory]} min={MIN_MEMORY_MB} max={totalMemoryMb} step={256} onValueChange={([v]) => updateMinMemory(v)} />
+          <Slider
+            value={[minMemory]}
+            min={MIN_MEMORY_MB}
+            max={totalMemoryMb}
+            step={256}
+            onValueChange={([v]) => updateMinMemory(v)}
+          />
         </div>
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between text-sm">
             <Label>Máxima</Label>
             <div className="flex items-center gap-1.5">
-              <NumberStepperInput value={maxMemory} min={MIN_MEMORY_MB} max={totalMemoryMb} step={256} onChange={updateMaxMemory} />
+              <NumberStepperInput
+                value={maxMemory}
+                min={MIN_MEMORY_MB}
+                max={totalMemoryMb}
+                step={256}
+                onChange={updateMaxMemory}
+              />
               <span className="text-muted-foreground">MB</span>
             </div>
           </div>
-          <Slider value={[maxMemory]} min={MIN_MEMORY_MB} max={totalMemoryMb} step={256} onValueChange={([v]) => updateMaxMemory(v)} />
+          <Slider
+            value={[maxMemory]}
+            min={MIN_MEMORY_MB}
+            max={totalMemoryMb}
+            step={256}
+            onValueChange={([v]) => updateMaxMemory(v)}
+          />
         </div>
       </div>
 
       <div className="flex flex-col gap-2 border-t pt-4">
         <div>
           <h3 className="text-sm font-medium">Argumentos da JVM</h3>
-          <p className="text-xs text-muted-foreground">Argumentos Java adicionais, opcional (ex: -XX:+UseG1GC).</p>
+          <p className="text-muted-foreground text-xs">
+            Argumentos Java adicionais, opcional (ex: -XX:+UseG1GC).
+          </p>
         </div>
-        <Textarea value={javaArgs} onChange={(e) => setJavaArgs(e.target.value)} rows={3} placeholder="Nenhum" />
+        <Textarea
+          value={javaArgs}
+          onChange={(e) => setJavaArgs(e.target.value)}
+          rows={3}
+          placeholder="Nenhum"
+        />
       </div>
 
       <div className="flex justify-end">

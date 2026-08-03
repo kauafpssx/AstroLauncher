@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { ScrollArea as ScrollAreaPrimitive } from "radix-ui"
+import * as React from 'react'
+import { ScrollArea as ScrollAreaPrimitive } from 'radix-ui'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 function ScrollArea({
   className,
@@ -13,7 +13,7 @@ function ScrollArea({
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      className={cn("relative", className)}
+      className={cn('relative', className)}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
@@ -23,7 +23,7 @@ function ScrollArea({
         // viewport's actual width, silently breaking any `truncate`/`min-w-0`
         // downstream (content just grows as wide as it wants). Force it back
         // to a normal block so width constraints from our own layout apply.
-        className="size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 [&>div]:!block"
+        className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&>div]:!block"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
@@ -35,7 +35,7 @@ function ScrollArea({
 
 function ScrollBar({
   className,
-  orientation = "vertical",
+  orientation = 'vertical',
   ...props
 }: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
   return (
@@ -44,8 +44,8 @@ function ScrollBar({
       data-orientation={orientation}
       orientation={orientation}
       className={cn(
-        "flex touch-none transition-colors select-none data-[orientation=horizontal]:h-3 data-[orientation=horizontal]:flex-col data-[orientation=vertical]:h-full data-[orientation=vertical]:w-3",
-        className
+        'flex touch-none transition-colors select-none data-[orientation=horizontal]:h-3 data-[orientation=horizontal]:flex-col data-[orientation=vertical]:h-full data-[orientation=vertical]:w-3',
+        className,
       )}
       {...props}
     >
@@ -57,7 +57,7 @@ function ScrollBar({
         // first paint and never re-fire. forceMount guarantees the thumb is
         // always in the DOM; Radix still sizes/positions it correctly.
         forceMount
-        className="relative mx-auto my-auto h-full w-2 rounded-full bg-muted-foreground/60 hover:bg-muted-foreground/80 data-[orientation=horizontal]:mx-auto data-[orientation=horizontal]:my-auto data-[orientation=horizontal]:h-2 data-[orientation=vertical]:w-2"
+        className="bg-muted-foreground/60 hover:bg-muted-foreground/80 relative mx-auto my-auto h-full w-2 rounded-full data-[orientation=horizontal]:mx-auto data-[orientation=horizontal]:my-auto data-[orientation=horizontal]:h-2 data-[orientation=vertical]:w-2"
       />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
   )

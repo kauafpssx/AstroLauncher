@@ -19,7 +19,10 @@ interface AddAccountDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) {
+export function AddAccountDialog({
+  open,
+  onOpenChange,
+}: AddAccountDialogProps) {
   const createAccount = useAccountStore((s) => s.createAccount)
   const [username, setUsername] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -45,7 +48,8 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
         <DialogHeader>
           <DialogTitle>Adicionar Conta</DialogTitle>
           <DialogDescription>
-            Você ainda não tem nenhuma conta. Contas offline usam apenas um nome de usuário customizado.
+            Você ainda não tem nenhuma conta. Contas offline usam apenas um nome
+            de usuário customizado.
           </DialogDescription>
         </DialogHeader>
 
@@ -64,7 +68,10 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
         </div>
 
         <DialogFooter>
-          <Button onClick={handleSubmit} disabled={!username.trim() || isSubmitting}>
+          <Button
+            onClick={handleSubmit}
+            disabled={!username.trim() || isSubmitting}
+          >
             {isSubmitting ? 'Adicionando...' : 'Adicionar'}
           </Button>
         </DialogFooter>

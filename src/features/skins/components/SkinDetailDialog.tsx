@@ -5,7 +5,12 @@ import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import type { SkinDetail } from '@/types/skins'
@@ -18,7 +23,10 @@ interface SkinDetailDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function SkinDetailDialog({ hash, onOpenChange }: SkinDetailDialogProps) {
+export function SkinDetailDialog({
+  hash,
+  onOpenChange,
+}: SkinDetailDialogProps) {
   const [detail, setDetail] = useState<SkinDetail | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -46,9 +54,14 @@ export function SkinDetailDialog({ hash, onOpenChange }: SkinDetailDialogProps) 
   }, [hash])
 
   const copyName = async (uuid: string, username: string) => {
-    await navigator.clipboard.writeText(copyAsCommand ? `/skin set mojang ${username}` : username)
+    await navigator.clipboard.writeText(
+      copyAsCommand ? `/skin set mojang ${username}` : username,
+    )
     setCopiedUuid(uuid)
-    setTimeout(() => setCopiedUuid((current) => (current === uuid ? null : current)), 1500)
+    setTimeout(
+      () => setCopiedUuid((current) => (current === uuid ? null : current)),
+      1500,
+    )
   }
 
   const downloadSkin = async () => {
@@ -81,24 +94,38 @@ export function SkinDetailDialog({ hash, onOpenChange }: SkinDetailDialogProps) 
           <CenteredSpinner className="h-64" />
         ) : (
           <div className="flex gap-4">
-            <SkinViewer3D skinUrl={detail.skinUrl} model={detail.model} onDownload={downloadSkin} isDownloading={isDownloading} />
+            <SkinViewer3D
+              skinUrl={detail.skinUrl}
+              model={detail.model}
+              onDownload={downloadSkin}
+              isDownloading={isDownloading}
+            />
 
             <div className="flex min-w-0 flex-1 flex-col gap-2">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
                   <Users className="size-3.5" />
-                  {detail.playerCount} {detail.playerCount === 1 ? 'perfil' : 'perfis'} usando essa skin
+                  {detail.playerCount}{' '}
+                  {detail.playerCount === 1 ? 'perfil' : 'perfis'} usando essa
+                  skin
                 </div>
                 <Switch
                   checked={copyAsCommand}
                   onCheckedChange={setCopyAsCommand}
-                  title={copyAsCommand ? 'Copiando como comando' : 'Copiar como comando'}
+                  title={
+                    copyAsCommand
+                      ? 'Copiando como comando'
+                      : 'Copiar como comando'
+                  }
                 />
               </div>
               <ScrollArea type="always" className="h-64 rounded-lg border">
                 <div className="flex flex-col gap-0.5 p-2">
                   {detail.currentPlayers.map((player) => (
-                    <div key={player.uuid} className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent">
+                    <div
+                      key={player.uuid}
+                      className="hover:bg-accent flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm"
+                    >
                       <span className="truncate">{player.username}</span>
                       <Button
                         variant="ghost"
@@ -107,7 +134,11 @@ export function SkinDetailDialog({ hash, onOpenChange }: SkinDetailDialogProps) 
                         title={copyAsCommand ? 'Copiar comando' : 'Copiar nome'}
                         onClick={() => copyName(player.uuid, player.username)}
                       >
-                        {copiedUuid === player.uuid ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+                        {copiedUuid === player.uuid ? (
+                          <Check className="text-primary size-3.5" />
+                        ) : (
+                          <Copy className="size-3.5" />
+                        )}
                       </Button>
                     </div>
                   ))}

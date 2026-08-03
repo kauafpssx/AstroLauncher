@@ -6,7 +6,11 @@ import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { SearchInput } from '@/components/common/SearchInput'
 import { Badge } from '@/components/ui/badge'
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ModAPI } from '@/features/mods/services/mod.api'
 import { cn } from '@/lib/utils'
@@ -61,8 +65,14 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
       setIsSearching(true)
       ModAPI.search({ source, query, projectType: 'modpack' })
         .then((data) => requestIdRef.current === requestId && setResults(data))
-        .catch((err) => requestIdRef.current === requestId && toast.error(`Falha ao buscar: ${String(err)}`))
-        .finally(() => requestIdRef.current === requestId && setIsSearching(false))
+        .catch(
+          (err) =>
+            requestIdRef.current === requestId &&
+            toast.error(`Falha ao buscar: ${String(err)}`),
+        )
+        .finally(
+          () => requestIdRef.current === requestId && setIsSearching(false),
+        )
     }, 200)
     return () => clearTimeout(handle)
   }, [query, source])
@@ -73,8 +83,14 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
         <ResizablePanel minSize="400px">
           <div className="flex h-full min-w-0 flex-col border-r">
             <div className="p-3">
-              <p className="mb-2 font-medium">Modpacks do {SOURCE_LABEL[source]}</p>
-              <SearchInput placeholder="Pesquisar modpacks..." value={query} onChange={(e) => setQuery(e.target.value)} />
+              <p className="mb-2 font-medium">
+                Modpacks do {SOURCE_LABEL[source]}
+              </p>
+              <SearchInput
+                placeholder="Pesquisar modpacks..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
             </div>
             {isSearching ? (
               <CenteredSpinner />
@@ -82,7 +98,9 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
               <ScrollArea type="always" className="min-h-0 min-w-0 flex-1">
                 <div className="flex min-w-0 flex-col gap-1 p-2 pr-3">
                   {results.length === 0 && (
-                    <p className="p-4 text-center text-sm text-muted-foreground">Nenhum modpack encontrado.</p>
+                    <p className="text-muted-foreground p-4 text-center text-sm">
+                      Nenhum modpack encontrado.
+                    </p>
                   )}
                   {results.map((result) => (
                     <button
@@ -91,18 +109,30 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
                       disabled={isInstalling}
                       onClick={() => setSelected(result)}
                       className={cn(
-                        'flex w-full min-w-0 items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-accent',
-                        selected?.projectId === result.projectId && 'bg-primary/10',
-                        isInstalling && 'cursor-not-allowed opacity-50 hover:bg-transparent',
+                        'hover:bg-accent flex w-full min-w-0 items-center gap-3 rounded-lg p-2 text-left transition-colors',
+                        selected?.projectId === result.projectId &&
+                          'bg-primary/10',
+                        isInstalling &&
+                          'cursor-not-allowed opacity-50 hover:bg-transparent',
                       )}
                     >
-                      <EntityAvatar name={result.name} iconUrl={result.iconUrl} className="size-10" />
+                      <EntityAvatar
+                        name={result.name}
+                        iconUrl={result.iconUrl}
+                        className="size-10"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <p className="truncate font-medium">{result.name}</p>
                           {result.loader && (
                             <Badge variant="outline" className="shrink-0">
-                              {LOADER_ICON[result.loader] && <img src={LOADER_ICON[result.loader]} alt="" className="size-3" />}
+                              {LOADER_ICON[result.loader] && (
+                                <img
+                                  src={LOADER_ICON[result.loader]}
+                                  alt=""
+                                  className="size-3"
+                                />
+                              )}
                               {LOADER_LABEL[result.loader] ?? result.loader}
                             </Badge>
                           )}
@@ -112,9 +142,11 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
                             </Badge>
                           )}
                         </div>
-                        <p className="truncate text-xs text-muted-foreground">{result.description}</p>
+                        <p className="text-muted-foreground truncate text-xs">
+                          {result.description}
+                        </p>
                       </div>
-                      <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                      <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
                         <Download className="size-3" />
                         {result.downloads.toLocaleString()}
                       </span>

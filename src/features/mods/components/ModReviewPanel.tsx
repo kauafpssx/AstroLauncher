@@ -31,7 +31,15 @@ interface ModReviewPanelProps {
   onInstalled: () => void
 }
 
-export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kind, onBack, onInstalled }: ModReviewPanelProps) {
+export function ModReviewPanel({
+  instanceId,
+  selection,
+  gameVersion,
+  loader,
+  kind,
+  onBack,
+  onInstalled,
+}: ModReviewPanelProps) {
   const [entries, setEntries] = useState<ReviewEntry[]>([])
   const [isResolving, setIsResolving] = useState(true)
   const [isInstalling, setIsInstalling] = useState(false)
@@ -45,11 +53,18 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
     async function resolve() {
       const resolved = new Map<string, ReviewEntry>()
       for (const [key, entry] of Object.entries(selection)) {
-        resolved.set(key, { key, result: entry.result, version: entry.version, isDependency: false })
+        resolved.set(key, {
+          key,
+          result: entry.result,
+          version: entry.version,
+          isDependency: false,
+        })
       }
 
       // Only Modrinth versions carry dependency info from the backend today.
-      let queue = Object.values(selection).filter((e) => e.result.source === 'modrinth')
+      let queue = Object.values(selection).filter(
+        (e) => e.result.source === 'modrinth',
+      )
       let guard = 0
       while (queue.length > 0 && guard < 5) {
         guard += 1
@@ -61,7 +76,12 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
             try {
               const [project, versions] = await Promise.all([
                 ModAPI.getProject('modrinth', depId),
-                ModAPI.getVersions({ source: 'modrinth', projectId: depId, gameVersion, loader }),
+                ModAPI.getVersions({
+                  source: 'modrinth',
+                  projectId: depId,
+                  gameVersion,
+                  loader,
+                }),
               ])
               const version = versions[0]
               if (!version) continue
@@ -76,7 +96,12 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
                 loader: loader ?? null,
                 gameVersion: gameVersion ?? null,
               }
-              resolved.set(depKey, { key: depKey, result, version, isDependency: true })
+              resolved.set(depKey, {
+                key: depKey,
+                result,
+                version,
+                isDependency: true,
+              })
               nextQueue.push({ result, version })
             } catch {
               // dependency lookup failing shouldn't block the rest of the install
@@ -99,7 +124,8 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const removeEntry = (key: string) => setEntries((prev) => prev.filter((e) => e.key !== key))
+  const removeEntry = (key: string) =>
+    setEntries((prev) => prev.filter((e) => e.key !== key))
 
   const handleInstallAll = async () => {
     setIsInstalling(true)
@@ -145,17 +171,25 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
     if (failures === 0) {
       toast.success(`${entries.length} mod(s) instalado(s)`)
     } else {
-      toast.warning(`${entries.length - failures} instalado(s), ${failures} falharam`)
+      toast.warning(
+        `${entries.length - failures} instalado(s), ${failures} falharam`,
+      )
     }
     onInstalled()
   }
 
-  const overallPercent = entries.length > 0 ? (installedCount / entries.length) * 100 : 0
+  const overallPercent =
+    entries.length > 0 ? (installedCount / entries.length) * 100 : 0
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 border-b p-3">
-        <Button variant="ghost" size="sm" onClick={onBack} disabled={isInstalling}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          disabled={isInstalling}
+        >
           <ArrowLeft /> Voltar
         </Button>
         <span className="font-medium">Revisar e Instalar</span>
@@ -164,16 +198,26 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
       <ScrollArea type="always" className="flex-1">
         <div className="flex flex-col gap-1 p-2">
           {isResolving && (
-            <p className="flex items-center justify-center gap-2 p-6 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" /> Resolvendo dependências...
+            <p className="text-muted-foreground flex items-center justify-center gap-2 p-6 text-sm">
+              <Loader2 className="size-4 animate-spin" /> Resolvendo
+              dependências...
             </p>
           )}
-          {!isResolving && entries.length === 0 && <EmptyState icon={Puzzle} title="Nenhum mod selecionado." />}
+          {!isResolving && entries.length === 0 && (
+            <EmptyState icon={Puzzle} title="Nenhum mod selecionado." />
+          )}
           {entries.map((entry) => {
             const status = statuses[entry.key]
             return (
-              <div key={entry.key} className="flex items-center gap-3 rounded-lg p-2 hover:bg-accent">
-                <EntityAvatar name={entry.result.name} iconUrl={entry.result.iconUrl} className="size-9" />
+              <div
+                key={entry.key}
+                className="hover:bg-accent flex items-center gap-3 rounded-lg p-2"
+              >
+                <EntityAvatar
+                  name={entry.result.name}
+                  iconUrl={entry.result.iconUrl}
+                  className="size-9"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="truncate font-medium">{entry.result.name}</p>
@@ -183,13 +227,26 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
                       </Badge>
                     )}
                   </div>
-                  <p className="truncate text-xs text-muted-foreground">{entry.version.name}</p>
+                  <p className="text-muted-foreground truncate text-xs">
+                    {entry.version.name}
+                  </p>
                 </div>
-                {status === 'installing' && <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />}
-                {status === 'done' && <Check className="size-4 shrink-0 text-primary" />}
-                {status === 'failed' && <X className="size-4 shrink-0 text-destructive" />}
+                {status === 'installing' && (
+                  <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" />
+                )}
+                {status === 'done' && (
+                  <Check className="text-primary size-4 shrink-0" />
+                )}
+                {status === 'failed' && (
+                  <X className="text-destructive size-4 shrink-0" />
+                )}
                 {!status && (
-                  <Button variant="ghost" size="icon-sm" onClick={() => removeEntry(entry.key)} disabled={isInstalling}>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => removeEntry(entry.key)}
+                    disabled={isInstalling}
+                  >
                     <X />
                   </Button>
                 )}
@@ -202,7 +259,11 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
       <div className="flex flex-col gap-3 border-t p-3">
         {isInstalling && (
           <div className="flex flex-col gap-2">
-            <ProgressGroup label="Progresso geral" value={overallPercent} rightLabel={`${installedCount}/${entries.length}`} />
+            <ProgressGroup
+              label="Progresso geral"
+              value={overallPercent}
+              rightLabel={`${installedCount}/${entries.length}`}
+            />
             <div className="flex flex-col gap-1">
               <p className="truncate text-xs font-medium">{currentName}</p>
               <Progress value={undefined} className="animate-pulse" />
@@ -210,8 +271,16 @@ export function ModReviewPanel({ instanceId, selection, gameVersion, loader, kin
           </div>
         )}
 
-        <Button className="w-full" disabled={isResolving || entries.length === 0 || isInstalling} onClick={handleInstallAll}>
-          {isInstalling ? <Loader2 className="animate-spin" /> : `Instalar Tudo (${entries.length})`}
+        <Button
+          className="w-full"
+          disabled={isResolving || entries.length === 0 || isInstalling}
+          onClick={handleInstallAll}
+        >
+          {isInstalling ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            `Instalar Tudo (${entries.length})`
+          )}
         </Button>
       </div>
     </div>

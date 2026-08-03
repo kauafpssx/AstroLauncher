@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
-import { DiscardButton, SaveButton } from '@/components/common/SaveDiscardButtons'
+import {
+  DiscardButton,
+  SaveButton,
+} from '@/components/common/SaveDiscardButtons'
 import { SearchInput } from '@/components/common/SearchInput'
 import { InstanceAPI } from '@/features/instances/services/instance.api'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
@@ -51,7 +54,10 @@ export function MinecraftOptionsTab({ instanceId }: MinecraftOptionsTabProps) {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return options
-    return options.filter((o) => o.label.toLowerCase().includes(q) || o.key.toLowerCase().includes(q))
+    return options.filter(
+      (o) =>
+        o.label.toLowerCase().includes(q) || o.key.toLowerCase().includes(q),
+    )
   }, [options, search])
 
   const grouped = useMemo(() => {
@@ -63,7 +69,8 @@ export function MinecraftOptionsTab({ instanceId }: MinecraftOptionsTabProps) {
 
   const isDirty = Object.keys(overrides).length > 0
 
-  const setOverride = (key: string, value: string) => setOverrides((prev) => ({ ...prev, [key]: value }))
+  const setOverride = (key: string, value: string) =>
+    setOverrides((prev) => ({ ...prev, [key]: value }))
 
   const handleSave = async () => {
     if (rawOptions === null) return
@@ -72,11 +79,19 @@ export function MinecraftOptionsTab({ instanceId }: MinecraftOptionsTabProps) {
       const updates: Record<string, string> = {}
       for (const option of options) {
         if (option.key in overrides) {
-          updates[option.key] = toRawValue(overrides[option.key], option.rawValue, option.type)
+          updates[option.key] = toRawValue(
+            overrides[option.key],
+            option.rawValue,
+            option.type,
+          )
         }
       }
       const updated = applyMinecraftOptionUpdates(rawOptions, updates)
-      await InstanceWorkspaceAPI.writeConfigFile(instanceId, OPTIONS_FILE, updated)
+      await InstanceWorkspaceAPI.writeConfigFile(
+        instanceId,
+        OPTIONS_FILE,
+        updated,
+      )
       setRawOptions(updated)
       setOptions(parseMinecraftOptions(updated))
       setOverrides({})
@@ -103,7 +118,11 @@ export function MinecraftOptionsTab({ instanceId }: MinecraftOptionsTabProps) {
         />
         <div className="flex gap-1.5">
           <DiscardButton onClick={() => setOverrides({})} disabled={!isDirty} />
-          <SaveButton onClick={handleSave} disabled={!isDirty} isSaving={isSaving} />
+          <SaveButton
+            onClick={handleSave}
+            disabled={!isDirty}
+            isSaving={isSaving}
+          />
         </div>
       </div>
 
@@ -113,7 +132,10 @@ export function MinecraftOptionsTab({ instanceId }: MinecraftOptionsTabProps) {
             <h3 className="text-sm font-medium">{category}</h3>
             <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
               {items.map((option) => (
-                <div key={option.key} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+                <div
+                  key={option.key}
+                  className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2"
+                >
                   <span className="truncate text-sm">{option.label}</span>
                   <MinecraftOptionField
                     option={option}
@@ -126,7 +148,11 @@ export function MinecraftOptionsTab({ instanceId }: MinecraftOptionsTabProps) {
             </div>
           </div>
         ))}
-        {grouped.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma opção encontrada.</p>}
+        {grouped.length === 0 && (
+          <p className="text-muted-foreground py-8 text-center text-sm">
+            Nenhuma opção encontrada.
+          </p>
+        )}
       </div>
     </div>
   )

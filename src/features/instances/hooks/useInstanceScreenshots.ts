@@ -22,13 +22,17 @@ export function useInstanceScreenshots(instanceId: string) {
         const loaded = await Promise.all(
           list.map(async (info) => ({
             info,
-            dataUri: await InstanceWorkspaceAPI.readScreenshot(instanceId, info.name),
+            dataUri: await InstanceWorkspaceAPI.readScreenshot(
+              instanceId,
+              info.name,
+            ),
           })),
         )
         if (requestIdRef.current === requestId) setShots(loaded)
       })
       .catch((err) => {
-        if (requestIdRef.current === requestId) toast.error(`Falha ao carregar screenshots: ${String(err)}`)
+        if (requestIdRef.current === requestId)
+          toast.error(`Falha ao carregar screenshots: ${String(err)}`)
       })
       .finally(() => {
         if (requestIdRef.current === requestId) setIsLoading(false)

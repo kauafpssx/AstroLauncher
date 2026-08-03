@@ -37,7 +37,13 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
   runningInstanceId: null,
 
   launch: async (id) => {
-    set({ isOpen: true, instanceId: id, stageLabel: 'Preparando...', progress: null, error: null })
+    set({
+      isOpen: true,
+      instanceId: id,
+      stageLabel: 'Preparando...',
+      progress: null,
+      error: null,
+    })
 
     const unlisten = await listen<LaunchEvent>('launch://event', (event) => {
       const payload = event.payload
@@ -62,7 +68,9 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
 
     try {
       await apiInvoke<void>('launch_instance', { id })
-      set((state) => (state.error ? state : { isOpen: false, runningInstanceId: id }))
+      set((state) =>
+        state.error ? state : { isOpen: false, runningInstanceId: id },
+      )
       if (!useLaunchStore.getState().error) toast.success('Jogo iniciado')
     } catch (err) {
       set((state) => ({ error: state.error ?? String(err) }))
@@ -74,7 +82,9 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
   stop: async (id) => {
     try {
       await apiInvoke<void>('stop_instance', { id })
-      set((state) => (state.runningInstanceId === id ? { runningInstanceId: null } : state))
+      set((state) =>
+        state.runningInstanceId === id ? { runningInstanceId: null } : state,
+      )
     } catch (err) {
       toast.error(`Falha ao encerrar: ${String(err)}`)
     }
@@ -89,11 +99,16 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
     }
   },
 
-  close: () => set({ isOpen: false, instanceId: null, error: null, progress: null }),
+  close: () =>
+    set({ isOpen: false, instanceId: null, error: null, progress: null }),
 }))
 
 // Persistent, app-lifetime listener: the game can exit long after the launch
 // call (and its transient progress listener) has already resolved.
 listen<string>('instance://stopped', (event) => {
-  useLaunchStore.setState((state) => (state.runningInstanceId === event.payload ? { runningInstanceId: null } : state))
+  useLaunchStore.setState((state) =>
+    state.runningInstanceId === event.payload
+      ? { runningInstanceId: null }
+      : state,
+  )
 })

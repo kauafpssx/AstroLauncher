@@ -36,12 +36,27 @@ interface TabItem {
 const tabs: TabItem[] = [
   { id: 'settings', label: 'Configurações', icon: Settings, available: true },
   { id: 'log', label: 'Log', icon: ScrollText, available: true },
-  { id: 'config-editor', label: 'Editor de Config', icon: FileCog, available: true },
+  {
+    id: 'config-editor',
+    label: 'Editor de Config',
+    icon: FileCog,
+    available: true,
+  },
   { id: 'worlds', label: 'Mundos', icon: Globe, available: true },
   { id: 'notes', label: 'Notas', icon: FileText, available: true },
   { id: 'mods', label: 'Mods', icon: Puzzle, available: true },
-  { id: 'resource-packs', label: 'Resource Packs', icon: Boxes, available: true },
-  { id: 'shader-packs', label: 'Shader Packs', icon: Sparkles, available: true },
+  {
+    id: 'resource-packs',
+    label: 'Resource Packs',
+    icon: Boxes,
+    available: true,
+  },
+  {
+    id: 'shader-packs',
+    label: 'Shader Packs',
+    icon: Sparkles,
+    available: true,
+  },
   { id: 'servers', label: 'Servers', icon: Server, available: true },
   { id: 'screenshots', label: 'Screenshots', icon: Image, available: true },
 ]
@@ -53,14 +68,24 @@ interface EditInstanceSidebarProps {
   onBack: () => void
 }
 
-export function EditInstanceSidebar({ instanceName, active, onChange, onBack }: EditInstanceSidebarProps) {
+export function EditInstanceSidebar({
+  instanceName,
+  active,
+  onChange,
+  onBack,
+}: EditInstanceSidebarProps) {
   return (
     <SidebarNav<EditInstanceTab>
       title={instanceName}
       onBack={onBack}
       active={active}
       onChange={onChange}
-      items={tabs.map(({ available, ...tab }): SidebarNavItem<EditInstanceTab> => ({ ...tab, disabled: !available }))}
+      items={tabs.map(
+        ({ available, ...tab }): SidebarNavItem<EditInstanceTab> => ({
+          ...tab,
+          disabled: !available,
+        }),
+      )}
     />
   )
 }

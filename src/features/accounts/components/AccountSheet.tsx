@@ -20,7 +20,12 @@ interface AccountSheetProps {
   onSubmit: (username: string) => Promise<void>
 }
 
-export function AccountSheet({ open, onOpenChange, account, onSubmit }: AccountSheetProps) {
+export function AccountSheet({
+  open,
+  onOpenChange,
+  account,
+  onSubmit,
+}: AccountSheetProps) {
   const [username, setUsername] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -48,9 +53,12 @@ export function AccountSheet({ open, onOpenChange, account, onSubmit }: AccountS
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>{account ? 'Editar Conta' : 'Adicionar Conta'}</SheetTitle>
+          <SheetTitle>
+            {account ? 'Editar Conta' : 'Adicionar Conta'}
+          </SheetTitle>
           <SheetDescription>
-            Contas offline usam apenas um nome de usuário customizado, sem necessidade de login.
+            Contas offline usam apenas um nome de usuário customizado, sem
+            necessidade de login.
           </SheetDescription>
         </SheetHeader>
 
@@ -69,7 +77,10 @@ export function AccountSheet({ open, onOpenChange, account, onSubmit }: AccountS
         </div>
 
         <SheetFooter>
-          <Button onClick={handleSubmit} disabled={!username.trim() || isSubmitting}>
+          <Button
+            onClick={handleSubmit}
+            disabled={!username.trim() || isSubmitting}
+          >
             {isSubmitting ? 'Salvando...' : 'Salvar'}
           </Button>
         </SheetFooter>

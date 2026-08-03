@@ -60,7 +60,9 @@ export function SplashScreen() {
       }
 
       if (!cancelled) {
-        invoke('finish_splash').catch((error) => console.error('Failed to finish splash:', error))
+        invoke('finish_splash').catch((error) =>
+          console.error('Failed to finish splash:', error),
+        )
       }
     }
 
@@ -101,7 +103,9 @@ export function SplashScreen() {
             />
           ))}
         </div>
-        {status && <span className="text-muted-foreground text-xs">{status}</span>}
+        {status && (
+          <span className="text-muted-foreground text-xs">{status}</span>
+        )}
       </div>
     </div>
   )

@@ -27,7 +27,10 @@ export function EditInstancePage() {
 
   const instance = instances.find((i) => i.id === id)
 
-  useDiscordPresence('Editando uma instância', instance?.name ?? 'Carregando...')
+  useDiscordPresence(
+    'Editando uma instância',
+    instance?.name ?? 'Carregando...',
+  )
 
   if (!instance) {
     return (
@@ -45,13 +48,20 @@ export function EditInstancePage() {
 
   return (
     <div className="flex h-screen">
-      <EditInstanceSidebar instanceName={instance.name} active={tab} onChange={setTab} onBack={goBack} />
+      <EditInstanceSidebar
+        instanceName={instance.name}
+        active={tab}
+        onChange={setTab}
+        onBack={goBack}
+      />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {tab === 'log' || tab === 'config-editor' ? (
           <div className="flex min-h-0 min-w-0 flex-1 flex-col p-6">
             {tab === 'log' && <LogTab instanceId={instance.id} />}
-            {tab === 'config-editor' && <ConfigEditorTab instanceId={instance.id} />}
+            {tab === 'config-editor' && (
+              <ConfigEditorTab instanceId={instance.id} />
+            )}
           </div>
         ) : (
           <ScrollArea type="always" className="min-h-0 flex-1">
@@ -60,7 +70,12 @@ export function EditInstancePage() {
               {tab === 'worlds' && <WorldsTab instanceId={instance.id} />}
               {tab === 'notes' && <NotesTab instanceId={instance.id} />}
               {tab === 'mods' && (
-                <InstalledContentTab instanceId={instance.id} gameVersion={instance.version} loader={instance.loader} kind="mod" />
+                <InstalledContentTab
+                  instanceId={instance.id}
+                  gameVersion={instance.version}
+                  loader={instance.loader}
+                  kind="mod"
+                />
               )}
               {tab === 'resource-packs' && (
                 <InstalledContentTab
@@ -71,10 +86,17 @@ export function EditInstancePage() {
                 />
               )}
               {tab === 'shader-packs' && (
-                <InstalledContentTab instanceId={instance.id} gameVersion={instance.version} loader={instance.loader} kind="shader" />
+                <InstalledContentTab
+                  instanceId={instance.id}
+                  gameVersion={instance.version}
+                  loader={instance.loader}
+                  kind="shader"
+                />
               )}
               {tab === 'servers' && <ServersTab instanceId={instance.id} />}
-              {tab === 'screenshots' && <ScreenshotsTab instanceId={instance.id} />}
+              {tab === 'screenshots' && (
+                <ScreenshotsTab instanceId={instance.id} />
+              )}
             </div>
           </ScrollArea>
         )}

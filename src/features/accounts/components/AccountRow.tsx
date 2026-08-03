@@ -22,8 +22,20 @@ interface AccountRowProps {
   onDelete: () => void
 }
 
-export function AccountRow({ account, onSetDefault, onEdit, onDelete }: AccountRowProps) {
-  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({ id: account.id })
+export function AccountRow({
+  account,
+  onSetDefault,
+  onEdit,
+  onDelete,
+}: AccountRowProps) {
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: account.id })
 
   return (
     <TableRow
@@ -32,7 +44,7 @@ export function AccountRow({ account, onSetDefault, onEdit, onDelete }: AccountR
       className={cn(
         'cursor-default',
         account.isDefault && 'bg-primary/5',
-        isDragging && 'relative z-10 border-b-0 bg-muted shadow-md',
+        isDragging && 'bg-muted relative z-10 border-b-0 shadow-md',
       )}
     >
       <TableCell>
@@ -40,7 +52,7 @@ export function AccountRow({ account, onSetDefault, onEdit, onDelete }: AccountR
           type="button"
           {...attributes}
           {...listeners}
-          className="flex cursor-grab touch-none items-center text-muted-foreground active:cursor-grabbing"
+          className="text-muted-foreground flex cursor-grab touch-none items-center active:cursor-grabbing"
         >
           <GripVertical className="size-4" />
         </button>
@@ -58,9 +70,15 @@ export function AccountRow({ account, onSetDefault, onEdit, onDelete }: AccountR
               account.isDefault ? 'border-primary' : 'border-muted-foreground',
             )}
           >
-            {account.isDefault && <span className="size-2 rounded-full bg-primary" />}
+            {account.isDefault && (
+              <span className="bg-primary size-2 rounded-full" />
+            )}
           </span>
-          <EntityAvatar name={account.username} className="size-6" fallbackClassName="text-[10px]" />
+          <EntityAvatar
+            name={account.username}
+            className="size-6"
+            fallbackClassName="text-[10px]"
+          />
           <span className="font-medium">{account.username}</span>
         </button>
       </TableCell>

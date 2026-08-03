@@ -1,7 +1,7 @@
-import { GripVertical } from "lucide-react"
-import { Group, Panel, Separator } from "react-resizable-panels"
+import { GripVertical } from 'lucide-react'
+import { Group, Panel, Separator } from 'react-resizable-panels'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 function ResizablePanelGroup({
   className,
@@ -11,9 +11,9 @@ function ResizablePanelGroup({
     <Group
       data-slot="resizable-panel-group"
       className={cn(
-        "flex h-full w-full",
-        props.orientation === "vertical" && "flex-col",
-        className
+        'flex h-full w-full',
+        props.orientation === 'vertical' && 'flex-col',
+        className,
       )}
       {...props}
     />
@@ -35,13 +35,13 @@ function ResizableHandle({
     <Separator
       data-slot="resizable-handle"
       className={cn(
-        "relative flex w-px shrink-0 items-center justify-center bg-border outline-none after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:ring-1 focus-visible:ring-ring",
-        className
+        'bg-border focus-visible:ring-ring relative flex w-px shrink-0 items-center justify-center outline-none after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:ring-1',
+        className,
       )}
       {...props}
     >
       {withHandle && (
-        <div className="z-10 flex h-4 w-3 items-center justify-center rounded-xs border bg-border">
+        <div className="bg-border z-10 flex h-4 w-3 items-center justify-center rounded-xs border">
           <GripVertical className="size-2.5" />
         </div>
       )}

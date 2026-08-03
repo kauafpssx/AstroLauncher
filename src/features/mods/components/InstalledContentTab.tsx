@@ -6,14 +6,29 @@ import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import type { ContentKind, InstalledMod } from '@/types/mods'
 
 import { ModAPI } from '../services/mod.api'
 import { ModBrowserDialog } from './ModBrowserDialog'
 
-const LABELS: Record<ContentKind, { title: string; addLabel: string; emptyLabel: string; singular: string }> = {
-  mod: { title: 'Mods instalados nesta instância.', addLabel: 'Adicionar Mod', emptyLabel: 'Nenhum mod instalado.', singular: 'Mod' },
+const LABELS: Record<
+  ContentKind,
+  { title: string; addLabel: string; emptyLabel: string; singular: string }
+> = {
+  mod: {
+    title: 'Mods instalados nesta instância.',
+    addLabel: 'Adicionar Mod',
+    emptyLabel: 'Nenhum mod instalado.',
+    singular: 'Mod',
+  },
   resourcepack: {
     title: 'Resource packs instalados nesta instância.',
     addLabel: 'Adicionar Resource Pack',
@@ -35,7 +50,12 @@ interface InstalledContentTabProps {
   kind: ContentKind
 }
 
-export function InstalledContentTab({ instanceId, gameVersion, loader, kind }: InstalledContentTabProps) {
+export function InstalledContentTab({
+  instanceId,
+  gameVersion,
+  loader,
+  kind,
+}: InstalledContentTabProps) {
   const [items, setItems] = useState<InstalledMod[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -55,7 +75,9 @@ export function InstalledContentTab({ instanceId, gameVersion, loader, kind }: I
     let cancelled = false
     ModAPI.listInstalled(instanceId, kind)
       .then((data) => !cancelled && setItems(data))
-      .catch((err) => !cancelled && toast.error(`Falha ao listar: ${String(err)}`))
+      .catch(
+        (err) => !cancelled && toast.error(`Falha ao listar: ${String(err)}`),
+      )
       .finally(() => !cancelled && setIsLoading(false))
     return () => {
       cancelled = true
@@ -63,12 +85,16 @@ export function InstalledContentTab({ instanceId, gameVersion, loader, kind }: I
   }, [instanceId, kind])
 
   const handleToggle = async (item: InstalledMod, enabled: boolean) => {
-    setItems((prev) => prev.map((m) => (m.id === item.id ? { ...m, enabled } : m)))
+    setItems((prev) =>
+      prev.map((m) => (m.id === item.id ? { ...m, enabled } : m)),
+    )
     try {
       await ModAPI.setEnabled(instanceId, item.id, enabled)
     } catch (err) {
       toast.error(`Falha ao atualizar: ${String(err)}`)
-      setItems((prev) => prev.map((m) => (m.id === item.id ? { ...m, enabled: !enabled } : m)))
+      setItems((prev) =>
+        prev.map((m) => (m.id === item.id ? { ...m, enabled: !enabled } : m)),
+      )
     }
   }
 
@@ -85,7 +111,7 @@ export function InstalledContentTab({ instanceId, gameVersion, loader, kind }: I
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{labels.title}</p>
+        <p className="text-muted-foreground text-sm">{labels.title}</p>
         <Button size="sm" onClick={() => setSearchOpen(true)}>
           <Plus /> {labels.addLabel}
         </Button>
@@ -105,7 +131,10 @@ export function InstalledContentTab({ instanceId, gameVersion, loader, kind }: I
           <TableBody>
             {!isLoading && items.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="text-muted-foreground h-24 text-center"
+                >
                   <Puzzle className="mx-auto mb-2 size-6" />
                   {labels.emptyLabel}
                 </TableCell>
@@ -115,7 +144,12 @@ export function InstalledContentTab({ instanceId, gameVersion, loader, kind }: I
               <TableRow key={item.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2.5">
-                    <EntityAvatar name={item.name} iconUrl={item.iconUrl} className="size-7" fallbackClassName="text-[10px]" />
+                    <EntityAvatar
+                      name={item.name}
+                      iconUrl={item.iconUrl}
+                      className="size-7"
+                      fallbackClassName="text-[10px]"
+                    />
                     {item.name}
                   </div>
                 </TableCell>
@@ -124,12 +158,21 @@ export function InstalledContentTab({ instanceId, gameVersion, loader, kind }: I
                     {item.source}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{item.version}</TableCell>
-                <TableCell>
-                  <Switch checked={item.enabled} onCheckedChange={(checked) => handleToggle(item, checked)} />
+                <TableCell className="text-muted-foreground">
+                  {item.version}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(item)}>
+                  <Switch
+                    checked={item.enabled}
+                    onCheckedChange={(checked) => handleToggle(item, checked)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => handleDelete(item)}
+                  >
                     <Trash2 className="text-destructive" />
                   </Button>
                 </TableCell>

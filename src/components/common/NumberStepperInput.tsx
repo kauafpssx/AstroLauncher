@@ -12,7 +12,14 @@ interface NumberStepperInputProps {
   className?: string
 }
 
-export function NumberStepperInput({ value, onChange, min, max, step, className }: NumberStepperInputProps) {
+export function NumberStepperInput({
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  className,
+}: NumberStepperInputProps) {
   const [draft, setDraft] = useState(String(value))
   const isFocused = useRef(false)
 
@@ -32,7 +39,12 @@ export function NumberStepperInput({ value, onChange, min, max, step, className 
   }
 
   return (
-    <div className={cn('flex items-stretch overflow-hidden rounded-md border', className)}>
+    <div
+      className={cn(
+        'flex items-stretch overflow-hidden rounded-md border',
+        className,
+      )}
+    >
       <input
         type="text"
         inputMode="decimal"
@@ -53,7 +65,7 @@ export function NumberStepperInput({ value, onChange, min, max, step, className 
           tabIndex={-1}
           onClick={() => onChange(clamp(value + step))}
           disabled={value >= max}
-          className="flex h-1/2 w-5 items-center justify-center text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-1/2 w-5 items-center justify-center transition-colors disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronUp className="size-3" />
         </button>
@@ -62,7 +74,7 @@ export function NumberStepperInput({ value, onChange, min, max, step, className 
           tabIndex={-1}
           onClick={() => onChange(clamp(value - step))}
           disabled={value <= min}
-          className="flex h-1/2 w-5 items-center justify-center border-t text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-1/2 w-5 items-center justify-center border-t transition-colors disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronDown className="size-3" />
         </button>

@@ -1,4 +1,11 @@
-export type KeybindCategory = 'Movimento' | 'Jogabilidade' | 'Inventário' | 'Multiplayer' | 'Interface' | 'Depuração' | 'Mods'
+export type KeybindCategory =
+  | 'Movimento'
+  | 'Jogabilidade'
+  | 'Inventário'
+  | 'Multiplayer'
+  | 'Interface'
+  | 'Depuração'
+  | 'Mods'
 
 export const KEYBIND_CATEGORY_ORDER: KeybindCategory[] = [
   'Movimento',
@@ -126,7 +133,13 @@ const KEY_LABELS: Record<string, string> = {
 }
 
 export function humanizeAction(action: string): string {
-  return ACTION_LABELS[action] ?? action.replace(/[._]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').trim()
+  return (
+    ACTION_LABELS[action] ??
+    action
+      .replace(/[._]/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .trim()
+  )
 }
 
 export function humanizeKey(value: string): string {
@@ -154,7 +167,8 @@ export function eventToMinecraftKey(event: KeyboardEvent): string | null {
     CapsLock: 'key.keyboard.caps.lock',
   }
   if (map[code]) return map[code]
-  if (/^Key[A-Z]$/.test(code)) return `key.keyboard.${code.slice(3).toLowerCase()}`
+  if (/^Key[A-Z]$/.test(code))
+    return `key.keyboard.${code.slice(3).toLowerCase()}`
   if (/^Digit[0-9]$/.test(code)) return `key.keyboard.${code.slice(5)}`
   if (/^F[0-9]{1,2}$/.test(code)) return `key.keyboard.${code.toLowerCase()}`
   return `key.keyboard.${code.toLowerCase()}`
@@ -165,7 +179,9 @@ const KEY_LINE = /^key_(.+):(.*)$/
 const VANILLA_PREFIX = 'key.'
 
 function actionFromRawKey(rawKey: string): string {
-  return rawKey.startsWith(VANILLA_PREFIX) ? rawKey.slice(VANILLA_PREFIX.length) : rawKey
+  return rawKey.startsWith(VANILLA_PREFIX)
+    ? rawKey.slice(VANILLA_PREFIX.length)
+    : rawKey
 }
 
 export function parseKeybinds(optionsTxt: string): ParsedKeybind[] {
@@ -176,13 +192,21 @@ export function parseKeybinds(optionsTxt: string): ParsedKeybind[] {
     if (!match) continue
     const [, rawKey, value] = match
     const action = actionFromRawKey(rawKey)
-    result.push({ action, label: humanizeAction(action), value, category: categoryForAction(action) })
+    result.push({
+      action,
+      label: humanizeAction(action),
+      value,
+      category: categoryForAction(action),
+    })
   }
   return result
 }
 
 /** Rewrites the `key_*` lines in `optionsTxt` from `updates` (keyed by `ParsedKeybind.action`), leaving every other line untouched. */
-export function applyKeybinds(optionsTxt: string, updates: Record<string, string>): string {
+export function applyKeybinds(
+  optionsTxt: string,
+  updates: Record<string, string>,
+): string {
   return optionsTxt
     .split('\n')
     .map((rawLine) => {
@@ -200,7 +224,10 @@ export function applyKeybinds(optionsTxt: string, updates: Record<string, string
  * Maps each bound physical key (excluding `key.keyboard.unknown`) to the
  * actions currently assigned to it — any key with 2+ actions is a conflict.
  */
-export function findKeybindConflicts(binds: ParsedKeybind[], overrides: Record<string, string>): Map<string, string[]> {
+export function findKeybindConflicts(
+  binds: ParsedKeybind[],
+  overrides: Record<string, string>,
+): Map<string, string[]> {
   const byKey = new Map<string, string[]>()
   for (const bind of binds) {
     const value = overrides[bind.action] ?? bind.value

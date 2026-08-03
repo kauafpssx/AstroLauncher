@@ -1,4 +1,8 @@
-# Logs
+# ═══════════════════════════════════════════════════════════════════
+# .gitignore — AstroLauncher
+# ═══════════════════════════════════════════════════════════════════
+
+# ── Logs ────────────────────────────────────────────────────────────
 logs
 *.log
 npm-debug.log*
@@ -7,29 +11,54 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# ── Dependências ────────────────────────────────────────────────────
 node_modules
+.pnp
+.pnp.js
+
+# ── Build e produção ────────────────────────────────────────────────
 dist
 dist-ssr
+coverage
+.nyc_output
 *.local
 
-# TypeScript incremental build info (tsc -b)
+# ── TypeScript ──────────────────────────────────────────────────────
 *.tsbuildinfo
+.eslintcache
 
-# Editor directories and files
+# ── Ambiente ────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Editores e IDEs ─────────────────────────────────────────────────
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Rust / Tauri
+# ── Sistema operacional ─────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── Rust / Tauri ────────────────────────────────────────────────────
 src-tauri/target
 src-tauri/gen
 
-
-# Tauri updater signing keys (never commit)
+# ── Tauri updater signing keys (nunca commitar) ─────────────────────
 .keys
+*.key
+*.sig

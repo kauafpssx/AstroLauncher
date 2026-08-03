@@ -15,7 +15,7 @@ export function StatusBar({ instanceCount }: StatusBarProps) {
   }, [])
 
   return (
-    <footer className="flex h-7 shrink-0 items-center justify-end gap-4 border-t px-3 text-xs text-muted-foreground">
+    <footer className="text-muted-foreground flex h-7 shrink-0 items-center justify-end gap-4 border-t px-3 text-xs">
       <span>{instanceCount} instâncias</span>
       {version && <span>AstroLauncher v{version}</span>}
     </footer>

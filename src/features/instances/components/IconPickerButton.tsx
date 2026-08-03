@@ -43,20 +43,34 @@ export function IconPickerButton({
           e.stopPropagation()
           onDoubleClick()
         }}
-        className={cn('relative flex items-center justify-center bg-muted transition-opacity hover:opacity-80', rounded, className)}
+        className={cn(
+          'bg-muted relative flex items-center justify-center transition-opacity hover:opacity-80',
+          rounded,
+          className,
+        )}
       >
         {iconPath ? (
           <img
             src={resolveIconSrc(iconPath)}
             alt=""
-            className={cn('size-full object-cover [image-rendering:pixelated]', rounded, iconClassName)}
+            className={cn(
+              'size-full object-cover [image-rendering:pixelated]',
+              rounded,
+              iconClassName,
+            )}
           />
         ) : (
-          <Package className={cn('text-muted-foreground', fallbackIconClassName)} />
+          <Package
+            className={cn('text-muted-foreground', fallbackIconClassName)}
+          />
         )}
         {overlay}
       </button>
-      <IconPickerDialog open={open} onOpenChange={setOpen} onSelect={onSelect} />
+      <IconPickerDialog
+        open={open}
+        onOpenChange={setOpen}
+        onSelect={onSelect}
+      />
     </>
   )
 }

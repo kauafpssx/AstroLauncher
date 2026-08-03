@@ -11,7 +11,11 @@ const sources: SidebarNavItem<Platform>[] = [
   { id: 'custom', label: 'Customizado', icon: SlidersHorizontal },
   { id: 'import', label: 'Importar', icon: Upload },
   { id: 'modrinth', label: 'Modrinth', iconSrc: '/providers/modrinth.svg' },
-  { id: 'curseforge', label: 'CurseForge', iconSrc: '/providers/curseforge.png' },
+  {
+    id: 'curseforge',
+    label: 'CurseForge',
+    iconSrc: '/providers/curseforge.png',
+  },
 ]
 
 interface PlatformSidebarProps {
@@ -37,12 +41,12 @@ export function PlatformSidebar({ platform, onChange }: PlatformSidebarProps) {
           className="relative mt-auto flex min-h-80 flex-col overflow-hidden rounded-lg bg-cover bg-center p-3"
           style={{ backgroundImage: "url('/images/tips.png')" }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/50 to-transparent" />
-          <div className="relative flex items-center gap-1.5 text-sm font-medium text-primary">
+          <div className="from-background/90 via-background/50 absolute inset-0 bg-gradient-to-b to-transparent" />
+          <div className="text-primary relative flex items-center gap-1.5 text-sm font-medium">
             <Lightbulb className="size-4" />
             Dica
           </div>
-          <p className="relative mt-1 text-xs text-foreground/90">
+          <p className="text-foreground/90 relative mt-1 text-xs">
             {platform === 'custom'
               ? 'Selecione uma versão e um mod loader para começar a criar sua instância.'
               : 'Ao escolher um modpack, o loader é definido automaticamente por ele.'}

@@ -63,7 +63,9 @@
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIzODdENTdGQUVCRjYwRUYKUldUdllMK3VmOVdIc3dheUFDaXd2eVNLSWl6WGVmWDkveHBoRlFBOE92UldWbjk1eUZQUEcxQkwK",
-      "endpoints": ["https://github.com/kauafpssx/AstroLauncher/releases/latest/download/latest.json"]
+      "endpoints": [
+        "https://github.com/kauafpssx/AstroLauncher/releases/latest/download/latest.json"
+      ]
     },
     "discord": {
       "clientId": "1533653025842008145",

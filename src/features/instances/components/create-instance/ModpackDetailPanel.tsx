@@ -1,5 +1,15 @@
 import { listen } from '@tauri-apps/api/event'
-import { BookOpen, Check, Code2, Download, ExternalLink, Loader2, MessageCircle, Play, X } from 'lucide-react'
+import {
+  BookOpen,
+  Check,
+  Code2,
+  Download,
+  ExternalLink,
+  Loader2,
+  MessageCircle,
+  Play,
+  X,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -16,7 +26,12 @@ import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ModAPI } from '@/features/mods/services/mod.api'
 import type { AstroPackEvent } from '@/features/instances/services/astropack.api'
-import type { ModProject, ModSearchResult, ModSource, ModVersion } from '@/types/mods'
+import type {
+  ModProject,
+  ModSearchResult,
+  ModSource,
+  ModVersion,
+} from '@/types/mods'
 import { useLinkPreviewStore } from '@/stores/link-preview.store'
 import { useLaunchStore } from '@/stores/launch.store'
 import { useModpackInstallStore } from '@/stores/modpack-install.store'
@@ -41,18 +56,27 @@ interface ModpackDetailPanelProps {
   source: ModSource
 }
 
-export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) {
+export function ModpackDetailPanel({
+  result,
+  source,
+}: ModpackDetailPanelProps) {
   const navigate = useNavigate()
   const [project, setProject] = useState<ModProject | null>(null)
   const [versions, setVersions] = useState<ModVersion[]>([])
-  const [selectedVersion, setSelectedVersion] = useState<ModVersion | null>(null)
+  const [selectedVersion, setSelectedVersion] = useState<ModVersion | null>(
+    null,
+  )
   const [instanceName, setInstanceName] = useState(result.name)
   const [isLoading, setIsLoading] = useState(true)
   const [isInstalling, setIsInstalling] = useState(false)
-  const [installedFiles, setInstalledFiles] = useState<{ name: string; iconUrl: string | null }[]>([])
+  const [installedFiles, setInstalledFiles] = useState<
+    { name: string; iconUrl: string | null }[]
+  >([])
   const [progress, setProgress] = useState({ current: 0, total: 0 })
   const [isDone, setIsDone] = useState(false)
-  const [installedInstanceId, setInstalledInstanceId] = useState<string | null>(null)
+  const [installedInstanceId, setInstalledInstanceId] = useState<string | null>(
+    null,
+  )
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const openLink = useLinkPreviewStore((s) => s.open)
@@ -77,13 +101,23 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
   useEffect(() => {
     let cancelled = false
 
-    Promise.all([ModAPI.getProject(result.source, result.projectId), ModAPI.getVersions({ source: result.source, projectId: result.projectId })])
+    Promise.all([
+      ModAPI.getProject(result.source, result.projectId),
+      ModAPI.getVersions({
+        source: result.source,
+        projectId: result.projectId,
+      }),
+    ])
       .then(([proj, vers]) => {
         if (cancelled) return
         setProject(proj)
         setVersions(vers)
       })
-      .catch((err) => !cancelled && toast.error(`Falha ao carregar detalhes: ${String(err)}`))
+      .catch(
+        (err) =>
+          !cancelled &&
+          toast.error(`Falha ao carregar detalhes: ${String(err)}`),
+      )
       .finally(() => !cancelled && setIsLoading(false))
 
     return () => {
@@ -98,7 +132,9 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
   const handleInstall = async () => {
     if (!instanceName.trim()) return
     if (!selectedVersion?.downloadUrl) {
-      toast.error('Esta versão não está disponível para download. Escolha outra versão.')
+      toast.error(
+        'Esta versão não está disponível para download. Escolha outra versão.',
+      )
       return
     }
     setIsInstalling(true)
@@ -107,13 +143,19 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
     setInstalledFiles([])
     setProgress({ current: 0, total: 0 })
 
-    const unlisten = await listen<AstroPackEvent>('modpack://event', (event) => {
-      const payload = event.payload
-      if (payload.type === 'progress') {
-        setProgress({ current: payload.current, total: payload.total })
-        setInstalledFiles((prev) => [...prev, { name: payload.name, iconUrl: payload.iconUrl }])
-      }
-    })
+    const unlisten = await listen<AstroPackEvent>(
+      'modpack://event',
+      (event) => {
+        const payload = event.payload
+        if (payload.type === 'progress') {
+          setProgress({ current: payload.current, total: payload.total })
+          setInstalledFiles((prev) => [
+            ...prev,
+            { name: payload.name, iconUrl: payload.iconUrl },
+          ])
+        }
+      },
+    )
 
     try {
       const instance = await ModAPI.installModpack(source, {
@@ -156,20 +198,31 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
     return <CenteredSpinner className="h-full" />
   }
 
-  const percent = progress.total > 0 ? (progress.current / progress.total) * 100 : 0
+  const percent =
+    progress.total > 0 ? (progress.current / progress.total) * 100 : 0
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         <div className="flex items-start gap-3">
-          <EntityAvatar name={result.name} iconUrl={result.iconUrl} className="size-20 shrink-0" />
+          <EntityAvatar
+            name={result.name}
+            iconUrl={result.iconUrl}
+            className="size-20 shrink-0"
+          />
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold">{result.name}</h3>
             {(result.loader || result.gameVersion) && (
               <div className="mt-1 flex flex-wrap items-center gap-1.5">
                 {result.loader && (
                   <Badge variant="outline" className="shrink-0">
-                    {LOADER_ICON[result.loader] && <img src={LOADER_ICON[result.loader]} alt="" className="size-3" />}
+                    {LOADER_ICON[result.loader] && (
+                      <img
+                        src={LOADER_ICON[result.loader]}
+                        alt=""
+                        className="size-3"
+                      />
+                    )}
                     {LOADER_LABEL[result.loader] ?? result.loader}
                   </Badge>
                 )}
@@ -180,38 +233,78 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
                 )}
               </div>
             )}
-            <p className="mt-1 text-sm text-muted-foreground">por {result.author || 'desconhecido'}</p>
+            <p className="text-muted-foreground mt-1 text-sm">
+              por {result.author || 'desconhecido'}
+            </p>
           </div>
         </div>
 
-        <p className="line-clamp-3 text-sm text-muted-foreground">{project?.description ?? result.description}</p>
+        <p className="text-muted-foreground line-clamp-3 text-sm">
+          {project?.description ?? result.description}
+        </p>
 
-        {project && (project.sourceUrl || project.issuesUrl || project.wikiUrl || project.discordUrl) && (
-          <div className="flex flex-col gap-1.5 border-t pt-3 text-sm">
-            {project.sourceUrl && (
-              <a href={project.sourceUrl} onClick={(e) => (e.preventDefault(), openLink(project.sourceUrl!))} className="flex items-center gap-2 hover:underline">
-                <Code2 className="size-4" /> Repositório
-              </a>
-            )}
-            {project.wikiUrl && (
-              <a href={project.wikiUrl} onClick={(e) => (e.preventDefault(), openLink(project.wikiUrl!))} className="flex items-center gap-2 hover:underline">
-                <BookOpen className="size-4" /> Wiki / Documentação
-              </a>
-            )}
-            {project.issuesUrl && (
-              <a href={project.issuesUrl} onClick={(e) => (e.preventDefault(), openLink(project.issuesUrl!))} className="flex items-center gap-2 hover:underline">
-                <ExternalLink className="size-4" /> Issues
-              </a>
-            )}
-            {project.discordUrl && (
-              <a href={project.discordUrl} onClick={(e) => (e.preventDefault(), openLink(project.discordUrl!))} className="flex items-center gap-2 hover:underline">
-                <MessageCircle className="size-4" /> Discord
-              </a>
-            )}
-          </div>
+        {project &&
+          (project.sourceUrl ||
+            project.issuesUrl ||
+            project.wikiUrl ||
+            project.discordUrl) && (
+            <div className="flex flex-col gap-1.5 border-t pt-3 text-sm">
+              {project.sourceUrl && (
+                <a
+                  href={project.sourceUrl}
+                  onClick={(e) => (
+                    e.preventDefault(),
+                    openLink(project.sourceUrl!)
+                  )}
+                  className="flex items-center gap-2 hover:underline"
+                >
+                  <Code2 className="size-4" /> Repositório
+                </a>
+              )}
+              {project.wikiUrl && (
+                <a
+                  href={project.wikiUrl}
+                  onClick={(e) => (
+                    e.preventDefault(),
+                    openLink(project.wikiUrl!)
+                  )}
+                  className="flex items-center gap-2 hover:underline"
+                >
+                  <BookOpen className="size-4" /> Wiki / Documentação
+                </a>
+              )}
+              {project.issuesUrl && (
+                <a
+                  href={project.issuesUrl}
+                  onClick={(e) => (
+                    e.preventDefault(),
+                    openLink(project.issuesUrl!)
+                  )}
+                  className="flex items-center gap-2 hover:underline"
+                >
+                  <ExternalLink className="size-4" /> Issues
+                </a>
+              )}
+              {project.discordUrl && (
+                <a
+                  href={project.discordUrl}
+                  onClick={(e) => (
+                    e.preventDefault(),
+                    openLink(project.discordUrl!)
+                  )}
+                  className="flex items-center gap-2 hover:underline"
+                >
+                  <MessageCircle className="size-4" /> Discord
+                </a>
+              )}
+            </div>
+          )}
+
+        {project?.body && (
+          <MarkdownBody className="prose prose-sm dark:prose-invert max-w-none break-words">
+            {project.body}
+          </MarkdownBody>
         )}
-
-        {project?.body && <MarkdownBody className="prose prose-sm dark:prose-invert max-w-none break-words">{project.body}</MarkdownBody>}
       </div>
 
       <div className="flex flex-col gap-3 p-4">
@@ -225,7 +318,13 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
                 rightLabel={`${progress.current}/${progress.total}`}
               />
               {isInstalling && !isDone && (
-                <Button variant="outline" size="icon" className="shrink-0" title="Parar instalação" onClick={() => setShowCancelConfirm(true)}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  title="Parar instalação"
+                  onClick={() => setShowCancelConfirm(true)}
+                >
                   <X />
                 </Button>
               )}
@@ -235,13 +334,22 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
                 {installedFiles.map((file, i) => {
                   const isLast = i === installedFiles.length - 1 && !isDone
                   return (
-                    <div key={`${file.name}-${i}`} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm">
-                      <EntityAvatar name={file.name} iconUrl={file.iconUrl} className="size-6 shrink-0" />
-                      <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                    <div
+                      key={`${file.name}-${i}`}
+                      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+                    >
+                      <EntityAvatar
+                        name={file.name}
+                        iconUrl={file.iconUrl}
+                        className="size-6 shrink-0"
+                      />
+                      <span className="min-w-0 flex-1 truncate">
+                        {file.name}
+                      </span>
                       {isLast ? (
-                        <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+                        <Loader2 className="text-muted-foreground size-3.5 shrink-0 animate-spin" />
                       ) : (
-                        <Check className="size-3.5 shrink-0 text-primary" />
+                        <Check className="text-primary size-3.5 shrink-0" />
                       )}
                     </div>
                   )
@@ -254,14 +362,22 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
           <>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="modpack-instance-name">Nome da Instância</Label>
-              <Input id="modpack-instance-name" value={instanceName} onChange={(e) => setInstanceName(e.target.value)} />
+              <Input
+                id="modpack-instance-name"
+                value={instanceName}
+                onChange={(e) => setInstanceName(e.target.value)}
+              />
             </div>
 
             <div className="flex flex-col gap-1">
               <Label>Versão</Label>
               <ScrollArea type="always" className="h-40 rounded-lg border">
                 <div className="flex flex-col gap-1 p-1 pr-2">
-                  {versions.length === 0 && <p className="p-3 text-center text-sm text-muted-foreground">Nenhuma versão encontrada.</p>}
+                  {versions.length === 0 && (
+                    <p className="text-muted-foreground p-3 text-center text-sm">
+                      Nenhuma versão encontrada.
+                    </p>
+                  )}
                   {versions.map((version) => {
                     const unavailable = !version.downloadUrl
                     const isActive = selectedVersion?.id === version.id
@@ -271,21 +387,28 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
                         type="button"
                         disabled={unavailable}
                         onClick={() => setSelectedVersion(version)}
-                        className="flex w-full items-center justify-between rounded-md p-2 text-left text-sm hover:bg-accent data-[active=true]:bg-accent disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                        className="hover:bg-accent data-[active=true]:bg-accent flex w-full items-center justify-between rounded-md p-2 text-left text-sm disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
                         data-active={isActive}
                       >
                         <span className="flex min-w-0 items-center gap-1.5">
                           <span className="truncate">{version.name}</span>
                           {version.gameVersions[0] && (
-                            <Badge variant={isActive ? 'default' : 'secondary'} className="shrink-0">
+                            <Badge
+                              variant={isActive ? 'default' : 'secondary'}
+                              className="shrink-0"
+                            >
                               {version.gameVersions[0]}
                             </Badge>
                           )}
                         </span>
                         {unavailable ? (
-                          <span className="shrink-0 text-xs text-muted-foreground">indisponível</span>
+                          <span className="text-muted-foreground shrink-0 text-xs">
+                            indisponível
+                          </span>
                         ) : (
-                          isActive && <Check className="size-3.5 shrink-0 text-primary" />
+                          isActive && (
+                            <Check className="text-primary size-3.5 shrink-0" />
+                          )
                         )}
                       </button>
                     )
@@ -301,7 +424,10 @@ export function ModpackDetailPanel({ result, source }: ModpackDetailPanelProps) 
             <Play /> Iniciar
           </Button>
         ) : (
-          <Button disabled={!selectedVersion || !instanceName.trim() || isInstalling} onClick={handleInstall}>
+          <Button
+            disabled={!selectedVersion || !instanceName.trim() || isInstalling}
+            onClick={handleInstall}
+          >
             <Download /> {isInstalling ? 'Instalando...' : 'Instalar Modpack'}
           </Button>
         )}

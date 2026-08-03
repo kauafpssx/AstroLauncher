@@ -6,7 +6,12 @@ import { cn } from '@/lib/utils'
 
 type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
-const CORNERS: Corner[] = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+const CORNERS: Corner[] = [
+  'top-left',
+  'top-right',
+  'bottom-left',
+  'bottom-right',
+]
 
 const CORNER_CLASSES: Record<Corner, string> = {
   'top-left': '-top-1 -left-1 cursor-nwse-resize',
@@ -15,7 +20,11 @@ const CORNER_CLASSES: Record<Corner, string> = {
   'bottom-right': '-bottom-1 -right-1 cursor-nwse-resize',
 }
 
-export function ResizableImageComponent({ node, updateAttributes, selected }: NodeViewProps) {
+export function ResizableImageComponent({
+  node,
+  updateAttributes,
+  selected,
+}: NodeViewProps) {
   const wrapperRef = useRef<HTMLElement | null>(null)
 
   const startResize = (corner: Corner) => (e: React.MouseEvent) => {
@@ -33,7 +42,10 @@ export function ResizableImageComponent({ node, updateAttributes, selected }: No
     const onMove = (moveEvent: MouseEvent) => {
       const dx = moveEvent.clientX - startX
       const newWidth = Math.max(40, Math.round(startWidth + dx * sign))
-      updateAttributes({ width: newWidth, height: Math.round(newWidth * ratio) })
+      updateAttributes({
+        width: newWidth,
+        height: Math.round(newWidth * ratio),
+      })
     }
 
     const onUp = () => {
@@ -46,13 +58,17 @@ export function ResizableImageComponent({ node, updateAttributes, selected }: No
   }
 
   return (
-    <NodeViewWrapper as="div" className="relative inline-block" ref={wrapperRef}>
+    <NodeViewWrapper
+      as="div"
+      className="relative inline-block"
+      ref={wrapperRef}
+    >
       <img
         src={node.attrs.src}
         alt={node.attrs.alt ?? ''}
         width={node.attrs.width || undefined}
         height={node.attrs.height || undefined}
-        className={cn('max-w-full rounded', selected && 'ring-2 ring-primary')}
+        className={cn('max-w-full rounded', selected && 'ring-primary ring-2')}
         draggable={false}
       />
       {selected &&
@@ -60,7 +76,10 @@ export function ResizableImageComponent({ node, updateAttributes, selected }: No
           <span
             key={corner}
             onMouseDown={startResize(corner)}
-            className={cn('absolute z-10 size-2.5 rounded-full border-2 border-primary bg-background', CORNER_CLASSES[corner])}
+            className={cn(
+              'border-primary bg-background absolute z-10 size-2.5 rounded-full border-2',
+              CORNER_CLASSES[corner],
+            )}
           />
         ))}
     </NodeViewWrapper>

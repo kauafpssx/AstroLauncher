@@ -23,7 +23,9 @@ interface NotesTabProps {
 const SAVE_DEBOUNCE_MS = 800
 
 function getMarkdown(editor: NonNullable<ReturnType<typeof useEditor>>) {
-  return (editor.storage as unknown as { markdown: { getMarkdown: () => string } }).markdown.getMarkdown()
+  return (
+    editor.storage as unknown as { markdown: { getMarkdown: () => string } }
+  ).markdown.getMarkdown()
 }
 
 export function NotesTab({ instanceId }: NotesTabProps) {
@@ -56,7 +58,10 @@ export function NotesTab({ instanceId }: NotesTabProps) {
     content: '',
     immediatelyRender: false,
     editorProps: {
-      attributes: { class: 'prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-full' },
+      attributes: {
+        class:
+          'prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-full',
+      },
       handleKeyDown: (_view, event) => {
         if (event.key === '/') {
           setIsImageDialogOpen(true)
@@ -70,9 +75,11 @@ export function NotesTab({ instanceId }: NotesTabProps) {
       if (!noteId) return
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
       saveTimeoutRef.current = setTimeout(() => {
-        InstanceWorkspaceAPI.writeNote(instanceId, noteId, getMarkdown(current)).catch((err) =>
-          toast.error(`Falha ao salvar nota: ${String(err)}`),
-        )
+        InstanceWorkspaceAPI.writeNote(
+          instanceId,
+          noteId,
+          getMarkdown(current),
+        ).catch((err) => toast.error(`Falha ao salvar nota: ${String(err)}`))
       }, SAVE_DEBOUNCE_MS)
     },
   })
@@ -109,17 +116,24 @@ export function NotesTab({ instanceId }: NotesTabProps) {
     if (saveTimeoutRef.current && activeIdRef.current) {
       clearTimeout(saveTimeoutRef.current)
       saveTimeoutRef.current = null
-      InstanceWorkspaceAPI.writeNote(instanceId, activeIdRef.current, getMarkdown(editor)).catch((err) =>
-        toast.error(`Falha ao salvar nota: ${String(err)}`),
-      )
+      InstanceWorkspaceAPI.writeNote(
+        instanceId,
+        activeIdRef.current,
+        getMarkdown(editor),
+      ).catch((err) => toast.error(`Falha ao salvar nota: ${String(err)}`))
     }
     setActiveId(noteId)
   }
 
   const handleCreate = async () => {
     try {
-      const note = await InstanceWorkspaceAPI.createNote(instanceId, 'Nova Nota')
-      setNotes((prev) => [...prev, note].sort((a, b) => a.title.localeCompare(b.title)))
+      const note = await InstanceWorkspaceAPI.createNote(
+        instanceId,
+        'Nova Nota',
+      )
+      setNotes((prev) =>
+        [...prev, note].sort((a, b) => a.title.localeCompare(b.title)),
+      )
       switchTo(note.id)
     } catch (err) {
       toast.error(`Falha ao criar nota: ${String(err)}`)
@@ -134,10 +148,19 @@ export function NotesTab({ instanceId }: NotesTabProps) {
   const commitRename = async () => {
     const note = notes.find((n) => n.id === renamingId)
     setRenamingId(null)
-    if (!note || !renameValue.trim() || renameValue.trim() === note.title) return
+    if (!note || !renameValue.trim() || renameValue.trim() === note.title)
+      return
     try {
-      const updated = await InstanceWorkspaceAPI.renameNote(instanceId, note.id, renameValue.trim())
-      setNotes((prev) => prev.map((n) => (n.id === note.id ? updated : n)).sort((a, b) => a.title.localeCompare(b.title)))
+      const updated = await InstanceWorkspaceAPI.renameNote(
+        instanceId,
+        note.id,
+        renameValue.trim(),
+      )
+      setNotes((prev) =>
+        prev
+          .map((n) => (n.id === note.id ? updated : n))
+          .sort((a, b) => a.title.localeCompare(b.title)),
+      )
       if (activeId === note.id) {
         activeIdRef.current = updated.id
         setActiveId(updated.id)
@@ -167,15 +190,25 @@ export function NotesTab({ instanceId }: NotesTabProps) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Anotações sobre esta instância. Suporta markdown (# título, **negrito**, listas...) e imagens — digite{' '}
-          <kbd className="rounded border px-1 text-xs">/</kbd> ou use o botão para inserir uma screenshot.
+        <p className="text-muted-foreground text-sm">
+          Anotações sobre esta instância. Suporta markdown (# título,
+          **negrito**, listas...) e imagens — digite{' '}
+          <kbd className="rounded border px-1 text-xs">/</kbd> ou use o botão
+          para inserir uma screenshot.
         </p>
         <div className="flex shrink-0 gap-1.5">
-          <Button variant="outline" size="sm" onClick={() => setIsImageDialogOpen(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsImageDialogOpen(true)}
+          >
             <ImagePlus /> Inserir Imagem
           </Button>
-          <Button variant="outline" size="sm" onClick={() => toast.info('Coordenadas: em breve')}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toast.info('Coordenadas: em breve')}
+          >
             <MapPin /> Coordenadas
           </Button>
         </div>
@@ -183,14 +216,18 @@ export function NotesTab({ instanceId }: NotesTabProps) {
 
       <div className="flex items-center gap-1 overflow-x-auto border-b pb-1">
         {isLoadingNotes ? (
-          <span className="px-2 py-1 text-xs text-muted-foreground">Carregando notas...</span>
+          <span className="text-muted-foreground px-2 py-1 text-xs">
+            Carregando notas...
+          </span>
         ) : (
           notes.map((note) => (
             <div
               key={note.id}
               className={cn(
                 'group flex shrink-0 items-center gap-1 rounded-t-md border border-b-0 px-2.5 py-1.5 text-sm',
-                activeId === note.id ? 'border-border bg-background font-medium' : 'border-transparent text-muted-foreground hover:bg-accent',
+                activeId === note.id
+                  ? 'border-border bg-background font-medium'
+                  : 'text-muted-foreground hover:bg-accent border-transparent',
               )}
             >
               {renamingId === note.id ? (
@@ -206,14 +243,18 @@ export function NotesTab({ instanceId }: NotesTabProps) {
                   className="h-6 w-28 px-1 text-sm"
                 />
               ) : (
-                <button type="button" onClick={() => switchTo(note.id)} className="max-w-32 truncate">
+                <button
+                  type="button"
+                  onClick={() => switchTo(note.id)}
+                  className="max-w-32 truncate"
+                >
                   {note.title}
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => startRename(note)}
-                className="hidden text-muted-foreground hover:text-foreground group-hover:inline-flex"
+                className="text-muted-foreground hover:text-foreground hidden group-hover:inline-flex"
                 title="Renomear"
               >
                 <Pencil className="size-3" />
@@ -222,7 +263,7 @@ export function NotesTab({ instanceId }: NotesTabProps) {
                 <button
                   type="button"
                   onClick={() => setDeleteTarget(note)}
-                  className="hidden text-muted-foreground hover:text-destructive group-hover:inline-flex"
+                  className="text-muted-foreground hover:text-destructive hidden group-hover:inline-flex"
                   title="Excluir"
                 >
                   <X className="size-3" />
@@ -231,7 +272,12 @@ export function NotesTab({ instanceId }: NotesTabProps) {
             </div>
           ))
         )}
-        <Button variant="ghost" size="icon-sm" onClick={handleCreate} title="Nova nota">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={handleCreate}
+          title="Nova nota"
+        >
           <Plus className="size-4" />
         </Button>
       </div>
@@ -248,7 +294,14 @@ export function NotesTab({ instanceId }: NotesTabProps) {
         instanceId={instanceId}
         open={isImageDialogOpen}
         onOpenChange={setIsImageDialogOpen}
-        onSelect={(dataUri, name) => editor?.chain().focus().setImage({ src: dataUri, alt: name }).createParagraphNear().run()}
+        onSelect={(dataUri, name) =>
+          editor
+            ?.chain()
+            .focus()
+            .setImage({ src: dataUri, alt: name })
+            .createParagraphNear()
+            .run()
+        }
       />
 
       <ConfirmDeleteDialog
@@ -257,7 +310,8 @@ export function NotesTab({ instanceId }: NotesTabProps) {
         title="Excluir nota"
         description={
           <>
-            Isso vai apagar <strong>{deleteTarget?.title}</strong> permanentemente. Essa ação não pode ser desfeita.
+            Isso vai apagar <strong>{deleteTarget?.title}</strong>{' '}
+            permanentemente. Essa ação não pode ser desfeita.
           </>
         }
         confirmLabel="Excluir"

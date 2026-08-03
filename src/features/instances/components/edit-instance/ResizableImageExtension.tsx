@@ -22,7 +22,13 @@ export const ResizableImage = ImageExtension.extend({
   addStorage() {
     return {
       markdown: {
-        serialize(state: { write: (text: string) => void; closeBlock: (node: unknown) => void }, node: { attrs: Record<string, unknown> }) {
+        serialize(
+          state: {
+            write: (text: string) => void
+            closeBlock: (node: unknown) => void
+          },
+          node: { attrs: Record<string, unknown> },
+        ) {
           const { src, alt, title, width, height } = node.attrs as {
             src: string
             alt?: string | null

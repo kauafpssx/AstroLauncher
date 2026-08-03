@@ -5,8 +5,17 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useInstanceScreenshots, type LoadedScreenshot } from '@/features/instances/hooks/useInstanceScreenshots'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  useInstanceScreenshots,
+  type LoadedScreenshot,
+} from '@/features/instances/hooks/useInstanceScreenshots'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 
 import { ScreenshotViewerDialog } from './ScreenshotViewerDialog'
@@ -29,10 +38,17 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
   const [viewing, setViewing] = useState<LoadedScreenshot | null>(null)
 
   const handleDownload = async (shot: LoadedScreenshot) => {
-    const destPath = await saveFileDialog({ defaultPath: shot.info.name, filters: [{ name: 'PNG', extensions: ['png'] }] })
+    const destPath = await saveFileDialog({
+      defaultPath: shot.info.name,
+      filters: [{ name: 'PNG', extensions: ['png'] }],
+    })
     if (!destPath) return
     try {
-      await InstanceWorkspaceAPI.saveScreenshotAs(instanceId, shot.info.name, destPath)
+      await InstanceWorkspaceAPI.saveScreenshotAs(
+        instanceId,
+        shot.info.name,
+        destPath,
+      )
       toast.success('Screenshot salva')
     } catch (err) {
       toast.error(`Falha ao salvar: ${String(err)}`)
@@ -49,14 +65,26 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
   }
 
   const handleRenamed = (oldName: string, newName: string) => {
-    setShots((prev) => prev.map((s) => (s.info.name === oldName ? { ...s, info: { ...s.info, name: newName } } : s)))
-    setViewing((prev) => (prev && prev.info.name === oldName ? { ...prev, info: { ...prev.info, name: newName } } : prev))
+    setShots((prev) =>
+      prev.map((s) =>
+        s.info.name === oldName
+          ? { ...s, info: { ...s.info, name: newName } }
+          : s,
+      ),
+    )
+    setViewing((prev) =>
+      prev && prev.info.name === oldName
+        ? { ...prev, info: { ...prev.info, name: newName } }
+        : prev,
+    )
   }
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Capturas de tela desta instância.</p>
+        <p className="text-muted-foreground text-sm">
+          Capturas de tela desta instância.
+        </p>
         <Select value={columns} onValueChange={setColumns}>
           <SelectTrigger size="sm" className="w-36">
             <SelectValue />
@@ -74,20 +102,27 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
       {isLoading ? (
         <CenteredSpinner className="h-40" />
       ) : shots.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-10 text-center text-muted-foreground">
+        <div className="text-muted-foreground flex flex-col items-center gap-2 rounded-lg border border-dashed p-10 text-center">
           <ImageIcon className="size-8" />
           <p>Nenhuma screenshot encontrada.</p>
         </div>
       ) : (
-        <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+        <div
+          className="grid gap-3"
+          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+        >
           {shots.map((shot) => (
             <button
               key={shot.info.name}
               type="button"
               onClick={() => setViewing(shot)}
-              className="group relative aspect-video overflow-hidden rounded-lg border bg-muted"
+              className="group bg-muted relative aspect-video overflow-hidden rounded-lg border"
             >
-              <img src={shot.dataUri} alt={shot.info.name} className="size-full object-cover transition-transform group-hover:scale-105" />
+              <img
+                src={shot.dataUri}
+                alt={shot.info.name}
+                className="size-full object-cover transition-transform group-hover:scale-105"
+              />
             </button>
           ))}
         </div>

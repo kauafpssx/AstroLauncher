@@ -5,12 +5,25 @@ import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { resolveIconSrc } from '@/lib/icon-src'
 import type { InstanceDTO } from '@/types/instance'
 
-import { AstroPackCategoryList, type AstroPackCategoryItem } from './AstroPackCategoryList'
-import { ALL_SELECTED, AstroPackAPI, type ExportSelection, type ExportSummary } from '../services/astropack.api'
+import {
+  AstroPackCategoryList,
+  type AstroPackCategoryItem,
+} from './AstroPackCategoryList'
+import {
+  ALL_SELECTED,
+  AstroPackAPI,
+  type ExportSelection,
+  type ExportSummary,
+} from '../services/astropack.api'
 
 async function iconToDataUri(src: string): Promise<string | null> {
   try {
@@ -33,7 +46,11 @@ interface ExportAstropackDialogProps {
   instance: InstanceDTO
 }
 
-export function ExportAstropackDialog({ open, onOpenChange, instance }: ExportAstropackDialogProps) {
+export function ExportAstropackDialog({
+  open,
+  onOpenChange,
+  instance,
+}: ExportAstropackDialogProps) {
   const [isExporting, setIsExporting] = useState(false)
   const [summary, setSummary] = useState<ExportSummary | null>(null)
   const [selection, setSelection] = useState<ExportSelection>(ALL_SELECTED)
@@ -67,18 +84,59 @@ export function ExportAstropackDialog({ open, onOpenChange, instance }: ExportAs
 
   const items: AstroPackCategoryItem[] = summary
     ? [
-        { key: 'settings', label: 'Configurações do jogo (options.txt)', count: summary.hasSettings, checked: selection.settings },
-        { key: 'worlds', label: 'Mundos', count: summary.worlds, checked: selection.worlds },
-        { key: 'notes', label: 'Notas', count: summary.hasNotes, checked: selection.notes },
-        { key: 'mods', label: 'Mods', count: summary.mods, checked: selection.mods },
-        { key: 'resourcepacks', label: 'Resource Packs', count: summary.resourcepacks, checked: selection.resourcepacks },
-        { key: 'shaders', label: 'Shader Packs', count: summary.shaders, checked: selection.shaders },
-        { key: 'servers', label: 'Servidores salvos', count: summary.servers, checked: selection.servers },
-        { key: 'screenshots', label: 'Screenshots', count: summary.screenshots, checked: selection.screenshots },
+        {
+          key: 'settings',
+          label: 'Configurações do jogo (options.txt)',
+          count: summary.hasSettings,
+          checked: selection.settings,
+        },
+        {
+          key: 'worlds',
+          label: 'Mundos',
+          count: summary.worlds,
+          checked: selection.worlds,
+        },
+        {
+          key: 'notes',
+          label: 'Notas',
+          count: summary.hasNotes,
+          checked: selection.notes,
+        },
+        {
+          key: 'mods',
+          label: 'Mods',
+          count: summary.mods,
+          checked: selection.mods,
+        },
+        {
+          key: 'resourcepacks',
+          label: 'Resource Packs',
+          count: summary.resourcepacks,
+          checked: selection.resourcepacks,
+        },
+        {
+          key: 'shaders',
+          label: 'Shader Packs',
+          count: summary.shaders,
+          checked: selection.shaders,
+        },
+        {
+          key: 'servers',
+          label: 'Servidores salvos',
+          count: summary.servers,
+          checked: selection.servers,
+        },
+        {
+          key: 'screenshots',
+          label: 'Screenshots',
+          count: summary.screenshots,
+          checked: selection.screenshots,
+        },
       ]
     : []
 
-  const handleToggle = (key: string, checked: boolean) => setSelection((prev) => ({ ...prev, [key]: checked }))
+  const handleToggle = (key: string, checked: boolean) =>
+    setSelection((prev) => ({ ...prev, [key]: checked }))
 
   const handleExport = async () => {
     const destPath = await save({
@@ -91,7 +149,12 @@ export function ExportAstropackDialog({ open, onOpenChange, instance }: ExportAs
     try {
       const iconSrc = resolveIconSrc(instance.iconPath)
       const iconDataUri = iconSrc ? await iconToDataUri(iconSrc) : null
-      const result = await AstroPackAPI.exportInstance(instance.id, destPath, selection, iconDataUri)
+      const result = await AstroPackAPI.exportInstance(
+        instance.id,
+        destPath,
+        selection,
+        iconDataUri,
+      )
       toast.success(`Instância exportada para ${result.filePath}`)
       onOpenChange(false)
     } catch (err) {
@@ -111,12 +174,22 @@ export function ExportAstropackDialog({ open, onOpenChange, instance }: ExportAs
           </DialogTitle>
         </DialogHeader>
 
-        <p className="text-sm text-muted-foreground">Escolha o que vai junto no .astropack.</p>
+        <p className="text-muted-foreground text-sm">
+          Escolha o que vai junto no .astropack.
+        </p>
 
-        {summary ? <AstroPackCategoryList items={items} onToggle={handleToggle} /> : <CenteredSpinner className="h-32" />}
+        {summary ? (
+          <AstroPackCategoryList items={items} onToggle={handleToggle} />
+        ) : (
+          <CenteredSpinner className="h-32" />
+        )}
 
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isExporting}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isExporting}
+          >
             Cancelar
           </Button>
           <Button onClick={handleExport} disabled={isExporting || !summary}>

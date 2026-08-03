@@ -3,7 +3,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
-import { DiscardButton, SaveButton } from '@/components/common/SaveDiscardButtons'
+import {
+  DiscardButton,
+  SaveButton,
+} from '@/components/common/SaveDiscardButtons'
 import { SearchInput } from '@/components/common/SearchInput'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 import {
@@ -53,15 +56,22 @@ export function KeybindsTab({ instanceId }: KeybindsTabProps) {
       setCapturing(null)
     }
     window.addEventListener('keydown', handler, { capture: true })
-    return () => window.removeEventListener('keydown', handler, { capture: true })
+    return () =>
+      window.removeEventListener('keydown', handler, { capture: true })
   }, [capturing])
 
   const isDirty = Object.keys(overrides).length > 0
-  const conflicts = useMemo(() => findKeybindConflicts(binds, overrides), [binds, overrides])
+  const conflicts = useMemo(
+    () => findKeybindConflicts(binds, overrides),
+    [binds, overrides],
+  )
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return binds
-    return binds.filter((b) => b.label.toLowerCase().includes(q) || b.action.toLowerCase().includes(q))
+    return binds.filter(
+      (b) =>
+        b.label.toLowerCase().includes(q) || b.action.toLowerCase().includes(q),
+    )
   }, [binds, search])
   const grouped = useMemo(() => {
     return KEYBIND_CATEGORY_ORDER.map((category) => ({
@@ -75,7 +85,11 @@ export function KeybindsTab({ instanceId }: KeybindsTabProps) {
     setIsSaving(true)
     try {
       const updated = applyKeybinds(rawOptions, overrides)
-      await InstanceWorkspaceAPI.writeConfigFile(instanceId, OPTIONS_FILE, updated)
+      await InstanceWorkspaceAPI.writeConfigFile(
+        instanceId,
+        OPTIONS_FILE,
+        updated,
+      )
       setRawOptions(updated)
       setBinds(parseKeybinds(updated))
       setOverrides({})
@@ -102,7 +116,11 @@ export function KeybindsTab({ instanceId }: KeybindsTabProps) {
         />
         <div className="flex gap-1.5">
           <DiscardButton onClick={() => setOverrides({})} disabled={!isDirty} />
-          <SaveButton onClick={handleSave} disabled={!isDirty} isSaving={isSaving} />
+          <SaveButton
+            onClick={handleSave}
+            disabled={!isDirty}
+            isSaving={isSaving}
+          />
         </div>
       </div>
 
@@ -116,7 +134,8 @@ export function KeybindsTab({ instanceId }: KeybindsTabProps) {
                 const isOverridden = bind.action in overrides
                 const conflictActions = conflicts.get(currentValue)
                 const isConflicted = (conflictActions?.length ?? 0) > 1
-                const otherActions = conflictActions?.filter((a) => a !== bind.action) ?? []
+                const otherActions =
+                  conflictActions?.filter((a) => a !== bind.action) ?? []
                 return (
                   <div
                     key={bind.action}
@@ -141,13 +160,21 @@ export function KeybindsTab({ instanceId }: KeybindsTabProps) {
                                 : 'bg-muted/50 hover:bg-muted',
                         )}
                       >
-                        {capturing === bind.action ? 'Pressione uma tecla...' : humanizeKey(currentValue)}
+                        {capturing === bind.action
+                          ? 'Pressione uma tecla...'
+                          : humanizeKey(currentValue)}
                       </button>
                     </div>
                     {isConflicted && (
-                      <p className="flex items-center gap-1 text-xs text-destructive">
+                      <p className="text-destructive flex items-center gap-1 text-xs">
                         <TriangleAlert className="size-3 shrink-0" />
-                        Conflita com {otherActions.map((a) => binds.find((b) => b.action === a)?.label ?? a).join(', ')}
+                        Conflita com{' '}
+                        {otherActions
+                          .map(
+                            (a) =>
+                              binds.find((b) => b.action === a)?.label ?? a,
+                          )
+                          .join(', ')}
                       </p>
                     )}
                   </div>

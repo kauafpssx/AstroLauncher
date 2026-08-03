@@ -8,10 +8,14 @@ interface SearchInputProps extends React.ComponentProps<typeof Input> {
   containerClassName?: string
 }
 
-export function SearchInput({ containerClassName, className, ...props }: SearchInputProps) {
+export function SearchInput({
+  containerClassName,
+  className,
+  ...props
+}: SearchInputProps) {
   return (
     <div className={cn('relative', containerClassName)}>
-      <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Search className="text-muted-foreground absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
       <Input className={cn('pl-8', className)} {...props} />
     </div>
   )

@@ -3,14 +3,58 @@ export interface LogSegment {
   color: string
 }
 
-const LEVEL_COLORS: Record<string, { bracket: string; timestamp: string; thread: string; level: string; slash: string; divider: string; message: string }> = {
-  INFO:  { bracket: '#94a3b8', timestamp: '#60a5fa', thread: '#94a3b8', level: '#22d3ee', slash: '#94a3b8', divider: '#94a3b8', message: '' },
-  WARN:  { bracket: '#94a3b8', timestamp: '#fbbf24', thread: '#a16207', level: '#eab308', slash: '#94a3b8', divider: '#94a3b8', message: '#d97706' },
-  ERROR: { bracket: '#94a3b8', timestamp: '#fca5a5', thread: '#ef4444', level: '#ef4444', slash: '#94a3b8', divider: '#94a3b8', message: '#f87171' },
-  FATAL: { bracket: '#94a3b8', timestamp: '#fca5a5', thread: '#dc2626', level: '#dc2626', slash: '#94a3b8', divider: '#94a3b8', message: '#ef4444' },
+const LEVEL_COLORS: Record<
+  string,
+  {
+    bracket: string
+    timestamp: string
+    thread: string
+    level: string
+    slash: string
+    divider: string
+    message: string
+  }
+> = {
+  INFO: {
+    bracket: '#94a3b8',
+    timestamp: '#60a5fa',
+    thread: '#94a3b8',
+    level: '#22d3ee',
+    slash: '#94a3b8',
+    divider: '#94a3b8',
+    message: '',
+  },
+  WARN: {
+    bracket: '#94a3b8',
+    timestamp: '#fbbf24',
+    thread: '#a16207',
+    level: '#eab308',
+    slash: '#94a3b8',
+    divider: '#94a3b8',
+    message: '#d97706',
+  },
+  ERROR: {
+    bracket: '#94a3b8',
+    timestamp: '#fca5a5',
+    thread: '#ef4444',
+    level: '#ef4444',
+    slash: '#94a3b8',
+    divider: '#94a3b8',
+    message: '#f87171',
+  },
+  FATAL: {
+    bracket: '#94a3b8',
+    timestamp: '#fca5a5',
+    thread: '#dc2626',
+    level: '#dc2626',
+    slash: '#94a3b8',
+    divider: '#94a3b8',
+    message: '#ef4444',
+  },
 }
 
-const LOG_LINE_RE = /^(\[[\d:]+\] )(\[[\w #.-]+\/)(INFO|WARN|ERROR|FATAL)(\]: )(.*)$/
+const LOG_LINE_RE =
+  /^(\[[\d:]+\] )(\[[\w #.-]+\/)(INFO|WARN|ERROR|FATAL)(\]: )(.*)$/
 const STACK_RE = /^\s+(at |\.\.\. \d+ more)/
 
 export interface ParsedLine {
@@ -18,7 +62,15 @@ export interface ParsedLine {
 }
 
 function defaultStyle() {
-  return { bracket: '#94a3b8', timestamp: '#60a5fa', thread: '#94a3b8', level: '#22d3ee', slash: '#94a3b8', divider: '#94a3b8', message: '' }
+  return {
+    bracket: '#94a3b8',
+    timestamp: '#60a5fa',
+    thread: '#94a3b8',
+    level: '#22d3ee',
+    slash: '#94a3b8',
+    divider: '#94a3b8',
+    message: '',
+  }
 }
 
 export function parseLogLine(line: string): LogSegment[] {
@@ -51,7 +103,11 @@ export function parseLogLine(line: string): LogSegment[] {
   return [{ text: line, color: '' }]
 }
 
-function parseMsg(message: string, level: string, msgColor: string): LogSegment[] {
+function parseMsg(
+  message: string,
+  level: string,
+  msgColor: string,
+): LogSegment[] {
   if (level === 'INFO' && message.startsWith('[System] [CHAT]')) {
     return [
       { text: '[System] [CHAT] ', color: '#4ade80' },

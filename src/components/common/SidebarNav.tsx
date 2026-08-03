@@ -36,7 +36,12 @@ export function SidebarNav<T extends string>({
   className,
 }: SidebarNavProps<T>) {
   return (
-    <aside className={cn('flex w-56 shrink-0 flex-col gap-4 border-r p-4', className)}>
+    <aside
+      className={cn(
+        'flex w-56 shrink-0 flex-col gap-4 border-r p-4',
+        className,
+      )}
+    >
       <div className="flex items-center gap-2 px-1">
         {onBack ? (
           <button
@@ -45,16 +50,16 @@ export function SidebarNav<T extends string>({
             disabled={disabled}
             title="Voltar"
             className={cn(
-              'flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors hover:bg-primary/20',
-              disabled && 'cursor-not-allowed opacity-50 hover:bg-primary/10',
+              'bg-primary/10 text-primary hover:bg-primary/20 flex size-7 items-center justify-center rounded-md transition-colors',
+              disabled && 'hover:bg-primary/10 cursor-not-allowed opacity-50',
             )}
           >
             <ArrowLeft className="size-4" />
           </button>
         ) : (
           TitleIcon && (
-            <div className="flex size-7 items-center justify-center rounded-md bg-primary/10">
-              <TitleIcon className="size-4 text-primary" />
+            <div className="bg-primary/10 flex size-7 items-center justify-center rounded-md">
+              <TitleIcon className="text-primary size-4" />
             </div>
           )
         )}
@@ -72,8 +77,11 @@ export function SidebarNav<T extends string>({
               onClick={() => onChange(item.id)}
               className={cn(
                 'flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors',
-                isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-                (item.disabled || disabled) && 'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground',
+                isActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                (item.disabled || disabled) &&
+                  'hover:text-muted-foreground cursor-not-allowed opacity-50 hover:bg-transparent',
               )}
             >
               {item.iconSrc ? (

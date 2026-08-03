@@ -15,7 +15,11 @@ interface FiltersCardProps {
 
 export function FiltersCard({ typeFilters, onChange }: FiltersCardProps) {
   const toggle = (value: VersionType, checked: boolean) => {
-    onChange(checked ? [...typeFilters, value] : typeFilters.filter((v) => v !== value))
+    onChange(
+      checked
+        ? [...typeFilters, value]
+        : typeFilters.filter((v) => v !== value),
+    )
   }
 
   return (
@@ -23,10 +27,15 @@ export function FiltersCard({ typeFilters, onChange }: FiltersCardProps) {
       <h3 className="text-sm font-medium">Filtros</h3>
       <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
         {FILTERS.map((filter) => (
-          <label key={filter.value} className="flex items-center gap-2.5 text-sm">
+          <label
+            key={filter.value}
+            className="flex items-center gap-2.5 text-sm"
+          >
             <Checkbox
               checked={typeFilters.includes(filter.value)}
-              onCheckedChange={(checked) => toggle(filter.value, checked === true)}
+              onCheckedChange={(checked) =>
+                toggle(filter.value, checked === true)
+              }
             />
             {filter.label}
           </label>

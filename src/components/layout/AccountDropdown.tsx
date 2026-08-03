@@ -39,17 +39,32 @@ export function AccountDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="gap-2">
-          <EntityAvatar name={active.username} className="size-5" fallbackClassName="text-[10px]" />
+          <EntityAvatar
+            name={active.username}
+            className="size-5"
+            fallbackClassName="text-[10px]"
+          />
           {active.username}
-          <ChevronDown className="size-3.5 text-muted-foreground" />
+          <ChevronDown className="text-muted-foreground size-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         {accounts.map((account) => (
-          <DropdownMenuItem key={account.id} onSelect={() => setDefaultAccount(account.id)}>
-            <EntityAvatar name={account.username} className="size-5" fallbackClassName="text-[10px]" />
+          <DropdownMenuItem
+            key={account.id}
+            onSelect={() => setDefaultAccount(account.id)}
+          >
+            <EntityAvatar
+              name={account.username}
+              className="size-5"
+              fallbackClassName="text-[10px]"
+            />
             {account.username}
-            {account.isDefault && <span className="ml-auto text-xs text-muted-foreground">ativa</span>}
+            {account.isDefault && (
+              <span className="text-muted-foreground ml-auto text-xs">
+                ativa
+              </span>
+            )}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />

@@ -17,7 +17,12 @@ interface DeleteInstanceDialogProps {
   onConfirm: () => void
 }
 
-export function DeleteInstanceDialog({ instance, isRunning, onOpenChange, onConfirm }: DeleteInstanceDialogProps) {
+export function DeleteInstanceDialog({
+  instance,
+  isRunning,
+  onOpenChange,
+  onConfirm,
+}: DeleteInstanceDialogProps) {
   if (!isRunning) {
     return (
       <ConfirmDeleteDialog
@@ -26,8 +31,9 @@ export function DeleteInstanceDialog({ instance, isRunning, onOpenChange, onConf
         title="Excluir instância"
         description={
           <>
-            Isso vai apagar <strong>{instance?.name}</strong> e todos os arquivos da instância (saves, config, mods)
-            permanentemente. Essa ação não pode ser desfeita.
+            Isso vai apagar <strong>{instance?.name}</strong> e todos os
+            arquivos da instância (saves, config, mods) permanentemente. Essa
+            ação não pode ser desfeita.
           </>
         }
         confirmLabel="Excluir"
@@ -43,8 +49,8 @@ export function DeleteInstanceDialog({ instance, isRunning, onOpenChange, onConf
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir instância</AlertDialogTitle>
           <AlertDialogDescription>
-            <strong className="text-destructive">{instance?.name}</strong> está em execução. Encerre o jogo antes de
-            excluir esta instância.
+            <strong className="text-destructive">{instance?.name}</strong> está
+            em execução. Encerre o jogo antes de excluir esta instância.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

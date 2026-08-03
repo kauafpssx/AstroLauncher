@@ -1,6 +1,13 @@
 export type OptionValueType = 'boolean' | 'integer' | 'float' | 'string'
 
-export type OptionCategory = 'Vídeo' | 'Áudio' | 'Controles' | 'Chat' | 'Acessibilidade' | 'Aparência' | 'Geral'
+export type OptionCategory =
+  | 'Vídeo'
+  | 'Áudio'
+  | 'Controles'
+  | 'Chat'
+  | 'Acessibilidade'
+  | 'Aparência'
+  | 'Geral'
 
 export const OPTION_CATEGORY_ORDER: OptionCategory[] = [
   'Vídeo',
@@ -171,19 +178,31 @@ function inferType(rawValue: string): OptionValueType {
 }
 
 function toEditable(rawValue: string, type: OptionValueType): string {
-  if (type === 'string' && rawValue.length >= 2 && rawValue.startsWith('"') && rawValue.endsWith('"')) {
+  if (
+    type === 'string' &&
+    rawValue.length >= 2 &&
+    rawValue.startsWith('"') &&
+    rawValue.endsWith('"')
+  ) {
     return rawValue.slice(1, -1)
   }
   return rawValue
 }
 
-export function toRawValue(editableValue: string, originalRawValue: string, type: OptionValueType): string {
-  if (type === 'string' && originalRawValue.startsWith('"')) return `"${editableValue}"`
+export function toRawValue(
+  editableValue: string,
+  originalRawValue: string,
+  type: OptionValueType,
+): string {
+  if (type === 'string' && originalRawValue.startsWith('"'))
+    return `"${editableValue}"`
   return editableValue
 }
 
 export function humanizeOptionKey(key: string): string {
-  const spaced = key.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[._]/g, ' ')
+  const spaced = key
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[._]/g, ' ')
   return spaced.charAt(0).toUpperCase() + spaced.slice(1)
 }
 
@@ -211,7 +230,10 @@ export function parseMinecraftOptions(optionsTxt: string): ParsedOption[] {
 }
 
 /** Rewrites the given non-keybind option lines from `updates` (key -> new raw value), leaving everything else untouched. */
-export function applyMinecraftOptionUpdates(optionsTxt: string, updates: Record<string, string>): string {
+export function applyMinecraftOptionUpdates(
+  optionsTxt: string,
+  updates: Record<string, string>,
+): string {
   return optionsTxt
     .split('\n')
     .map((rawLine) => {

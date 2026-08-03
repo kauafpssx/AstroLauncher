@@ -8,11 +8,18 @@ interface EntityAvatarProps {
   fallbackClassName?: string
 }
 
-export function EntityAvatar({ name, iconUrl, className, fallbackClassName }: EntityAvatarProps) {
+export function EntityAvatar({
+  name,
+  iconUrl,
+  className,
+  fallbackClassName,
+}: EntityAvatarProps) {
   return (
     <Avatar className={cn('rounded-md after:rounded-md', className)}>
       <AvatarImage src={iconUrl ?? undefined} className="rounded-md" />
-      <AvatarFallback className={cn('rounded-md', fallbackClassName)}>{name.slice(0, 2).toUpperCase()}</AvatarFallback>
+      <AvatarFallback className={cn('rounded-md', fallbackClassName)}>
+        {name.slice(0, 2).toUpperCase()}
+      </AvatarFallback>
     </Avatar>
   )
 }

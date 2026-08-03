@@ -1,14 +1,40 @@
-import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
-import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  restrictToVerticalAxis,
+  restrictToParentElement,
+} from '@dnd-kit/modifiers'
+import {
+  SortableContext,
+  arrayMove,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import { Plus, UserCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/common/EmptyState'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { useAccountStore } from '@/stores/account.store'
 import type { AccountDTO } from '@/types/account'
 
@@ -31,7 +57,9 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingAccount, setEditingAccount] = useState<AccountDTO | null>(null)
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+  )
 
   const openCreate = () => {
     setEditingAccount(null)
@@ -77,8 +105,11 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
           </DialogHeader>
 
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              {accounts.length} {accounts.length === 1 ? 'conta cadastrada' : 'contas cadastradas'}
+            <p className="text-muted-foreground text-sm">
+              {accounts.length}{' '}
+              {accounts.length === 1
+                ? 'conta cadastrada'
+                : 'contas cadastradas'}
             </p>
             <Button size="sm" onClick={openCreate}>
               <Plus /> Adicionar Conta
@@ -114,7 +145,10 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
                     <TableHead className="w-10" />
                   </TableRow>
                 </TableHeader>
-                <SortableContext items={accounts.map((a) => a.id)} strategy={verticalListSortingStrategy}>
+                <SortableContext
+                  items={accounts.map((a) => a.id)}
+                  strategy={verticalListSortingStrategy}
+                >
                   <TableBody>
                     {accounts.map((account) => (
                       <AccountRow
@@ -133,7 +167,12 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
         </DialogContent>
       </Dialog>
 
-      <AccountSheet open={sheetOpen} onOpenChange={setSheetOpen} account={editingAccount} onSubmit={handleSubmit} />
+      <AccountSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        account={editingAccount}
+        onSubmit={handleSubmit}
+      />
     </>
   )
 }

@@ -12,10 +12,17 @@ interface ProgressGroupProps {
   children?: ReactNode
 }
 
-export function ProgressGroup({ label, value, rightLabel, className, barClassName, children }: ProgressGroupProps) {
+export function ProgressGroup({
+  label,
+  value,
+  rightLabel,
+  className,
+  barClassName,
+  children,
+}: ProgressGroupProps) {
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="text-muted-foreground flex items-center justify-between text-xs">
         <span>{label}</span>
         {rightLabel && <span>{rightLabel}</span>}
       </div>

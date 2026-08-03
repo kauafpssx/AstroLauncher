@@ -1,6 +1,11 @@
 import { ProgressGroup } from '@/components/common/ProgressGroup'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { formatBytes } from '@/lib/format'
 import { useLaunchStore } from '@/stores/launch.store'
 
@@ -12,8 +17,18 @@ export function LaunchProgressDialog() {
   const close = useLaunchStore((s) => s.close)
   const cancel = useLaunchStore((s) => s.cancel)
 
-  const overallPercent = progress ? Math.min(100, (progress.overallCurrent / Math.max(1, progress.overallTotal)) * 100) : 0
-  const stagePercent = progress ? Math.min(100, (progress.stageCurrent / Math.max(1, progress.stageTotal)) * 100) : 0
+  const overallPercent = progress
+    ? Math.min(
+        100,
+        (progress.overallCurrent / Math.max(1, progress.overallTotal)) * 100,
+      )
+    : 0
+  const stagePercent = progress
+    ? Math.min(
+        100,
+        (progress.stageCurrent / Math.max(1, progress.stageTotal)) * 100,
+      )
+    : 0
 
   return (
     <Dialog
@@ -24,12 +39,14 @@ export function LaunchProgressDialog() {
     >
       <DialogContent showCloseButton={!!error} className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{error ? 'Erro ao iniciar o jogo' : 'Preparando instância'}</DialogTitle>
+          <DialogTitle>
+            {error ? 'Erro ao iniciar o jogo' : 'Preparando instância'}
+          </DialogTitle>
         </DialogHeader>
 
         {error ? (
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-destructive text-sm">{error}</p>
             <Button onClick={close}>Fechar</Button>
           </div>
         ) : (
@@ -37,15 +54,31 @@ export function LaunchProgressDialog() {
             <ProgressGroup
               label="Progresso geral"
               value={overallPercent}
-              rightLabel={progress ? `${formatBytes(progress.overallCurrent)} / ${formatBytes(progress.overallTotal)}` : ''}
+              rightLabel={
+                progress
+                  ? `${formatBytes(progress.overallCurrent)} / ${formatBytes(progress.overallTotal)}`
+                  : ''
+              }
             />
 
             <ProgressGroup
-              label={<span className="font-medium text-foreground">{stageLabel || 'Preparando...'}</span>}
+              label={
+                <span className="text-foreground font-medium">
+                  {stageLabel || 'Preparando...'}
+                </span>
+              }
               value={progress ? stagePercent : undefined}
-              rightLabel={progress && progress.stageTotal > 1 ? `${progress.stageCurrent}/${progress.stageTotal}` : undefined}
+              rightLabel={
+                progress && progress.stageTotal > 1
+                  ? `${progress.stageCurrent}/${progress.stageTotal}`
+                  : undefined
+              }
             >
-              {progress?.currentItem && <p className="truncate text-xs text-muted-foreground">{progress.currentItem}</p>}
+              {progress?.currentItem && (
+                <p className="text-muted-foreground truncate text-xs">
+                  {progress.currentItem}
+                </p>
+              )}
             </ProgressGroup>
 
             <Button variant="outline" onClick={cancel}>

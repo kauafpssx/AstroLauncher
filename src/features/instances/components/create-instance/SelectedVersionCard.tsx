@@ -23,12 +23,14 @@ export function SelectedVersionCard({ version }: SelectedVersionCardProps) {
             <span className="text-2xl font-semibold">{version.id}</span>
             <Badge variant="outline">{TYPE_LABEL[version.type]}</Badge>
           </div>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             Lançamento: {formatDate(version.releaseTime)}
           </span>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">Nenhuma versão selecionada</p>
+        <p className="text-muted-foreground text-sm">
+          Nenhuma versão selecionada
+        </p>
       )}
     </div>
   )

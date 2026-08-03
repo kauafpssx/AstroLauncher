@@ -51,8 +51,17 @@ export const InstanceWorkspaceAPI = {
   addServer(id: string, name: string, ip: string): Promise<void> {
     return apiInvoke<void>('add_instance_server', { id, input: { name, ip } })
   },
-  updateServer(id: string, index: number, name: string, ip: string): Promise<void> {
-    return apiInvoke<void>('update_instance_server', { id, index, input: { name, ip } })
+  updateServer(
+    id: string,
+    index: number,
+    name: string,
+    ip: string,
+  ): Promise<void> {
+    return apiInvoke<void>('update_instance_server', {
+      id,
+      index,
+      input: { name, ip },
+    })
   },
   deleteServer(id: string, index: number): Promise<void> {
     return apiInvoke<void>('delete_instance_server', { id, index })
@@ -67,9 +76,17 @@ export const InstanceWorkspaceAPI = {
     return apiInvoke<void>('delete_instance_screenshot', { id, name })
   },
   saveScreenshotAs(id: string, name: string, destPath: string): Promise<void> {
-    return apiInvoke<void>('save_instance_screenshot_as', { id, name, destPath })
+    return apiInvoke<void>('save_instance_screenshot_as', {
+      id,
+      name,
+      destPath,
+    })
   },
   renameScreenshot(id: string, name: string, newName: string): Promise<string> {
-    return apiInvoke<string>('rename_instance_screenshot', { id, name, newName })
+    return apiInvoke<string>('rename_instance_screenshot', {
+      id,
+      name,
+      newName,
+    })
   },
 }

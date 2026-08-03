@@ -9,7 +9,12 @@ import { toast } from 'sonner'
 
 import { SearchInput } from '@/components/common/SearchInput'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Slider } from '@/components/ui/slider'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -53,18 +58,39 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   })
 }
 
-async function cropToBase64Png(imageSrc: string, cropPixels: Area): Promise<string> {
+async function cropToBase64Png(
+  imageSrc: string,
+  cropPixels: Area,
+): Promise<string> {
   const image = await loadImage(imageSrc)
   const canvas = document.createElement('canvas')
   canvas.width = OUTPUT_SIZE
   canvas.height = OUTPUT_SIZE
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas indisponível')
-  ctx.drawImage(image, cropPixels.x, cropPixels.y, cropPixels.width, cropPixels.height, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE)
+  ctx.drawImage(
+    image,
+    cropPixels.x,
+    cropPixels.y,
+    cropPixels.width,
+    cropPixels.height,
+    0,
+    0,
+    OUTPUT_SIZE,
+    OUTPUT_SIZE,
+  )
   return canvas.toDataURL('image/png').replace(/^data:image\/png;base64,/, '')
 }
 
-function PresetGrid({ icons, search, onPick }: { icons: typeof MC_BLOCK_ICONS; search: string; onPick: (path: string) => void }) {
+function PresetGrid({
+  icons,
+  search,
+  onPick,
+}: {
+  icons: typeof MC_BLOCK_ICONS
+  search: string
+  onPick: (path: string) => void
+}) {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return icons
@@ -80,20 +106,31 @@ function PresetGrid({ icons, search, onPick }: { icons: typeof MC_BLOCK_ICONS; s
             type="button"
             title={icon.label}
             onClick={() => onPick(icon.path)}
-            className="flex aspect-square items-center justify-center rounded-md border border-transparent bg-muted p-2 transition-colors hover:border-primary hover:bg-accent"
+            className="bg-muted hover:border-primary hover:bg-accent flex aspect-square items-center justify-center rounded-md border border-transparent p-2 transition-colors"
           >
-            <img src={icon.path} alt={icon.label} loading="lazy" className="size-full [image-rendering:pixelated]" />
+            <img
+              src={icon.path}
+              alt={icon.label}
+              loading="lazy"
+              className="size-full [image-rendering:pixelated]"
+            />
           </button>
         ))}
         {filtered.length === 0 && (
-          <p className="col-span-6 p-4 text-center text-sm text-muted-foreground">Nenhum ícone encontrado.</p>
+          <p className="text-muted-foreground col-span-6 p-4 text-center text-sm">
+            Nenhum ícone encontrado.
+          </p>
         )}
       </div>
     </ScrollArea>
   )
 }
 
-export function IconPickerDialog({ open, onOpenChange, onSelect }: IconPickerDialogProps) {
+export function IconPickerDialog({
+  open,
+  onOpenChange,
+  onSelect,
+}: IconPickerDialogProps) {
   const [search, setSearch] = useState('')
   const [customIcons, setCustomIcons] = useState<CustomIconDTO[]>([])
   const [uploadSrc, setUploadSrc] = useState<string | null>(null)
@@ -147,7 +184,9 @@ export function IconPickerDialog({ open, onOpenChange, onSelect }: IconPickerDia
   const handleChooseFile = async () => {
     const filePath = await openFileDialog({
       multiple: false,
-      filters: [{ name: 'Imagem', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }],
+      filters: [
+        { name: 'Imagem', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] },
+      ],
     })
     if (!filePath || Array.isArray(filePath)) return
     try {
@@ -190,19 +229,35 @@ export function IconPickerDialog({ open, onOpenChange, onSelect }: IconPickerDia
           </TabsList>
 
           <TabsContent value="blocks" className="flex flex-col gap-3">
-            <SearchInput placeholder="Buscar blocos..." value={search} onChange={(e) => setSearch(e.target.value)} />
-            <PresetGrid icons={MC_BLOCK_ICONS} search={search} onPick={handlePickPreset} />
+            <SearchInput
+              placeholder="Buscar blocos..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <PresetGrid
+              icons={MC_BLOCK_ICONS}
+              search={search}
+              onPick={handlePickPreset}
+            />
           </TabsContent>
 
           <TabsContent value="items" className="flex flex-col gap-3">
-            <SearchInput placeholder="Buscar itens..." value={search} onChange={(e) => setSearch(e.target.value)} />
-            <PresetGrid icons={MC_ITEM_ICONS} search={search} onPick={handlePickPreset} />
+            <SearchInput
+              placeholder="Buscar itens..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <PresetGrid
+              icons={MC_ITEM_ICONS}
+              search={search}
+              onPick={handlePickPreset}
+            />
           </TabsContent>
 
           <TabsContent value="upload" className="flex flex-col gap-3">
             {uploadSrc ? (
               <>
-                <div className="relative h-64 w-full overflow-hidden rounded-lg bg-muted">
+                <div className="bg-muted relative h-64 w-full overflow-hidden rounded-lg">
                   <Cropper
                     image={uploadSrc}
                     crop={crop}
@@ -212,10 +267,18 @@ export function IconPickerDialog({ open, onOpenChange, onSelect }: IconPickerDia
                     showGrid={false}
                     onCropChange={setCrop}
                     onZoomChange={setZoom}
-                    onCropComplete={(_area, pixels) => setCroppedAreaPixels(pixels)}
+                    onCropComplete={(_area, pixels) =>
+                      setCroppedAreaPixels(pixels)
+                    }
                   />
                 </div>
-                <Slider value={[zoom]} min={1} max={3} step={0.01} onValueChange={([v]) => setZoom(v)} />
+                <Slider
+                  value={[zoom]}
+                  min={1}
+                  max={3}
+                  step={0.01}
+                  onValueChange={([v]) => setZoom(v)}
+                />
                 <div className="flex justify-between">
                   <Button variant="ghost" onClick={resetUpload}>
                     Escolher outra imagem
@@ -231,7 +294,7 @@ export function IconPickerDialog({ open, onOpenChange, onSelect }: IconPickerDia
                   <button
                     type="button"
                     onClick={handleChooseFile}
-                    className="flex aspect-square items-center justify-center rounded-md border border-dashed border-muted-foreground/40 text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                    className="border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary flex aspect-square items-center justify-center rounded-md border border-dashed transition-colors"
                   >
                     <Plus className="size-5" />
                   </button>
@@ -240,21 +303,27 @@ export function IconPickerDialog({ open, onOpenChange, onSelect }: IconPickerDia
                       <button
                         type="button"
                         onClick={() => handlePickCustom(icon)}
-                        className="flex size-full items-center justify-center rounded-md border border-transparent bg-muted p-2 transition-colors hover:border-primary hover:bg-accent"
+                        className="bg-muted hover:border-primary hover:bg-accent flex size-full items-center justify-center rounded-md border border-transparent p-2 transition-colors"
                       >
-                        <img src={resolveIconSrc(icon.path)} alt="" className="size-full rounded-sm object-cover" />
+                        <img
+                          src={resolveIconSrc(icon.path)}
+                          alt=""
+                          className="size-full rounded-sm object-cover"
+                        />
                       </button>
                       <button
                         type="button"
                         onClick={(e) => handleDeleteCustom(icon, e)}
-                        className="absolute -top-1.5 -right-1.5 hidden size-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground group-hover:flex"
+                        className="bg-destructive text-destructive-foreground absolute -top-1.5 -right-1.5 hidden size-5 items-center justify-center rounded-full group-hover:flex"
                       >
                         <X className="size-3" />
                       </button>
                     </div>
                   ))}
                   {customIcons.length === 0 && (
-                    <p className="col-span-5 flex items-center p-4 text-sm text-muted-foreground">Nenhuma imagem enviada ainda.</p>
+                    <p className="text-muted-foreground col-span-5 flex items-center p-4 text-sm">
+                      Nenhuma imagem enviada ainda.
+                    </p>
                   )}
                 </div>
               </ScrollArea>

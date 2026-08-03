@@ -1,4 +1,13 @@
-import { Check, Clipboard, Download, Minus, Pencil, Plus, RotateCcw, X } from 'lucide-react'
+import {
+  Check,
+  Clipboard,
+  Download,
+  Minus,
+  Pencil,
+  Plus,
+  RotateCcw,
+  X,
+} from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -38,7 +47,12 @@ export function ScreenshotViewerDialog({
 }: ScreenshotViewerDialogProps) {
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
-  const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null)
+  const dragRef = useRef<{
+    startX: number
+    startY: number
+    originX: number
+    originY: number
+  } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
   const [draftName, setDraftName] = useState('')
@@ -53,7 +67,8 @@ export function ScreenshotViewerDialog({
     setOffset({ x: 0, y: 0 })
   }
 
-  const clampScale = (value: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, value))
+  const clampScale = (value: number) =>
+    Math.min(MAX_SCALE, Math.max(MIN_SCALE, value))
 
   const zoomBy = (delta: number) => {
     setScale((prev) => {
@@ -79,7 +94,12 @@ export function ScreenshotViewerDialog({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (scale <= MIN_SCALE) return
-    dragRef.current = { startX: e.clientX, startY: e.clientY, originX: offset.x, originY: offset.y }
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: offset.x,
+      originY: offset.y,
+    }
     setIsDragging(true)
   }
 
@@ -87,7 +107,10 @@ export function ScreenshotViewerDialog({
     if (!dragRef.current) return
     const dx = e.clientX - dragRef.current.startX
     const dy = e.clientY - dragRef.current.startY
-    setOffset({ x: dragRef.current.originX + dx, y: dragRef.current.originY + dy })
+    setOffset({
+      x: dragRef.current.originX + dx,
+      y: dragRef.current.originY + dy,
+    })
   }
 
   const stopDragging = () => {
@@ -110,7 +133,11 @@ export function ScreenshotViewerDialog({
     }
     setIsSavingName(true)
     try {
-      const newName = await InstanceWorkspaceAPI.renameScreenshot(instanceId, name, trimmed)
+      const newName = await InstanceWorkspaceAPI.renameScreenshot(
+        instanceId,
+        name,
+        trimmed,
+      )
       onRenamed(newName)
       setIsRenaming(false)
     } catch (err) {
@@ -128,7 +155,11 @@ export function ScreenshotViewerDialog({
         <div
           className={cn(
             'relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-lg bg-black/40',
-            scale > MIN_SCALE ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-zoom-in',
+            scale > MIN_SCALE
+              ? isDragging
+                ? 'cursor-grabbing'
+                : 'cursor-grab'
+              : 'cursor-zoom-in',
           )}
           onWheel={handleWheel}
           onDoubleClick={handleDoubleClick}
@@ -141,19 +172,31 @@ export function ScreenshotViewerDialog({
             src={dataUri}
             alt={name}
             draggable={false}
-            className="max-h-full max-w-full select-none object-contain"
+            className="max-h-full max-w-full object-contain select-none"
             style={{
               transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
               transition: isDragging ? 'none' : 'transform 0.1s ease-out',
             }}
           />
 
-          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border bg-background/90 p-1 shadow-sm">
-            <Button variant="ghost" size="icon-sm" onClick={() => zoomBy(-0.4)} disabled={scale <= MIN_SCALE}>
+          <div className="bg-background/90 absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border p-1 shadow-sm">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => zoomBy(-0.4)}
+              disabled={scale <= MIN_SCALE}
+            >
               <Minus />
             </Button>
-            <span className="w-12 text-center text-xs text-muted-foreground">{Math.round(scale * 100)}%</span>
-            <Button variant="ghost" size="icon-sm" onClick={() => zoomBy(0.4)} disabled={scale >= MAX_SCALE}>
+            <span className="text-muted-foreground w-12 text-center text-xs">
+              {Math.round(scale * 100)}%
+            </span>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => zoomBy(0.4)}
+              disabled={scale >= MAX_SCALE}
+            >
               <Plus />
             </Button>
             <Button
@@ -184,17 +227,29 @@ export function ScreenshotViewerDialog({
                 className="h-8 max-w-64"
                 disabled={isSavingName}
               />
-              <span className="shrink-0 text-sm text-muted-foreground">{currentExt}</span>
-              <Button variant="ghost" size="icon-sm" onClick={commitRename} disabled={isSavingName}>
+              <span className="text-muted-foreground shrink-0 text-sm">
+                {currentExt}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={commitRename}
+                disabled={isSavingName}
+              >
                 <Check />
               </Button>
-              <Button variant="ghost" size="icon-sm" onClick={() => setIsRenaming(false)} disabled={isSavingName}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setIsRenaming(false)}
+                disabled={isSavingName}
+              >
                 <X />
               </Button>
             </div>
           ) : (
             <div className="flex min-w-0 items-center gap-1.5">
-              <p className="truncate text-sm text-muted-foreground">{name}</p>
+              <p className="text-muted-foreground truncate text-sm">{name}</p>
               <Button variant="ghost" size="icon-sm" onClick={startRenaming}>
                 <Pencil />
               </Button>

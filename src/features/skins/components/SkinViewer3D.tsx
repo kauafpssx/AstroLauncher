@@ -12,7 +12,13 @@ interface SkinViewer3DProps {
   isDownloading?: boolean
 }
 
-export function SkinViewer3D({ skinUrl, model, className, onDownload, isDownloading }: SkinViewer3DProps) {
+export function SkinViewer3D({
+  skinUrl,
+  model,
+  className,
+  onDownload,
+  isDownloading,
+}: SkinViewer3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const viewerRef = useRef<SkinViewer | null>(null)
   const [walking, setWalking] = useState(false)
@@ -35,7 +41,9 @@ export function SkinViewer3D({ skinUrl, model, className, onDownload, isDownload
   useEffect(() => {
     const viewer = viewerRef.current
     if (!viewer) return
-    viewer.loadSkin(skinUrl, { model: model === 'slim' ? 'slim' : 'default' }).catch(() => {})
+    viewer
+      .loadSkin(skinUrl, { model: model === 'slim' ? 'slim' : 'default' })
+      .catch(() => {})
   }, [skinUrl, model])
 
   const toggleWalking = () => {
@@ -49,13 +57,32 @@ export function SkinViewer3D({ skinUrl, model, className, onDownload, isDownload
 
   return (
     <div className={className}>
-      <div className="relative w-fit overflow-hidden rounded-lg bg-muted/40">
+      <div className="bg-muted/40 relative w-fit overflow-hidden rounded-lg">
         <canvas ref={canvasRef} />
         <div className="absolute top-2 right-2 flex flex-col gap-1.5">
-          <Button type="button" variant="secondary" size="icon" className="size-7" onClick={toggleWalking} title={walking ? 'Pausar' : 'Andar'}>
-            {walking ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="size-7"
+            onClick={toggleWalking}
+            title={walking ? 'Pausar' : 'Andar'}
+          >
+            {walking ? (
+              <Pause className="size-3.5" />
+            ) : (
+              <Play className="size-3.5" />
+            )}
           </Button>
-          <Button type="button" variant="secondary" size="icon" className="size-7" onClick={onDownload} disabled={isDownloading} title="Baixar skin">
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="size-7"
+            onClick={onDownload}
+            disabled={isDownloading}
+            title="Baixar skin"
+          >
             <Download className="size-3.5" />
           </Button>
         </div>
