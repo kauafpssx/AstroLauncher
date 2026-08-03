@@ -1,0 +1,12 @@
+# ═══════════════════════════════════════════════════════════════════
+# CODEOWNERS — AstroLauncher
+# Define quem é automaticamente solicitado para revisar mudanças.
+# ═══════════════════════════════════════════════════════════════════
+
+# Dono padrão do repositório
+* @kauafpssx
+
+# Áreas específicas (descomente e ajuste quando houver mais mantenedores)
+# /src-tauri/ @kauafpssx
+# /src/       @kauafpssx
+# /docs/      @kauafpssx

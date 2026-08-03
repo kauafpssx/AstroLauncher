@@ -1,0 +1,24 @@
+# ═══════════════════════════════════════════════════════════════════
+# .prettierignore — AstroLauncher
+# Arquivos que o Prettier não deve formatar.
+# ═══════════════════════════════════════════════════════════════════
+
+# Dependências
+node_modules
+
+# Build e artefatos gerados
+dist
+dist-ssr
+coverage
+*.tsbuildinfo
+
+# Rust / Tauri
+src-tauri/target
+src-tauri/gen
+
+# Lockfile (gerado pelo npm)
+package-lock.json
+
+# GitHub issue/feature templates (YAML com sintaxe própria que o Prettier não
+# consegue parsear — ex.: mappings compactos aninhados)
+.github/ISSUE_TEMPLATE/

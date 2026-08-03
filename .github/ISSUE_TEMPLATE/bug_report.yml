@@ -1,0 +1,98 @@
+name: 🐛 Bug report
+description: Reporte um problema que você encontrou no AstroLauncher
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar! 🐛 Quanto mais detalhes você fornecer, mais rápido conseguimos diagnosticar o problema.
+
+  - type: input
+    id: version
+    attributes:
+      label: Versão do launcher
+      description: Qual versão do AstroLauncher você está usando?
+      placeholder: "0.2.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Sistema operacional
+      description: Em qual sistema o problema acontece?
+      options:
+        - Windows 10
+        - Windows 11
+        - Outro (descreva abaixo)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Loader
+      description: Qual loader você estava usando quando o problema aconteceu?
+      options:
+        - Vanilla
+        - Fabric
+        - Quilt
+        - Forge
+        - NeoForge
+        - LiteLoader
+    validations:
+      required: false
+
+  - type: input
+    id: minecraft_version
+    attributes:
+      label: Versão do Minecraft
+      description: Qual versão do Minecraft (ex: 1.21.1)?
+      placeholder: "1.21.1"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do problema
+      description: O que aconteceu? O que você esperava que acontecesse?
+      placeholder: "Descreva o bug de forma clara e objetiva..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      description: Liste os passos exatos para alguém reproduzir o problema.
+      placeholder: |
+        1. Abra o launcher
+        2. Vá em Instâncias e crie uma nova com Fabric 1.21.1
+        3. Clique em Jogar
+        4. O erro aparece...
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / mensagens de erro
+      description: Cole aqui qualquer log, mensagem de erro ou screenshot (arraste a imagem aqui).
+      placeholder: "Logs do console, erro do Minecraft, prints..."
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Confirmações
+      description: Antes de enviar, confirme:
+      options:
+        - label: Verifiquei se já existe uma issue parecida aberta
+          required: true
+        - label: Estou usando a versão mais recente do launcher
+          required: false

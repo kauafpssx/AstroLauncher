@@ -1,0 +1,36 @@
+# ═══════════════════════════════════════════════════════════════════
+# EditorConfig — AstroLauncher
+# Padroniza o editor de qualquer pessoa que contribuir com o projeto.
+# ═══════════════════════════════════════════════════════════════════
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+# ── Frontend (TypeScript / React / JSON) ────────────────────────────
+[*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css,html,yml,yaml}]
+indent_size = 2
+
+# ── Backend (Rust) ──────────────────────────────────────────────────
+[*.rs]
+indent_size = 4
+
+# ── Scripts Windows ─────────────────────────────────────────────────
+[*.{ps1,bat,cmd}]
+end_of_line = crlf
+
+# ── Markdown: preserva espaços (tabelas alinhadas, listas) ─────────
+[*.md]
+trim_trailing_whitespace = false
+
+# ── Configuração global do Git ──────────────────────────────────────
+[*.gitattributes]
+end_of_line = lf
+
+[.gitignore]
+end_of_line = lf

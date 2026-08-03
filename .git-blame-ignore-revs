@@ -1,0 +1,15 @@
+# ═══════════════════════════════════════════════════════════════════
+# .git-blame-ignore-revs — AstroLauncher
+# Lista de commits que devem ser ignorados pelo `git blame`
+# (ex: formatação em massa, renomeações de arquivos, prettier, rustfmt).
+#
+# Uso no GitHub:  coloque o caminho deste arquivo em
+#   Settings → General → "Ignore files for git blame"
+#
+# Uso local:      git blame --ignore-revs-file .git-blame-ignore-revs
+#
+# Adicione um SHA por linha, com um comentário explicando o commit:
+# ═══════════════════════════════════════════════════════════════════
+
+# Exemplo:
+# 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b  # chore: aplica prettier em todo o código

@@ -1,0 +1,11 @@
+# Configuração dos templates de issue
+# https://docs.github.com/pt/communities/using-templates-to-encourage-useful-issues-and-pull-requests
+
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentação do projeto
+    url: https://github.com/kauafpssx/AstroLauncher/tree/main/docs
+    about: Confira a documentação completa (arquitetura, padrões, roadmap) antes de abrir uma issue.
+  - name: 🆘 Suporte
+    url: https://github.com/kauafpssx/AstroLauncher/blob/main/SUPPORT.md
+    about: Precisa de ajuda? Veja os canais de suporte do projeto.

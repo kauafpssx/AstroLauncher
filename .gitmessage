@@ -1,0 +1,24 @@
+# ═══════════════════════════════════════════════════════════════════
+# Template de mensagem de commit — AstroLauncher
+# Convenção: https://www.conventionalcommits.org/pt-br/
+#
+#   <tipo>(<escopo>): <descrição>
+#
+# Tipos: feat | fix | refactor | perf | style | docs | test | chore | ci
+# Escopos (exemplos): instances | mods | accounts | java | ipc | readme
+#
+# Exemplos:
+#   feat(instances): adiciona exportação em .astropack
+#   fix(java): corrige detecção de runtime na 1.21
+#   docs(readme): atualiza instruções de build
+#
+# Ative com:  git config commit.template .gitmessage
+# ═══════════════════════════════════════════════════════════════════
+
+<tipo>(<escopo>): <descrição em até 72 caracteres>
+
+# Corpo (opcional): explique o PORQUÊ da mudança, não o o quê.
+
+# Rodapé (opcional):
+# BREAKING CHANGE: <descrição>
+# Closes #<issue>

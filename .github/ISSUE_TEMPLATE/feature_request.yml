@@ -1,0 +1,51 @@
+name: ✨ Sugestão de funcionalidade
+description: Proponha uma nova funcionalidade ou melhoria para o AstroLauncher
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado pela sugestão! ✨ Descreva sua ideia com clareza para a gente avaliar.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema / motivação
+      description: Qual problema ou necessidade essa funcionalidade resolve?
+      placeholder: "Como usuário, eu quero... porque..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução proposta
+      description: Descreva como você imagina a funcionalidade funcionando.
+      placeholder: "Descreva a funcionalidade, telas, comportamentos..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Você já pensou em outras formas de resolver? Algum outro launcher faz algo parecido?
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Informações extras
+      description: Mockups, referências visuais, links úteis... (arraste imagens aqui)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Confirmações
+      options:
+        - label: Verifiquei se já existe uma issue parecida aberta
+          required: true

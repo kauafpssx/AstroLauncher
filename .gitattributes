@@ -1,0 +1,78 @@
+# ═══════════════════════════════════════════════════════════════════
+# .gitattributes — AstroLauncher
+# Normaliza line endings, marca binários e melhora diffs no GitHub.
+# Regra: o repositório armazena SEMPRE em LF; o checkout respeita o SO.
+# ═══════════════════════════════════════════════════════════════════
+
+# Normalização padrão: textos viram LF no repositório
+* text=auto
+
+# ────────────────────────────────────────────────────────────────────
+# Line endings explícitos por tipo de arquivo
+# ────────────────────────────────────────────────────────────────────
+
+# Código-fonte — sempre LF
+*.ts     text eol=lf
+*.tsx    text eol=lf
+*.js     text eol=lf
+*.jsx    text eol=lf
+*.mjs    text eol=lf
+*.cjs    text eol=lf
+*.css    text eol=lf
+*.html   text eol=lf
+*.json   text eol=lf
+*.rs     text eol=lf
+*.toml   text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.md     text eol=lf
+*.sh     text eol=lf
+
+# Scripts Windows — CRLF no checkout (padrão do Windows)
+*.ps1    text eol=crlf
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+
+# ────────────────────────────────────────────────────────────────────
+# Binários — nunca converter
+# ────────────────────────────────────────────────────────────────────
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.svg    binary
+*.ico    binary
+*.icns   binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
+*.eot    binary
+*.pdf    binary
+*.zip    binary
+*.gz     binary
+*.exe    binary
+*.msi    binary
+*.dll    binary
+*.sig    binary
+*.key    binary
+
+# ────────────────────────────────────────────────────────────────────
+# Linguist — arquivos gerados não contam nas stats de linguagem
+# ────────────────────────────────────────────────────────────────────
+package-lock.json linguist-generated=true
+Cargo.lock        linguist-generated=true
+dist              linguist-generated=true
+src-tauri/gen     linguist-generated=true
+*.min.js          linguist-generated=true
+*.min.css         linguist-generated=true
+
+# ────────────────────────────────────────────────────────────────────
+# Diffs mais inteligentes no GitHub
+# ────────────────────────────────────────────────────────────────────
+*.md   diff=markdown
+*.ts   diff=typescript
+*.tsx  diff=typescript
+*.json diff=json
+*.rs   diff=rust

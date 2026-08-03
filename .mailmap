@@ -1,0 +1,10 @@
+# ═══════════════════════════════════════════════════════════════════
+# .mailmap — AstroLauncher
+# Consolida identidades duplicadas no histórico do git.
+# Formato:  Nome Canônico <email-canônico> Nome Alternativo <email-alternativo>
+# Exemplo:
+#   kauafpssx <kaua@example.com> kaua <kaua_antigo@example.com>
+# ═══════════════════════════════════════════════════════════════════
+
+# Exemplo para um único usuário com emails diferentes:
+# kauafpssx <email-principal@example.com> <email-antigo@example.com>
