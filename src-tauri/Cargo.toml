@@ -69,5 +69,5 @@ tauri-plugin-updater = "2.10.1"
 tauri-plugin-process = "2.3.1"
 
 [dev-dependencies]
-criterion = "0.5.1"
+criterion = "0.8.2"
 mockall = "0.15.0"
