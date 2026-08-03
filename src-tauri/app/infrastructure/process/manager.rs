@@ -2,7 +2,13 @@ use std::collections::HashMap;
 use std::process::Child;
 use std::sync::Arc;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 use parking_lot::Mutex;
+
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 /// Tracks spawned game processes so the UI can reflect "running" state and
 /// let the user stop a running instance.
@@ -50,7 +56,11 @@ impl ProcessManager {
 
 fn kill_pid(pid: u32) -> anyhow::Result<()> {
     let status = if cfg!(target_os = "windows") {
-        std::process::Command::new("taskkill").args(["/PID", &pid.to_string(), "/T", "/F"]).status()?
+        let mut cmd = std::process::Command::new("taskkill");
+        cmd.args(["/PID", &pid.to_string(), "/T", "/F"]);
+        #[cfg(target_os = "windows")]
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        cmd.status()?
     } else {
         std::process::Command::new("kill").args(["-9", &pid.to_string()]).status()?
     };

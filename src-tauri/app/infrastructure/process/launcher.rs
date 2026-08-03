@@ -1,7 +1,13 @@
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 use crate::infrastructure::minecraft::version_meta::VersionMeta;
+
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 pub struct LaunchOptions<'a> {
     pub java_bin: &'a str,
@@ -106,11 +112,14 @@ pub fn spawn_with_parts(java_bin: &Path, args: &[String], game_dir: &Path, log_p
     std::fs::create_dir_all(game_dir)?;
     let log_file = std::fs::File::create(log_path)?;
 
-    Command::new(java_bin)
-        .current_dir(game_dir)
+    let mut cmd = Command::new(java_bin);
+    cmd.current_dir(game_dir)
         .args(args)
         .stdout(Stdio::from(log_file.try_clone()?))
-        .stderr(Stdio::from(log_file))
-        .spawn()
-        .map_err(anyhow::Error::from)
+        .stderr(Stdio::from(log_file));
+
+    #[cfg(target_os = "windows")]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+
+    cmd.spawn().map_err(anyhow::Error::from)
 }

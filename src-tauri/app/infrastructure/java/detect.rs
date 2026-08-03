@@ -1,5 +1,18 @@
 use std::process::Command;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+fn silent_command(bin: &str) -> Command {
+    let mut cmd = Command::new(bin);
+    #[cfg(target_os = "windows")]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    cmd
+}
+
 /// Looks for a usable `java` binary. Bundled JRE management (per
 /// docs/08-infraestrutura.md) is a follow-up; for now this relies on
 /// JAVA_HOME or PATH.
@@ -8,7 +21,7 @@ pub fn find_java() -> anyhow::Result<String> {
         .map(|home| format!("{home}/bin/java"))
         .unwrap_or_else(|_| "java".to_string());
 
-    match Command::new(&candidate).arg("-version").output() {
+    match silent_command(&candidate).arg("-version").output() {
         Ok(_) => Ok(candidate),
         Err(_) => Err(anyhow::anyhow!(
             "Java não encontrado. Instale um JRE 17+ e garanta que está no PATH ou em JAVA_HOME."
@@ -20,7 +33,7 @@ pub fn find_java() -> anyhow::Result<String> {
 /// stderr), handling both the legacy `1.8.0_x` scheme and the modern
 /// `17`, `21.0.2` scheme.
 pub fn detect_major_version(java_bin: &str) -> anyhow::Result<u32> {
-    let output = Command::new(java_bin)
+    let output = silent_command(java_bin)
         .arg("-version")
         .output()
         .map_err(|e| anyhow::anyhow!("Não foi possível executar '{java_bin}': {e}"))?;
