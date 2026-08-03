@@ -2,308 +2,210 @@
 
 ## 12.1 Filosofia
 
-```
-SQLite para dados estruturados e relacionais
-JSON para configurações editáveis pelo usuário
-Cache em arquivos temporários (sem persistência)
-Assets seguem o padrão Mojang (objects por hash)
-```
-
 | Camada | Tecnologia | Motivo |
-|--------|-----------|--------|
-| Dados do launcher | **SQLite** | Relações, queries, ACID, concorrência |
-| Config de usuário | **JSON** | Editável manualmente, versionável, simples |
-| Cache de API | **Arquivos JSON** | TTL curto, sem necessidade de schema |
-| Cache de assets | **Arquivos por hash** | Padrão Mojang (SHA1 prefix folders) |
+|---|---|---|
+| Dados do launcher | **SQLite** (bundled) | Relações, queries, ACID |
+| Config de usuário | **JSON** | Editável, simples |
+| Assets do Minecraft | **Arquivos por hash** | Padrão Mojang (SHA1 prefix folders), inalterado |
+
+Não existe cache em disco (manifests, buscas, thumbnails) — nenhum subsistema de cache está implementado hoje. Isso é uma lacuna real, não uma decisão de design (ver [09 — Evoluções Futuras](09-evolucoes-futuras.md)).
 
 ## 12.2 SQLite — Estrutura do Banco
 
-O banco fica em `<launcher_dir>/data/launcher.db` (ou `<launcher_dir>/launcher.db`).
+Caminho real: **`<app_data_dir>/data/launcher.db`**, resolvido via `app.path().app_data_dir()` do Tauri (não a crate `dirs`). Migrações rodam no `bootstrap::setup::build_app_state()`.
 
-### 12.2.1 Schema
+### 12.2.1 Schema (v1 — `migrations/v1_initial.rs`)
 
 ```sql
--- Instâncias
-CREATE TABLE instances (
+CREATE TABLE IF NOT EXISTS instances (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,
     version     TEXT NOT NULL,
-    loader      TEXT,                  -- null, 'fabric', 'quilt'
+    loader      TEXT,
     loader_version TEXT,
     icon_path   TEXT,
-    java_args   TEXT,                  -- argumentos JVM customizados
+    java_args   TEXT,
     min_memory  INTEGER DEFAULT 2048,
     max_memory  INTEGER DEFAULT 4096,
     folder_id   TEXT REFERENCES folders(id) ON DELETE SET NULL,
     created_at  TEXT NOT NULL DEFAULT (datetime('now')),
     last_played TEXT,
-    playtime_seconds INTEGER DEFAULT 0  -- denormalizado para acesso rápido
+    playtime_seconds INTEGER DEFAULT 0
 );
 
--- Pastas
-CREATE TABLE folders (
+CREATE TABLE IF NOT EXISTS folders (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,
     position    INTEGER NOT NULL DEFAULT 0,
-    collapsed   INTEGER NOT NULL DEFAULT 0  -- boolean
+    collapsed   INTEGER NOT NULL DEFAULT 0
 );
 
--- Sessões de Playtime
-CREATE TABLE playtime_sessions (
+CREATE TABLE IF NOT EXISTS playtime_sessions (
     id          TEXT PRIMARY KEY,
     instance_id TEXT NOT NULL REFERENCES instances(id) ON DELETE CASCADE,
     started_at  TEXT NOT NULL,
     ended_at    TEXT,
     duration_seconds INTEGER DEFAULT 0
 );
+CREATE INDEX IF NOT EXISTS idx_playtime_instance ON playtime_sessions(instance_id);
+CREATE INDEX IF NOT EXISTS idx_playtime_started ON playtime_sessions(started_at);
 
-CREATE INDEX idx_playtime_instance ON playtime_sessions(instance_id);
-CREATE INDEX idx_playtime_started ON playtime_sessions(started_at);
-
--- Contas
-CREATE TABLE accounts (
+CREATE TABLE IF NOT EXISTS accounts (
     id          TEXT PRIMARY KEY,
     username    TEXT NOT NULL,
-    type        TEXT NOT NULL DEFAULT 'offline',  -- 'offline', 'microsoft' (futuro)
+    type        TEXT NOT NULL DEFAULT 'offline',
     uuid        TEXT,
     last_used   TEXT,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- Mods instalados por instância (para CurseForge/Modrinth)
-CREATE TABLE instance_mods (
+CREATE TABLE IF NOT EXISTS instance_mods (
     id          TEXT PRIMARY KEY,
     instance_id TEXT NOT NULL REFERENCES instances(id) ON DELETE CASCADE,
-    mod_id      TEXT NOT NULL,           -- id do CurseForge ou Modrinth
-    source      TEXT NOT NULL,           -- 'curseforge', 'modrinth'
+    mod_id      TEXT NOT NULL,
+    source      TEXT NOT NULL,
     name        TEXT NOT NULL,
     version     TEXT NOT NULL,
     file_path   TEXT NOT NULL,
     enabled     INTEGER NOT NULL DEFAULT 1,
     installed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE INDEX IF NOT EXISTS idx_mods_instance ON instance_mods(instance_id);
 
-CREATE INDEX idx_mods_instance ON instance_mods(instance_id);
-
--- Modpacks instalados (metadados)
-CREATE TABLE installed_modpacks (
+CREATE TABLE IF NOT EXISTS installed_modpacks (
     id          TEXT PRIMARY KEY,
     instance_id TEXT NOT NULL REFERENCES instances(id) ON DELETE CASCADE UNIQUE,
-    source      TEXT NOT NULL,           -- 'curseforge', 'modrinth'
+    source      TEXT NOT NULL,
     project_id  TEXT NOT NULL,
     project_name TEXT NOT NULL,
     project_version TEXT NOT NULL,
     installed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- Metadados do launcher (chave-valor para migrações, etc.)
-CREATE TABLE meta (
+CREATE TABLE IF NOT EXISTS meta (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
-
-INSERT INTO meta (key, value) VALUES ('schema_version', '1');
 ```
 
-### 12.2.2 Por que esse schema?
+### 12.2.2 Migrações posteriores (v2–v6, aplicadas via `ALTER TABLE`)
 
-| Tabela | Justificativa |
-|--------|--------------|
-| `instances` | Denormalizamos `playtime_seconds` para evitar JOIN caro na listagem |
-| `playtime_sessions` | Cada sessão individual permite históricos, gráficos por dia/mês |
-| `folders` | Relação 1:N com instances via `folder_id` |
-| `instance_mods` | Rastrear mods instalados por instância (CurseForge/Modrinth) |
-| `installed_modpacks` | Metadado do modpack de origem (se veio de CF ou Modrinth) |
-| `accounts` | Suporte futuro a múltiplas contas (offline + Microsoft) |
-| `meta` | Controle de versão do schema para migrações |
+| Versão | Arquivo | Mudança |
+|---|---|---|
+| v2 | `v2_account_ordering.rs` | `accounts` ganha `position INTEGER NOT NULL DEFAULT 0` e `is_default INTEGER NOT NULL DEFAULT 0` |
+| v3 | `v3_mod_icon.rs` | `instance_mods` ganha `icon_url TEXT` |
+| v4 | `v4_mod_kind.rs` | `instance_mods` ganha `kind TEXT NOT NULL DEFAULT 'mod'` (`mod`/`resourcepack`/`shader`) |
+| v5 | `v5_instance_position.rs` | `instances` ganha `position INTEGER NOT NULL DEFAULT 0` |
+| v6 | `v6_folder_icon.rs` | `folders` ganha `icon_path TEXT` |
+
+`installed_modpacks` existe no schema desde v1, mas não há repositório dedicado para ela na camada de domínio (repos ativos cobrem instance/folder/account/mod/playtime).
 
 ## 12.3 JSON — Configurações do Usuário
 
-Arquivos JSON na raiz do diretório do launcher:
-
-```
-<launcher_dir>/
-├── settings.json         # Configurações gerais
-├── java.json             # Configurações de Java
-└── ui.json               # Preferências de interface (tema, sidebar, etc.)
-```
-
-### Exemplo: `settings.json`
+Só existe **um** arquivo de config JSON: **`<app_data_dir>/settings.json`**, via `infrastructure/persistence/config/json_settings_repository.rs`. Não existem `java.json` ou `ui.json` — Java é detectado/gerenciado direto no disco (sem tracking em JSON), e não há persistência de preferências de UI separada.
 
 ```json
 {
-  "minecraft_dir": "C:\\Users\\User\\AppData\\Roaming\\.minecraft",
-  "launcher_dir": "C:\\Users\\User\\AppData\\Roaming\\AstroLauncher",
-  "language": "pt-BR",
-  "theme": "dark",
-  "close_behavior": "minimize",
-  "discord_rpc": true,
-  "max_downloads": 4,
-  "java_path": null
+  "curseforge_api_key": null,
+  "root_group_name": null,
+  "root_group_icon": null
 }
 ```
 
-### Exemplo: `java.json`
-
-```json
-{
-  "default_runtime": "jre-17.0.9",
-  "runtimes": [
-    {
-      "id": "jre-17.0.9",
-      "path": "C:\\Users\\User\\AppData\\Roaming\\AstroLauncher\\java\\jre-17.0.9",
-      "version": "17.0.9",
-      "arch": "x64",
-      "type": "temurin"
-    },
-    {
-      "id": "jre-21.0.3",
-      "path": "C:\\Users\\User\\AppData\\Roaming\\AstroLauncher\\java\\jre-21.0.3",
-      "version": "21.0.3",
-      "arch": "x64",
-      "type": "temurin"
-    }
-  ]
-}
-```
-
-**Regra:** Config JSON nunca contém dados grandes ou relacionais. Apenas preferências do usuário.
+Schema real é bem menor do que versões anteriores deste documento sugeriam — não guarda `minecraft_dir`, `theme`, `discord_rpc` nem `max_downloads`.
 
 ## 12.4 Cache
 
-```
-<launcher_dir>/cache/
-├── manifests/            # Version manifest da Mojang (cache 1h)
-├── search/               # Resultados de busca CF/Modrinth (cache 30min)
-└── thumbnails/           # Thumbnails de modpacks (cache 24h)
-```
-
-- Cache tem TTL fixo, sem necessidade de SQLite
-- Arquivos individuais com nome = hash da URL
-- Limpeza automática ao iniciar o launcher (itens expirados)
+Não implementado. Não existe `infrastructure/persistence/cache/`, nem cache de manifests, buscas (Modrinth/CurseForge) ou thumbnails. Toda chamada de busca/manifest bate direto na API externa.
 
 ## 12.5 Assets (Padrão Mojang)
 
 ```
 <minecraft_dir>/assets/
-├── indexes/              # Asset indexes (.json)
-└── objects/              # Assets organizados por prefixo SHA1
-    ├── 00/
-    ├── 01/
-    └── ...
+├── indexes/     # Asset indexes (.json)
+└── objects/     # Assets organizados por prefixo SHA1
 ```
 
-Segue o padrão oficial do Minecraft. Nenhuma modificação.
+Segue o padrão oficial do Minecraft, sem modificação — download feito por `infrastructure/downloader/asset_downloader.rs`.
 
-## 12.6 Migrações
+## 12.6 Migrações — Mecanismo
 
-O SQLite permite migrações progressivas via tabela `meta`:
+`persistence/migrations/mod.rs` define uma tabela de function pointers:
 
 ```rust
-trait Migration {
-    fn version(&self) -> u32;
-    fn up(&self, tx: &Transaction) -> Result<()>;
-}
-
-// migrations/v1.rs
-struct V1CreateInstances;
-impl Migration for V1CreateInstances { ... }
-
-// migrations/v2.rs
-struct V2AddPlaytimeIndex;
-impl Migration for V2AddPlaytimeIndex { ... }
+pub const MIGRATIONS: &[(u32, fn(&Connection) -> rusqlite::Result<()>)] = &[
+    (1, v1_initial::up),
+    (2, v2_account_ordering::up),
+    (3, v3_mod_icon::up),
+    (4, v4_mod_kind::up),
+    (5, v5_instance_position::up),
+    (6, v6_folder_icon::up),
+];
 ```
 
-- Migrações rodam na inicialização do launcher
-- Versão atual comparada com `schema_version` na tabela `meta`
-- Todas dentro de transação — falha = rollback
+Versão atual comparada contra a tabela `meta` (`schema_version`). Roda no bootstrap, antes de qualquer repositório ser usado.
 
 ## 12.7 Dependências
 
 ```
-Rust:
-├── rusqlite              # SQLite bindings (com bundled feature)
-├── serde_json            # JSON para configs
-└── serde                 # Serialização geral
+rusqlite 0.40.1 (feature "bundled")
+serde / serde_json 1.0
 ```
 
-### Por que `rusqlite` e não `sqlx`?
-
-| Critério | `rusqlite` | `sqlx` |
-|----------|-----------|--------|
-| Simplicidade | Sim, conexão direta | Complexo, prefere pool |
-| Async | Síncrono (suficiente para dados locais) | Async-only |
-| Compile-time checks | Não | Sim |
-| Bundled SQLite | Sim (`bundled` feature) | Não incluso |
-| Migrations | Manual (simples) | Built-in com `sqlx-cli` |
-
-**Decisão:** `rusqlite` com `bundled` — não precisamos de pool de conexões nem async para um banco local de um launcher desktop.
+Sem `sqlx`, sem `rusqlite_migration` — migrações são escritas à mão.
 
 ## 12.8 Repository Pattern na Prática
 
+As traits de repositório são **síncronas**, não `async_trait` — comentário no código: "Local SQLite database; no async needed."
+
 ```rust
 // domain/repositories/instance_repository.rs
-#[async_trait]
 pub trait InstanceRepository: Send + Sync {
-    async fn find_all(&self) -> Result<Vec<Instance>>;
-    async fn find_by_id(&self, id: &str) -> Result<Instance>;
-    async fn find_by_folder(&self, folder_id: &str) -> Result<Vec<Instance>>;
-    async fn save(&self, instance: &Instance) -> Result<()>;
-    async fn delete(&self, id: &str) -> Result<()>;
-    async fn update_playtime(&self, id: &str, seconds: i64) -> Result<()>;
+    fn find_all(&self) -> Result<Vec<Instance>, InstanceError>;
+    fn find_by_id(&self, id: &str) -> Result<Instance, InstanceError>;
+    fn find_by_folder(&self, folder_id: &str) -> Result<Vec<Instance>, InstanceError>;
+    fn save(&self, instance: &Instance) -> Result<(), InstanceError>;
+    fn delete(&self, id: &str) -> Result<(), InstanceError>;
+    fn update_playtime(&self, id: &str, seconds: i64) -> Result<(), InstanceError>;
+    fn reorder(&self, ordered_ids: &[String]) -> Result<(), InstanceError>;
 }
 ```
 
-```rust
-// infrastructure/repositories/sqlite_instance_repository.rs
-pub struct SqliteInstanceRepository {
-    conn: rusqlite::Connection,
-}
+`infrastructure/persistence/repositories/sqlite_instance_repository.rs` implementa a trait sobre uma `Arc<Mutex<rusqlite::Connection>>` compartilhada (montada uma vez no bootstrap). O domínio nunca importa `rusqlite` diretamente.
 
-impl InstanceRepository for SqliteInstanceRepository {
-    async fn find_all(&self) -> Result<Vec<Instance>> {
-        let mut stmt = self.conn.prepare("SELECT id, name, version, ... FROM instances ORDER BY name")?;
-        // ... mapeamento para Vec<Instance>
-    }
-}
-```
-
-O domínio **nunca** importa `rusqlite`. Ele só conhece a trait. A Application Layer injeta a implementação concreta no bootstrap.
-
-## 12.9 Estrutura de Pastas
+## 12.9 Estrutura Real de Pastas
 
 ```
 infrastructure/persistence/
 ├── migrations/
 │   ├── mod.rs
 │   ├── v1_initial.rs
-│   └── v2_playtime_index.rs
+│   ├── v2_account_ordering.rs
+│   ├── v3_mod_icon.rs
+│   ├── v4_mod_kind.rs
+│   ├── v5_instance_position.rs
+│   └── v6_folder_icon.rs
 ├── sqlite/
-│   ├── connection.rs       # Inicialização e pool (na verdade conexão única)
-│   ├── migration_runner.rs
-│   └── mod.rs
+│   └── connection.rs        # open(db_path), pragma foreign_keys
 ├── repositories/
 │   ├── sqlite_instance_repository.rs
 │   ├── sqlite_folder_repository.rs
 │   ├── sqlite_account_repository.rs
 │   ├── sqlite_playtime_repository.rs
 │   └── sqlite_mod_repository.rs
-├── config/
-│   ├── json_settings_repository.rs
-│   └── json_java_repository.rs
-└── cache/
-    ├── manifest_cache.rs
-    └── search_cache.rs
+└── config/
+    └── json_settings_repository.rs
 ```
+
+Sem subpasta `cache/`.
 
 ## 12.10 Resumo das Decisões
 
-| Decisão | Escolha | Alternativa Rejeitada | Motivo |
-|---------|---------|----------------------|--------|
-| Banco principal | SQLite | JSON | Queries, relações, ACID, concorrência |
-| Config de usuário | JSON | SQLite | Editável, versionável, simples |
-| ORM/Query Builder | Nenhum (SQL raw) | Diesel, SeaORM | Projeto pequeno, controle total |
-| Biblioteca SQLite | `rusqlite` | `sqlx` | Síncrono, bundled, simples |
-| Cache | Arquivos com TTL | SQLite | Volátil, sem necessidade de schema |
-| Migrações | Manuais com trait | `sqlx-cli` | Sem dependência externa |
-| Async no banco | Não necessário | Tokio + sqlx | Banco local, operações em microssegundos |
+| Decisão | Escolha | Motivo |
+|---|---|---|
+| Banco principal | SQLite (`rusqlite`, bundled) | Queries, relações, ACID, sem dependência externa de binário |
+| Config de usuário | JSON (`settings.json`) | Editável, simples — schema hoje é mínimo |
+| ORM/Query Builder | Nenhum (SQL raw) | Projeto pequeno, controle total |
+| Migrações | Function-pointer table manual | Sem dependência de `sqlx-cli`/`rusqlite_migration` |
+| Async no banco | Não — repositórios síncronos | Banco local, sem necessidade de I/O assíncrono |
+| Cache | Não implementado | Lacuna conhecida, não decisão deliberada |

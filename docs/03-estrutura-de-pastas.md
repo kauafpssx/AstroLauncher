@@ -3,14 +3,12 @@
 ## 3.1 Raiz do Projeto
 
 ```
-project-root/
+AstroLauncher/
 ├── src-tauri/             # Backend Rust + Tauri
 ├── src/                   # Frontend React
-├── public/                # Assets estáticos
+├── public/                # Assets estáticos (logo, ícones, providers)
 ├── docs/                  # Documentação
 ├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
 ├── components.json        # shadcn/ui config
 ├── .gitignore
 └── README.md
@@ -22,56 +20,42 @@ project-root/
 src-tauri/
 ├── app/
 │   ├── application/
-│   │   ├── commands/          # Command structs (CQRS)
-│   │   ├── queries/           # Query structs (CQRS)
-│   │   ├── dto/               # Data Transfer Objects
-│   │   ├── services/          # Serviços de aplicação
-│   │   ├── events/            # Event handlers
-│   │   ├── mappers/           # Conversores Domain ↔ DTO
-│   │   └── use_cases/         # Casos de uso (orquestração)
+│   │   ├── use_cases/         # Um struct por ação (Create/Update/Delete/List*UseCase)
+│   │   ├── dto/                # DTOs de entrada/saída por domínio
+│   │   └── mappers/            # Entidade → DTO (account, folder, instance)
 │   │
 │   ├── domain/
-│   │   ├── entities/          # Entidades de domínio
-│   │   ├── value_objects/     # Value Objects
-│   │   ├── repositories/      # Traits de repositório
-│   │   ├── services/          # Serviços de domínio
-│   │   ├── traits/            # Outras traits do domínio
-│   │   ├── errors/            # Erros de domínio
-│   │   └── events/            # Eventos de domínio
+│   │   ├── entities/          # Instance, Account, Folder, InstalledMod, PlaytimeSession
+│   │   ├── repositories/      # Traits: InstanceRepository, AccountRepository, FolderRepository,
+│   │   │                       #   ModRepository, PlaytimeRepository
+│   │   └── errors/            # InstanceError, AccountError, FolderError (thiserror)
 │   │
 │   ├── infrastructure/
-│   │   ├── minecraft/         # API Minecraft, manifestos
-│   │   ├── java/              # Detecção, instalação, runtime
-│   │   ├── filesystem/        # Manipulação de arquivos
-│   │   ├── downloader/        # Download manager, queue, worker
-│   │   ├── cache/             # Cache de assets e metadados
-│   │   ├── process/           # Process spawn, monitor, kill
-│   │   ├── persistence/       # SQLite, JSON, config files
-│   │   ├── api/               # HTTP clients genéricos
-│   │   └── repositories/      # Implementações concretas
+│   │   ├── minecraft/         # manifest, rules, servers_dat, version_meta
+│   │   ├── java/               # detect, download (Adoptium), manager
+│   │   ├── downloader/         # file_downloader, asset_downloader, progress
+│   │   ├── process/            # manager (spawn/kill), launcher (comando Java, natives)
+│   │   ├── filesystem/         # paths.rs — path-joining sobre app_data_dir
+│   │   ├── discord/            # rpc.rs — Discord Rich Presence
+│   │   ├── modloader/          # fabric_like, forge_like (via mc-launcher-core), liteloader, profile
+│   │   ├── curseforge/         # client, modpack
+│   │   ├── modrinth/           # client, mrpack
+│   │   ├── playermc/           # client — busca de skins (api.playermc.site)
+│   │   └── persistence/
+│   │       ├── sqlite/         # connection.rs
+│   │       ├── migrations/     # v1..v6 (function-pointer table)
+│   │       ├── repositories/   # Sqlite*Repository (implementações)
+│   │       └── config/         # json_settings_repository.rs (settings.json)
 │   │
 │   ├── presentation/
-│   │   ├── commands/          # #[tauri::command] handlers
-│   │   ├── state/             # Estado global gerenciado (managed state)
-│   │   └── ipc/               # Organização por domínio (instance, java, etc.)
+│   │   ├── commands/           # *_commands.rs — um arquivo por domínio, #[tauri::command]
+│   │   ├── state/               # app_state.rs — AppState (managed state), é módulo, não arquivo único
+│   │   └── ipc/                 # instance.rs — layout legado paralelo, não usado pelos commands atuais
 │   │
-│   ├── shared/
-│   │   ├── config/            # Leitura de configurações
-│   │   ├── logger/            # Logger estruturado
-│   │   ├── utils/             # Utilitários separados por contexto
-│   │   │   ├── path_utils.rs
-│   │   │   ├── hash_utils.rs
-│   │   │   ├── zip_utils.rs
-│   │   │   └── json_utils.rs
-│   │   ├── constants/         # Constantes do launcher
-│   │   ├── errors/            # Erros compartilhados
-│   │   └── macros/            # Macros utilitárias
-│   │
-│   └── bootstrap/             # Inicialização e DI manual
-│       ├── modules.rs
-│       ├── di.rs
-│       └── setup.rs
+│   └── bootstrap/
+│       └── setup.rs            # build_app_state() — DI manual, única fonte de wiring
 │
+├── capabilities/default.json  # permissões/plugins Tauri
 ├── tauri.conf.json
 ├── Cargo.toml
 └── build.rs
@@ -81,57 +65,50 @@ src-tauri/
 
 ```
 src/
-├── components/            # Componentes compartilhados (shadcn/ui)
-│   ├── ui/                # Button, Card, Dialog, Input, etc.
-│   └── layout/            # Sidebar, Header, Shell
+├── components/
+│   ├── ui/                # Primitivas shadcn/ui (30+: button, dialog, select, table, tabs...)
+│   ├── common/             # CodeEditor, EntityAvatar, PageHeader, SearchInput, SidebarNav...
+│   ├── layout/             # Shell, TopBar, StatusBar, AccountDropdown, LaunchProgressDialog
+│   └── splash/             # SplashScreen (janela separada, ver splash-main.tsx)
 │
-├── features/              # Feature-First organization
-│   ├── instances/
-│   │   ├── components/    # InstanceCard, InstanceList, CreateDialog
-│   │   ├── hooks/         # useInstances, useInstanceActions
-│   │   ├── services/      # InstanceAPI (invoke wrappers)
-│   │   ├── types/         # Instance types
-│   │   └── pages/         # InstancesPage
-│   │
-│   ├── launcher/
-│   │   ├── components/    # LaunchButton, ConsoleView, ProgressBar
-│   │   ├── hooks/         # useLaunch, useConsole
-│   │   ├── services/      # LauncherAPI
-│   │   ├── types/         # Launch types
-│   │   └── pages/         # LauncherPage
-│   │
-│   ├── java/
-│   │   ├── components/    # JavaSelector, JavaInstallDialog
-│   │   ├── hooks/         # useJava, useJavaInstall
-│   │   ├── services/      # JavaAPI
-│   │   └── types/         # Java types
-│   │
-│   ├── settings/
-│   │   ├── components/    # SettingsForm, PathPicker
-│   │   ├── hooks/         # useSettings
-│   │   ├── services/      # SettingsAPI
-│   │   └── pages/         # SettingsPage
-│   │
-│   └── download/
-│       ├── components/    # DownloadQueue, ProgressIndicator
-│       ├── hooks/         # useDownload, useDownloadQueue
-│       └── types/         # Download types
+├── features/               # Feature-first — pastas reais:
+│   ├── instances/          # maior feature: criar/editar/listar instâncias, pastas, astropack,
+│   │                        #   ícones, workspace (notas, mundos, servers, screenshots, config)
+│   ├── mods/                # Mod Browser + gerenciamento de mods instalados
+│   ├── accounts/            # contas offline (CRUD, sheet, dialog)
+│   ├── skins/                # busca e preview 3D de skins
+│   └── settings/             # página de configurações
+│   (não existem features "launcher/", "java/" ou "download/" — launch fica em stores/launch.store.ts
+│    + components/layout/LaunchProgressDialog.tsx; java/download não têm UI dedicada)
 │
-├── hooks/                 # Hooks globais
-├── lib/                   # Utilitários
-│   ├── api/               # API client base
-│   ├── utils.ts           # Utilitários gerais
-│   └── constants.ts       # Constantes
+├── hooks/
+│   └── useDiscordPresence.ts  # único hook global
 │
-├── stores/                # Zustand stores
+├── data/
+│   └── mc-icons.ts
+│
+├── lib/
+│   ├── api/client.ts       # apiInvoke<T>() — wrapper fino sobre @tauri-apps/api invoke
+│   ├── utils.ts
+│   ├── content-kind.ts
+│   ├── format.ts
+│   ├── icon-src.ts
+│   ├── keybind-utils.ts
+│   ├── log-utils.ts
+│   └── minecraft-options.ts
+│
+├── stores/                 # Zustand
+│   ├── account.store.ts
+│   ├── folder.store.ts
 │   ├── instance.store.ts
-│   ├── java.store.ts
-│   ├── download.store.ts
-│   └── settings.store.ts
+│   ├── launch.store.ts
+│   ├── link-preview.store.ts
+│   └── modpack-install.store.ts
 │
-├── types/                 # Tipos globais
-├── pages/                 # Páginas raiz (rotas)
-├── layouts/               # Layouts compartilhados
-├── main.tsx               # Entry point
-└── App.tsx
+├── types/                  # Tipos TS espelhando os DTOs Rust manualmente (sem codegen)
+├── main.tsx                 # Entry point do app principal
+├── splash-main.tsx          # Entry point da janela de splash (segundo entry point do Vite)
+└── App.tsx                  # HashRouter + rotas
 ```
+
+Rotas reais (`App.tsx`, `react-router-dom` v7 com `HashRouter`): `/`, `/instances/new`, `/instances/:id/edit`, `/skins`. Não existem rotas para settings/java/downloads/console — essas telas são dialogs/tabs dentro das páginas de instância.

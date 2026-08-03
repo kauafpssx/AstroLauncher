@@ -10,12 +10,12 @@
 
 ## 5.2 Regras de Tamanho
 
-| Artefato | Limite Máximo | Ideal |
-|----------|--------------|-------|
-| Arquivo | 200 linhas | 80–150 linhas |
-| Função | 30 linhas | 10–20 linhas |
-| Struct | 5–7 campos | 3–5 campos |
-| Enum de erros | 10 variantes | 3–7 variantes |
+| Artefato      | Limite Máximo | Ideal         |
+| ------------- | ------------- | ------------- |
+| Arquivo       | 200 linhas    | 80–150 linhas |
+| Função        | 30 linhas     | 10–20 linhas  |
+| Struct        | 5–7 campos    | 3–5 campos    |
+| Enum de erros | 10 variantes  | 3–7 variantes |
 
 ## 5.3 Nomenclatura
 

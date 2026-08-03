@@ -2,82 +2,63 @@
 
 ## 6.1 Organização dos Comandos Tauri
 
-Nunca coloque toda a lógica em um único arquivo `commands.rs`. Organize por domínio:
+Comandos ficam em `src-tauri/app/presentation/commands/*_commands.rs`, um arquivo por domínio, registrados via `tauri::generate_handler![...]` em `src-tauri/src/lib.rs`.
 
-```
-presentation/ipc/
-├── instance.rs     # create_instance, delete_instance, rename_instance, get_instances
-├── java.rs         # install_java, detect_java, get_java_versions
-├── download.rs     # start_download, cancel_download, get_download_progress
-├── settings.rs     # get_settings, save_settings
-├── launcher.rs     # launch_minecraft, stop_minecraft, get_console_output
-└── minecraft.rs    # get_versions, install_version, get_assets
-```
+| Arquivo | Comandos |
+|---|---|
+| `instance_commands.rs` | `list_instances`, `create_instance`, `update_instance`, `delete_instance`, `move_instance_to_folder`, `reorder_instances` |
+| `folder_commands.rs` | `list_folders`, `create_folder`, `update_folder`, `delete_folder`, `reorder_folders` |
+| `instance_workspace_commands.rs` | 22 comandos: log, notas, arquivos de config, mundos, servers, screenshots — ex.: `read_instance_log`, `list_instance_notes`, `write_instance_note`, `list_instance_config_files`, `write_instance_config_file`, `list_instance_worlds`, `delete_instance_world`, `list_instance_servers`, `add_instance_server`, `list_instance_screenshots`, `save_instance_screenshot_as` |
+| `minecraft_commands.rs` | `list_minecraft_versions` (async), `launch_instance` (async), `stop_instance`, `cancel_launch`, `get_total_system_memory_mb`, `list_audio_output_devices` |
+| `account_commands.rs` | `list_accounts`, `create_account`, `update_account`, `delete_account`, `set_default_account`, `reorder_accounts` |
+| `mod_commands.rs` | `search_mods`, `get_mod_versions`, `get_mod_project` (async), `install_mod` (async), `install_custom_mod`, `list_instance_mods`, `set_instance_mod_enabled`, `delete_instance_mod`, `install_modrinth_modpack`, `install_curseforge_modpack` (async), `cancel_modpack_install` |
+| `skin_commands.rs` | `search_skins`, `get_skin`, `download_skin` (async) |
+| `astropack_commands.rs` | `preview_astropack`, `get_astropack_export_summary`, `export_instance`, `import_astropack` (async) |
+| `playtime_commands.rs` | `get_playtime_summary` |
+| `settings_commands.rs` | `get_settings`, `update_settings` |
+| `discord_commands.rs` | `discord_set_presence` |
+| `custom_icon_commands.rs` | `list_custom_icons`, `save_custom_icon`, `delete_custom_icon` |
+| `splash_commands.rs` | `finish_splash` |
 
 ## 6.2 Cada Comando Deve Ser Fino
 
 ```rust
-// ❌ Ruim: comando faz tudo
 #[tauri::command]
-fn install_version(version: String) -> Result<(), String> { ... }
-
-// ✅ Bom: delega para caso de uso
-#[tauri::command]
-async fn install_version(version: String, state: State<AppState>) -> Result<(), AppError> {
-    let use_case = state.install_version_use_case();
-    use_case.execute(InstallVersionCommand { version }).await?;
-    Ok(())
+async fn create_instance(
+    input: CreateInstanceInput,
+    state: State<'_, AppState>,
+) -> Result<InstanceDTO, InstanceError> {
+    CreateInstanceUseCase::new(state.instance_repo.clone())
+        .execute(input)
+        .await
 }
 ```
+
+O comando só recebe o DTO de input, delega pro use case/service e retorna o DTO — sem lógica de negócio no handler.
 
 ## 6.3 Frontend: API Client
 
-Nunca chame `invoke()` diretamente no componente. Crie uma camada de API:
-
-```
-src/lib/api/
-├── instance.ts    # InstanceAPI.create(), InstanceAPI.list(), InstanceAPI.delete()
-├── java.ts        # JavaAPI.install(), JavaAPI.detect()
-├── launcher.ts    # LauncherAPI.launch(), LauncherAPI.stop()
-├── settings.ts    # SettingsAPI.get(), SettingsAPI.save()
-└── minecraft.ts   # MinecraftAPI.getVersions(), MinecraftAPI.installVersion()
-```
+`src/lib/api/client.ts` expõe um wrapper fino:
 
 ```typescript
-// ✅ Bom: encapsulado no serviço
-const instance = await InstanceAPI.create({ name: "Minha Instância", version: "1.20.4" });
-
-// ❌ Ruim: invoke direto no componente
-const instance = await invoke("create_instance", { name: "Minha Instância", version: "1.20.4" });
-```
-
-## 6.4 Eventos (Tauri Events)
-
-Use eventos Tauri para comunicação assíncrona:
-
-| Evento | Direção | Descrição |
-|--------|---------|-----------|
-| `download:progress` | Backend → Frontend | Progresso de download |
-| `minecraft:output` | Backend → Frontend | Linha do console do jogo |
-| `minecraft:started` | Backend → Frontend | Jogo iniciou |
-| `minecraft:exited` | Backend → Frontend | Jogo fechou |
-| `java:install-progress` | Backend → Frontend | Progresso de instalação Java |
-
-## 6.5 Tipos Compartilhados
-
-Defina tipos no frontend que espelham os DTOs do backend:
-
-```typescript
-// types/instance.ts
-export interface InstanceDTO {
-    id: string;
-    name: string;
-    version: string;
-    loader: string | null;
-    icon_path: string | null;
-    created_at: string;
-    last_played: string | null;
+export function apiInvoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+  return invoke<T>(command, args)
 }
 ```
 
-Use `serde` no Rust e mantenha os nomes dos campos consistentes entre as camadas.
+Cada feature tem seu próprio módulo de serviço em `src/features/*/services/*.api.ts` (ex.: `instance.api.ts`, `account.api.ts`, `folder.api.ts`, `mod.api.ts`, `skin.api.ts`, `astropack.api.ts`, `playtime.api.ts`, `settings.api.ts`, `custom-icon.api.ts`, `version.api.ts`) que chama `apiInvoke` internamente. Componentes não chamam `invoke()` direto.
+
+## 6.4 Eventos (Tauri Events)
+
+| Evento | Direção | Descrição |
+|---|---|---|
+| `launch://event` | Backend → Frontend | Progresso/estágios do lançamento da instância |
+| `instance://stopped` | Backend → Frontend | Instância/processo do jogo encerrou |
+| `modpack://event` | Backend → Frontend | Progresso de instalação de modpack |
+| `astropack://event` | Backend → Frontend | Progresso de import/export de AstroPack |
+
+Namespacing usa `://`, não `:`. `src/stores/launch.store.ts` ouve `launch://event` via `listen()` e atualiza `ProgressState { stage, currentItem, stageCurrent, stageTotal }`.
+
+## 6.5 Tipos Compartilhados
+
+Não há geração automática — os tipos em `src/types/*.ts` são escritos manualmente e mantidos em sincronia à mão com os DTOs Rust (`serde`). Cuidado ao mudar um DTO no backend: atualizar o tipo TS correspondente é manual.

@@ -2,136 +2,73 @@
 
 ## 7.1 Organização Feature-First
 
-O frontend é organizado por features, não por tipos de arquivo:
+Features reais em `src/features/`: `instances/`, `mods/`, `accounts/`, `skins/`, `settings/`. Não existem features `launcher/`, `java/` ou `download/` — launch é global (`stores/launch.store.ts` + `components/layout/LaunchProgressDialog.tsx`), e não há UI dedicada para Java/downloads.
 
 ```
-src/features/instances/
-├── components/      # InstanceCard, InstanceList, CreateInstanceDialog
-├── hooks/           # useInstances, useInstanceActions
-├── services/        # InstanceAPI
-├── types/           # Instance, InstanceDTO, CreateInstanceInput
-└── pages/           # InstancesPage, InstanceDetailPage
+src/features/instances/          # maior feature
+├── pages/               # InstancesPage, CreateInstancePage, EditInstancePage
+├── components/          # InstanceCard, InstanceGrid, FolderSection, GroupSection,
+│                         #   ExportAstropackDialog, ImportAstropackDialog, IconPickerDialog...
+│   ├── create-instance/ # FiltersCard, LoaderSelectionCard, ModpackBrowserPanel, VersionSelectionCard...
+│   └── edit-instance/   # ConfigEditorTab, NotesTab, WorldsTab, ServersTab, ScreenshotsTab,
+│                         #   KeybindsTab, LogTab, MinecraftOptionsTab, SettingsTab...
+├── hooks/                # useInstances, useFolders, useLaunchInstance, usePlaytimeSummary,
+│                         #   useInstanceActions, useInstanceIcon, useInstanceScreenshots, useVersions
+├── lib/                  # instance-actions.ts
+└── services/             # instance.api.ts, folder.api.ts, astropack.api.ts,
+                          #   instance-workspace.api.ts, custom-icon.api.ts, playtime.api.ts, version.api.ts
 ```
 
-## 7.2 Componentes Compartilhados (shadcn/ui)
+Não há pasta `types/` dentro de cada feature — os tipos ficam centralizados em `src/types/`.
 
-Componentes genéricos ficam em `src/components/ui/`:
+## 7.2 Componentes Compartilhados
 
 ```
-components/ui/
-├── button.tsx
-├── card.tsx
-├── dialog.tsx
-├── input.tsx
-├── select.tsx
-├── tabs.tsx
-├── badge.tsx
-├── progress.tsx
-├── scroll-area.tsx
-└── ...
+components/
+├── ui/          # 30+ primitivas shadcn/ui: accordion, alert-dialog, avatar, badge, button,
+│                #   card, checkbox, collapsible, command, context-menu, dialog, dropdown-menu,
+│                #   hover-card, input-group, pagination, popover, resizable, select, separator,
+│                #   sheet, skeleton, slider, sonner, switch, table, tabs, toggle, tooltip...
+├── common/      # CodeEditor, EntityAvatar, EntityContextMenu, MarkdownBody, PageHeader,
+│                #   SearchInput, SidebarNav, TabHeader, ConfirmDeleteDialog, ProgressGroup...
+├── layout/      # Shell, TopBar, StatusBar, AccountDropdown, LaunchProgressDialog
+└── splash/      # SplashScreen — janela separada, ver 7.5
 ```
 
 ## 7.3 Stores (Zustand)
 
-Cada domínio tem sua própria store:
+Stores reais em `src/stores/`:
 
-```typescript
-// stores/instance.store.ts
-interface InstanceStore {
-    instances: InstanceDTO[];
-    selectedInstance: InstanceDTO | null;
-    isLoading: boolean;
-    error: string | null;
-    
-    // Actions
-    fetchInstances: () => Promise<void>;
-    createInstance: (input: CreateInstanceInput) => Promise<void>;
-    deleteInstance: (id: string) => Promise<void>;
-    selectInstance: (instance: InstanceDTO) => void;
-}
-```
+- **account.store.ts** — `useAccountStore`: `{ accounts, isLoading }` + CRUD via AccountAPI; expõe `useDefaultAccount()`
+- **folder.store.ts** — `useFolderStore`: `{ folders, isLoading }` + CRUD via FolderAPI
+- **instance.store.ts** — `useInstanceStore`: `{ instances }`, ouve eventos Tauri via `listen()`, CRUD via InstanceAPI; expõe `useSelectedInstance()`
+- **launch.store.ts** — `useLaunchStore`: estado de progresso do launch (`ProgressState { stage, currentItem, stageCurrent, stageTotal }`), ouve `launch://event`, dispara toasts
+- **link-preview.store.ts** — `useLinkPreviewStore`: abre links externos via `@tauri-apps/plugin-shell`
+- **modpack-install.store.ts** — `useModpackInstallStore`: `{ isInstalling, setInstalling }`
 
-## 7.4 Hooks Customizados
+Não existem `java.store.ts`, `download.store.ts` ou `settings.store.ts`.
 
-Hooks encapsulam lógica de estado e API:
+## 7.4 API Client
 
-```typescript
-// features/instances/hooks/useInstances.ts
-export function useInstances() {
-    const store = useInstanceStore();
-    
-    useEffect(() => {
-        store.fetchInstances();
-    }, []);
-    
-    return {
-        instances: store.instances,
-        isLoading: store.isLoading,
-        error: store.error,
-        createInstance: store.createInstance,
-        deleteInstance: store.deleteInstance,
-    };
-}
-```
+`src/lib/api/client.ts` — `apiInvoke<T>(command, args?)` envolve `invoke()` do `@tauri-apps/api/core`. Cada feature tem seus próprios módulos `*.api.ts` chamando `apiInvoke` com o nome do comando Tauri (ex.: `InstanceAPI.list() → apiInvoke<InstanceDTO[]>('list_instances')`).
 
-## 7.5 Páginas Previstas
+## 7.5 Rotas Reais
 
-| Página | Rota | Descrição |
-|--------|------|-----------|
-| Instances | `/` | Lista de instâncias organizadas por pastas |
-| Create Instance | `/instances/new` | Formulário de criação com seleção de versão (release, snapshot, alpha, etc.) |
-| Instance Detail | `/instances/:id` | Detalhes, playtime, mods, ações de launch |
-| Settings | `/settings` | Configurações do launcher |
-| Java | `/java` | Gerenciamento de runtimes Java |
-| Downloads | `/downloads` | Fila de downloads ativos |
-| Console | `/console` | Log do Minecraft em tempo real |
-| Modpacks | `/modpacks` | Busca e navegação de modpacks (CurseForge + Modrinth) |
-| Modpack Detail | `/modpacks/:id` | Detalhes do modpack, versões, instalação |
-| Playtime Stats | `/stats` | Estatísticas de tempo de jogo (por instância e total) |
-| Versions Browser | `/versions` | Navegação por TODAS as versões do Minecraft (com filtros por tipo) |
+`react-router-dom` v7 via `HashRouter`, rotas definidas inline em `App.tsx`:
 
-## 7.6 Features no Frontend (Novas)
+| Rota | Página |
+|---|---|
+| `/` | InstancesPage |
+| `/instances/new` | CreateInstancePage |
+| `/instances/:id/edit` | EditInstancePage |
+| `/skins` | SkinsPage |
 
-### 7.6.1 Playtime UI
-- **InstanceCard:** badge com tempo total (ex: "12h 34m")
-- **InstanceDetail:** gráfico de tempo por dia/semana/mês com `recharts`
-- **StatsPage:** visão geral com total geral, instância mais jogada, média por sessão
-- **Console:** timer visível durante o jogo (tempo da sessão atual)
+Não existem `/settings`, `/java`, `/downloads`, `/console`, `/modpacks`, `/stats` — settings/mods/versões são dialogs/sheets/tabs dentro das páginas de instância, não rotas próprias. `LaunchProgressDialog` e `Toaster` renderizam fora de `<Routes>` como overlays globais.
 
-### 7.6.2 Folder UI
-- **Sidebar:** accordion com pastas recolhíveis, instâncias dentro
-- **Drag & drop:** mover instância entre pastas (futuro)
-- **Context menu:** criar, renomear, excluir pastas
-- **Badge:** contador de instâncias por pasta
+Há dois entry points de Vite: `src/main.tsx` (app principal) e `src/splash-main.tsx` (janela de splash, usa `components/splash/SplashScreen.tsx`).
 
-### 7.6.3 Version Browser UI
-- **Filtros:** tabs/select para release, snapshot, alpha, beta, infdev, classic, indev
-- **Card de versão:** nome, tipo, data de lançamento, loader compatível
-- **Install button:** download direto da versão
-- **Search:** busca por nome da versão
+## 7.6 Outros
 
-### 7.6.4 CurseForge / Modrinth UI
-- **SearchPage:** barra de busca + filtros (loader, versão, categoria)
-- **ResultCard:** thumbnail, nome, autor, downloads, loader badges
-- **DetailPage:** descrição, screenshots, versões disponíveis, botão instalar
-- **Install dialog:** escolher instância existente ou criar nova
-- **Progress:** barra de progresso durante instalação do modpack
-
-## 7.7 Layout
-
-```
-┌─────────────────────────────────┐
-│         TopBar / Header         │
-├──────────┬──────────────────────┤
-│          │                      │
-│ Sidebar  │     Main Content     │
-│          │                      │
-│ - Home   │                      │
-│ - Mods   │                      │
-│ - Java   │                      │
-│ - Config │                      │
-│ - Stats  │                      │
-│ - Sobre  │                      │
-│          │                      │
-└──────────┴──────────────────────┘
-```
+- `src/hooks/useDiscordPresence.ts` — único hook global (fora de features), atualiza Discord RPC
+- `src/lib/`: além de `api/client.ts` e `utils.ts`, existem `content-kind.ts`, `format.ts`, `icon-src.ts`, `keybind-utils.ts`, `log-utils.ts`, `minecraft-options.ts` — sem `constants.ts`
+- `src/types/`: interfaces TS mantidas manualmente em sincronia com os DTOs Rust — sem geração automática (nenhuma ferramenta de codegen tipo `ts-rs`/`specta` está em uso)
