@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "AstroLauncher",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "identifier": "com.astrolauncher.app",
   "build": {
     "frontendDist": "../dist",
@@ -58,6 +58,16 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["PortugueseBR"],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico",
+        "headerImage": "installer/header.bmp",
+        "sidebarImage": "installer/sidebar.bmp"
+      }
     }
   },
   "plugins": {
@@ -65,7 +75,10 @@
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIzODdENTdGQUVCRjYwRUYKUldUdllMK3VmOVdIc3dheUFDaXd2eVNLSWl6WGVmWDkveHBoRlFBOE92UldWbjk1eUZQUEcxQkwK",
       "endpoints": [
         "https://github.com/kauafpssx/AstroLauncher/releases/latest/download/latest.json"
-      ]
+      ],
+      "windows": {
+        "installMode": "quiet"
+      }
     },
     "discord": {
       "clientId": "1533653025842008145",
