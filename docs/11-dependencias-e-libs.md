@@ -35,12 +35,10 @@ Não existe crate `mc-versions` — parsing de tipos de versão é feito com os 
 
 ### HTTP e Network
 
-| Biblioteca           | Versão                | Finalidade                                                                   |
-| -------------------- | --------------------- | ---------------------------------------------------------------------------- |
-| `reqwest`            | 0.13.3 (json, stream) | Cliente HTTP                                                                 |
-| `reqwest-middleware` | 0.5.2                 | Middleware para reqwest                                                      |
-| `reqwest-retry`      | 0.9.1                 | **Declarada mas sem uso no código** — nenhum retry/backoff está implementado |
-| `zip`                | 2                     | Extração de `.jar`/`.zip`                                                    |
+| Biblioteca | Versão                | Finalidade                |
+| ---------- | --------------------- | ------------------------- |
+| `reqwest`  | 0.13.3 (json, stream) | Cliente HTTP              |
+| `zip`      | 2                     | Extração de `.jar`/`.zip` |
 
 Não há `flate2` no Cargo.toml.
 
@@ -155,35 +153,25 @@ Não existe `tauri-plugin-mock`.
 
 ### UI (shadcn/ui)
 
-| Pacote                                   | Versão          | Finalidade                                                                    |
-| ---------------------------------------- | --------------- | ----------------------------------------------------------------------------- |
-| `tailwindcss`                            | 4.3.3           | Utility-first CSS                                                             |
-| `@tailwindcss/vite`                      | 4.3.3           | Plugin Tailwind para Vite                                                     |
-| `tailwindcss-animate` + `tw-animate-css` | 1.0.7 / 1.4.0   | Animações Tailwind                                                            |
-| `postcss` / `autoprefixer`               | 8.5.25 / 10.5.4 | Processamento CSS                                                             |
-| `class-variance-authority`               | 0.7.1           | Variantes de classe (cva)                                                     |
-| `clsx`                                   | 2.1.1           | Junção condicional de classes                                                 |
-| `tailwind-merge`                         | 3.6.0           | Merge de classes Tailwind                                                     |
-| `lucide-react`                           | ^1.28.0         | Ícones (esquema de versionamento mudou — não é mais `0.4xx`)                  |
-| `radix-ui`                               | ^1.6.7          | **Meta-pacote único** — substituiu os pacotes individuais `@radix-ui/react-*` |
-| `shadcn`                                 | ^4.15.0         | CLI do shadcn/ui, presente como dependência (não só via `npx`)                |
+| Pacote                                   | Versão        | Finalidade                                                                    |
+| ---------------------------------------- | ------------- | ----------------------------------------------------------------------------- |
+| `tailwindcss`                            | 4.3.3         | Utility-first CSS                                                             |
+| `@tailwindcss/vite`                      | 4.3.3         | Plugin Tailwind para Vite                                                     |
+| `tailwindcss-animate` + `tw-animate-css` | 1.0.7 / 1.4.0 | Animações Tailwind                                                            |
+| `class-variance-authority`               | 0.7.1         | Variantes de classe (cva)                                                     |
+| `clsx`                                   | 2.1.1         | Junção condicional de classes                                                 |
+| `tailwind-merge`                         | 3.6.0         | Merge de classes Tailwind                                                     |
+| `lucide-react`                           | ^1.28.0       | Ícones (esquema de versionamento mudou — não é mais `0.4xx`)                  |
+| `radix-ui`                               | ^1.6.7        | **Meta-pacote único** — substituiu os pacotes individuais `@radix-ui/react-*` |
+| `shadcn`                                 | ^4.16.1       | CLI do shadcn/ui, presente como dependência (não só via `npx`)                |
 
 O projeto **não** usa mais pacotes `@radix-ui/react-*` individuais — tudo vem do meta-pacote `radix-ui`.
 
-### Estado e Data Flow
+### Estado
 
-| Pacote                  | Versão  | Finalidade       |
-| ----------------------- | ------- | ---------------- |
-| `zustand`               | 5.0.14  | Estado global    |
-| `@tanstack/react-query` | 5.101.4 | Cache e fetching |
-
-### Formulários
-
-| Pacote                | Versão | Finalidade                       |
-| --------------------- | ------ | -------------------------------- |
-| `react-hook-form`     | 7.83.0 | Formulários                      |
-| `zod`                 | ^4.4.3 | Validação de schemas             |
-| `@hookform/resolvers` | 5.5.7  | Integração zod + react-hook-form |
+| Pacote    | Versão | Finalidade    |
+| --------- | ------ | ------------- |
+| `zustand` | 5.0.14 | Estado global |
 
 ### Discord RPC
 
@@ -191,11 +179,9 @@ Discord é controlado inteiramente pelo backend Rust (`discord-rich-presence`). 
 
 ### Ícones
 
-| Pacote                  | Versão  | Finalidade                   |
-| ----------------------- | ------- | ---------------------------- |
-| `lucide-react`          | ^1.28.0 | Ícones principais            |
-| `@phosphor-icons/react` | 2.1.10  | Ícones alternativos          |
-| `react-icons`           | 5.7.0   | Coleção adicional (fallback) |
+| Pacote         | Versão  | Finalidade        |
+| -------------- | ------- | ----------------- |
+| `lucide-react` | ^1.28.0 | Ícones principais |
 
 ### Editor e Conteúdo Rico
 
@@ -225,9 +211,7 @@ Nenhum desses estava documentado antes — cobrem o editor de config e as notas 
 
 | Pacote                       | Versão  | Finalidade               |
 | ---------------------------- | ------- | ------------------------ |
-| `date-fns`                   | 4.4.0   | Manipulação de datas     |
 | `sonner`                     | 2.0.7   | Toasts                   |
-| `recharts`                   | 3.10.1  | Gráficos                 |
 | `framer-motion`              | 12.43.0 | Animações                |
 | `react-resizable-panels`     | 4.12.2  | Painéis redimensionáveis |
 | `cmdk`                       | 1.1.1   | Command palette          |
@@ -272,7 +256,6 @@ Não há `menubar`, `navigation-menu`, `radio-group`, `aspect-ratio` nem `toast`
 
 ## 11.4 Notas Importantes
 
-- **`reqwest-retry` está morto**: é dependência declarada mas nenhum retry/backoff é implementado em nenhum ponto do código de download.
 - **Radix consolidado**: pare de procurar `@radix-ui/react-*` individuais no `package.json` — tudo vem via `radix-ui` (pacote único).
 - **`lucide-react` mudou de esquema de versão**: está em `^1.28.0`, não `0.4xx` como versões antigas do launcher usavam.
-- **`zod` é v4**, não v3.
+- **Sem retry/backoff no download**: o `reqwest` é usado puro; não há camada de retry.

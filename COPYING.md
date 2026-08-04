@@ -98,12 +98,10 @@ As seguintes bibliotecas Rust são utilizadas pelo AstroLauncher. As versões li
 
 ### HTTP e Rede
 
-| Crate                | Versão | Licença           |
-| -------------------- | ------ | ----------------- |
-| `reqwest`            | 0.13.3 | MIT OR Apache-2.0 |
-| `reqwest-middleware` | 0.5.2  | MIT OR Apache-2.0 |
-| `reqwest-retry`      | 0.9.1  | MIT OR Apache-2.0 |
-| `zip`                | 2      | MIT               |
+| Crate     | Versão | Licença           |
+| --------- | ------ | ----------------- |
+| `reqwest` | 0.13.3 | MIT OR Apache-2.0 |
+| `zip`     | 2      | MIT               |
 
 ### Hash, Criptografia e Dados
 
@@ -191,8 +189,6 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 | `shadcn`                   | 4.16.1  | MIT        |
 | `framer-motion`            | 12.43.0 | MIT        |
 | `lucide-react`             | 1.28.0  | ISC        |
-| `@phosphor-icons/react`    | 2.1.10  | MIT        |
-| `react-icons`              | 5.7.0   | MIT        |
 | `sonner`                   | 2.0.7   | MIT        |
 | `next-themes`              | 0.4.6   | MIT        |
 | `cmdk`                     | 1.1.1   | MIT        |
@@ -215,23 +211,13 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 | `@tauri-apps/plugin-process`           | 2.3.1  | MIT OR Apache-2.0 |
 | `@tauri-apps/plugin-updater`           | 2.10.1 | MIT OR Apache-2.0 |
 
-### Estado e Dados
+### Estado
 
-| Pacote                  | Versão  | Licença |
-| ----------------------- | ------- | ------- |
-| `zustand`               | 5.0.14  | MIT     |
-| `@tanstack/react-query` | 5.101.4 | MIT     |
-| `date-fns`              | 4.4.0   | MIT     |
+| Pacote    | Versão | Licença |
+| --------- | ------ | ------- |
+| `zustand` | 5.0.14 | MIT     |
 
-### Formulários e Validação
-
-| Pacote                | Versão | Licença |
-| --------------------- | ------ | ------- |
-| `react-hook-form`     | 7.83.0 | MIT     |
-| `zod`                 | 4.4.3  | MIT     |
-| `@hookform/resolvers` | 5.5.7  | MIT     |
-
-### Editor, Markdown e Gráficos
+### Editor e Markdown
 
 | Pacote                    | Versão  | Licença |
 | ------------------------- | ------- | ------- |
@@ -246,7 +232,6 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 | `rehype-raw`              | 7.0.0   | MIT     |
 | `rehype-sanitize`         | 6.0.0   | MIT     |
 | `remark-gfm`              | 4.0.1   | MIT     |
-| `recharts`                | 3.10.1  | MIT     |
 
 ### 3D, Imagens e Interação
 
@@ -274,8 +259,6 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 | `globals`                     | 17.8.0  | MIT     |
 | `prettier`                    | 3.9.6   | MIT     |
 | `prettier-plugin-tailwindcss` | 0.8.1   | MIT     |
-| `postcss`                     | 8.5.25  | MIT     |
-| `autoprefixer`                | 10.5.4  | MIT     |
 | `cross-env`                   | 10.1.0  | MIT     |
 | `@tailwindcss/typography`     | 0.5.20  | MIT     |
 | `@types/react`                | 19.2.18 | MIT     |

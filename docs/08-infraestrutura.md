@@ -11,7 +11,7 @@ infrastructure/downloader/
 └── progress.rs           # ProgressReporter/ProgressUpdate, contador atômico de bytes
 ```
 
-Mais simples do que o nome sugere: sem fila/worker pool configurável, sem retry/backoff — `reqwest-retry` está no `Cargo.toml` mas não é usado em lugar nenhum do código (dependência morta). Verificação de integridade via SHA1, pula download se o arquivo já é válido.
+Mais simples do que o nome sugere: sem fila/worker pool configurável, sem retry/backoff. Verificação de integridade via SHA1, pula download se o arquivo já é válido.
 
 ## 8.2 Process Manager
 
