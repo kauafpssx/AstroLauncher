@@ -1,0 +1,12 @@
+{
+  // Config do markdownlint. Desliga regras chatas demais p/ docs em prosa.
+  "default": true,
+  // MD013: limite de 80 chars por linha — impraticável em docs com URLs/tabelas.
+  "MD013": false,
+  // MD041: 1ª linha tem que ser # (h1) — o PULL_REQUEST_TEMPLATE começa com ##.
+  "MD041": false,
+  // MD033: permite HTML inline (usado em README/docs).
+  "MD033": false,
+  // MD024: permite headings repetidos (ex.: "Changelog" em cada release).
+  "MD024": { "siblings_only": true }
+}

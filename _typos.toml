@@ -1,0 +1,11 @@
+# Config do typos (spellcheck). O projeto é PT-BR, mas typos só entende inglês
+# → gera falso positivo em palavras portuguesas. Ignoramos markdown (docs em PT)
+# e mantemos o check no código-fonte (.rs/.ts), onde identificadores são inglês.
+[files]
+extend-exclude = [
+  "*.md",
+  ".github/releases/**",
+  "CHANGELOG*",
+  "*.lock",
+  "package-lock.json",
+]
