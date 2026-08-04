@@ -1,6 +1,6 @@
 # AGENTS.md — AstroLauncher
 
-Guia completo para agentes de IA antes de qualquer edição neste repositório. Leia inteiro. Ignorar regras = PR reprovado pelo quality gate.
+Guia completo para agentes de IA antes de qualquer edição neste repositório. Leia inteiro. Ignorar regras pode reprovar a revisão ou algum check obrigatório.
 
 ## 0. TL;DR (leia primeiro)
 
