@@ -92,7 +92,10 @@ export function SkinDetailDialog({
 
   const downloadSkin = async () => {
     if (!detail) return
-    const urlName = detail.skinUrl.split('/').pop()?.replace(/\.png$/i, '')
+    const urlName = detail.skinUrl
+      .split('/')
+      .pop()
+      ?.replace(/\.png$/i, '')
     const destPath = await save({
       defaultPath: `${detail.oldestPlayer.username || urlName || 'skin'}.png`,
       filters: [{ name: 'Skin PNG', extensions: ['png'] }],

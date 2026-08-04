@@ -6,13 +6,13 @@ Se a base arquitetural for seguida desde o início, adicionar novas funcionalida
 
 ## 9.1 Curto Prazo
 
-| Funcionalidade                      | Esforço | Impacto |
-| ----------------------------------- | ------- | ------- |
-| Sistema de plugins do launcher      | Alto    | Alto    |
-| Retry/backoff no download manager (`reqwest-retry` já é dependência, mas sem uso) | Baixo | Médio |
-| Autenticação Microsoft oficial      | Alto    | Alto    |
-| Cache de manifests/buscas (Modrinth/CurseForge) | Médio | Médio |
-| Temas e personalização da interface | Baixo   | Médio   |
+| Funcionalidade                                                                    | Esforço | Impacto |
+| --------------------------------------------------------------------------------- | ------- | ------- |
+| Sistema de plugins do launcher                                                    | Alto    | Alto    |
+| Retry/backoff no download manager (`reqwest-retry` já é dependência, mas sem uso) | Baixo   | Médio   |
+| Autenticação Microsoft oficial                                                    | Alto    | Alto    |
+| Cache de manifests/buscas (Modrinth/CurseForge)                                   | Médio   | Médio   |
+| Temas e personalização da interface                                               | Baixo   | Médio   |
 
 ## 9.2 Médio Prazo
 

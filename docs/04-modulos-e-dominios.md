@@ -9,18 +9,23 @@ Apenas 5 entidades de domínio existem hoje. Tudo o que não está na lista abai
 ## 4.2 Entidades de Domínio (`src-tauri/app/domain/entities/`)
 
 ### `Instance` (instance.rs)
+
 id, name, version, loader, loader_version, icon_path, java_args, min_memory, max_memory, folder_id, position, created_at, last_played, playtime_seconds.
 
 ### `Account` (account.rs)
+
 id, username, account_type, uuid, position, is_default, last_used, created_at. Construtor `Account::new_offline(username, position)`.
 
 ### `Folder` (folder.rs)
+
 id, name, position, collapsed, icon_path.
 
 ### `InstalledMod` (installed_mod.rs)
+
 id, instance_id, mod_id, source, name, version, file_path, icon_url, kind (`mod`/`resourcepack`/`shader`), enabled, installed_at.
 
 ### `PlaytimeSession` (playtime_session.rs)
+
 id, instance_id, started_at, ended_at, duration_seconds.
 
 ## 4.3 Traits de Repositório (`domain/repositories/`)
@@ -43,12 +48,12 @@ Todos síncronos (sem `async_trait`) — comentário no código: "Local SQLite d
 
 Padrão "um struct por ação" para CRUD simples:
 
-| Domínio | Use Cases |
-|---|---|
+| Domínio  | Use Cases                                                                                                                                                                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Instance | `CreateInstanceUseCase`, `UpdateInstanceUseCase`, `DeleteInstanceUseCase`, `ListInstancesUseCase`, `MoveInstanceToFolderUseCase`, `ReorderInstancesUseCase`, `LaunchInstanceUseCase` (async, emite `LaunchEventDTO`), `StopInstanceUseCase` |
-| Account | `CreateAccountUseCase`, `UpdateAccountUseCase`, `DeleteAccountUseCase`, `ListAccountsUseCase`, `SetDefaultAccountUseCase`, `ReorderAccountsUseCase` |
-| Folder | `CreateFolderUseCase`, `UpdateFolderUseCase`, `DeleteFolderUseCase`, `ListFoldersUseCase`, `ReorderFoldersUseCase` |
-| Versões | `FetchVersionManifestUseCase` (async) → `Vec<VersionDTO>` |
+| Account  | `CreateAccountUseCase`, `UpdateAccountUseCase`, `DeleteAccountUseCase`, `ListAccountsUseCase`, `SetDefaultAccountUseCase`, `ReorderAccountsUseCase`                                                                                         |
+| Folder   | `CreateFolderUseCase`, `UpdateFolderUseCase`, `DeleteFolderUseCase`, `ListFoldersUseCase`, `ReorderFoldersUseCase`                                                                                                                          |
+| Versões  | `FetchVersionManifestUseCase` (async) → `Vec<VersionDTO>`                                                                                                                                                                                   |
 
 Features maiores usam um único "Service" com vários métodos em vez de um use case por ação:
 

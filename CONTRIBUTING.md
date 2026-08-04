@@ -41,7 +41,7 @@ npm run dev:tauri:fast
 ### Scripts úteis
 
 | Script                   | Descrição                     |
-| ------------------------ | ------------------------------ |
+| ------------------------ | ----------------------------- |
 | `npm run dev`            | Só o frontend (Vite)          |
 | `npm run dev:tauri`      | App completo em modo dev      |
 | `npm run dev:tauri:fast` | App em modo dev sem splash    |
@@ -103,13 +103,13 @@ git checkout -b fix/correcao-bug
 
 Padrão de nomenclatura:
 
-| Prefixo     | Uso                                        |
-| ----------- | ------------------------------------------- |
-| `feat/`     | Novas funcionalidades                      |
-| `fix/`      | Correções de bugs                          |
-| `refactor/` | Refatorações sem mudança de comportamento  |
-| `docs/`     | Documentação                               |
-| `chore/`    | Tarefas de manutenção                      |
+| Prefixo     | Uso                                       |
+| ----------- | ----------------------------------------- |
+| `feat/`     | Novas funcionalidades                     |
+| `fix/`      | Correções de bugs                         |
+| `refactor/` | Refatorações sem mudança de comportamento |
+| `docs/`     | Documentação                              |
+| `chore/`    | Tarefas de manutenção                     |
 
 ### 4. Faça commits
 
@@ -154,17 +154,17 @@ Usamos [Conventional Commits](https://www.conventionalcommits.org/pt-br/):
 <tipo>(<escopo>): <descrição>
 ```
 
-| Tipo       | Descrição                                    |
-| ---------- | ---------------------------------------------- |
-| `feat`     | Nova funcionalidade                          |
-| `fix`      | Correção de bug                              |
-| `refactor` | Mudança de código sem alterar comportamento  |
-| `perf`     | Melhoria de performance                      |
-| `style`    | Formatação, espaçamento, sem mudança lógica  |
-| `docs`     | Documentação                                 |
-| `test`     | Testes                                       |
-| `chore`    | Tarefas de manutenção (deps, build, etc.)    |
-| `ci`       | Configuração de CI/CD                        |
+| Tipo       | Descrição                                   |
+| ---------- | ------------------------------------------- |
+| `feat`     | Nova funcionalidade                         |
+| `fix`      | Correção de bug                             |
+| `refactor` | Mudança de código sem alterar comportamento |
+| `perf`     | Melhoria de performance                     |
+| `style`    | Formatação, espaçamento, sem mudança lógica |
+| `docs`     | Documentação                                |
+| `test`     | Testes                                      |
+| `chore`    | Tarefas de manutenção (deps, build, etc.)   |
+| `ci`       | Configuração de CI/CD                       |
 
 Exemplos:
 

@@ -21,7 +21,6 @@
 
 <br />
 
-
 ## 📖 Índice
 
 - [🚀 Sobre o projeto](#-sobre-o-projeto)
@@ -34,7 +33,6 @@
 - [📦 Build e distribuição](#-build-e-distribuição)
 - [🤝 Contribuindo](#-contribuindo)
 - [📄 Licença](#-licença)
-
 
 ## 🚀 Sobre o projeto
 
@@ -63,7 +61,6 @@
 | 📜  | **Console**             | Log do Minecraft em tempo real                                                      |
 | 🪄  | **AstroPack**           | Exportar/importar instâncias completas (`.astropack`)                               |
 
-
 ## 🧩 Loaders e versões suportadas
 
 - 🟢 **Vanilla**: qualquer versão do manifesto Mojang
@@ -74,7 +71,6 @@
 - 🟢 **LiteLoader**: mecanismo tweaker (`launchwrapper`)
 
 > 🕹️ **Versões suportadas:** o manifesto da Mojang inclui versões desde **2009**. O AstroLauncher separa por tipo: `release`, `snapshot`, `alpha`, `beta`, `infdev`, `classic` e `indev`, e lida com a estrutura de assets de cada era (pré-1.6, pós-1.6, pós-1.7.10).
-
 
 ## 🧱 Stack de tecnologias
 
@@ -139,7 +135,6 @@ cache com TTL
 </td></tr>
 </table>
 
-
 ## 📐 Arquitetura
 
 Arquitetura **limpa**, **hexagonal** (Ports & Adapters) e **DDD Lite**, onde o domínio nunca depende de I/O:
@@ -162,7 +157,6 @@ graph LR
 | 🔌 **Infrastructure** | SQLite, download manager, processo, Java, Minecraft, APIs de mods |
 
 **Princípios:** Dependency Inversion, Composição sobre herança, Fail fast, Repository Pattern, Event Driven e SOLID
-
 
 ## 📂 Estrutura do projeto
 
@@ -202,7 +196,6 @@ AstroLauncher/
 
 </details>
 
-
 ## 🔧 Desenvolvimento
 
 ### ✅ Pré-requisitos
@@ -238,7 +231,6 @@ npm run dev:tauri:fast
 | `npm run lint`           | ESLint em todo o código                   |
 | `npm run tauri build`    | Build completo do instalador              |
 
-
 ## 📦 Build e distribuição
 
 O pipeline de **CI/CD** roda via GitHub Actions (`.github/workflows/build.yml`) a cada push na `main`:
@@ -260,7 +252,6 @@ graph LR
 
 > [!IMPORTANT]
 > A integração com a **CurseForge Core API** exige uma API key. Ela é injetada no CI via secret `CURSEFORGE_API_KEY` (variável de ambiente `CURSEFORGE_API_KEY`).
-
 
 ## 🤝 Contribuindo
 
@@ -285,13 +276,11 @@ git push origin feat/minha-feature
 > - Código em **inglês**, comentários explicam o _porquê_, não o _o quê_
 > - Funções e casos de uso pequenos e com responsabilidade única
 
-
 ## 📄 Licença
 
 Distribuído sob a **GNU General Public License v3.0**. Veja o arquivo [`LICENSE`](LICENSE) ou [`COPYING.md`](COPYING.md) para os detalhes completos.
 
 > ⚖️ **GPL-3.0:** uso, modificação e distribuição livres, desde que projetos derivados usem a mesma licença (copyleft).
-
 
 <p align="center">
   Feito com 💜 no Brasil por <a href="http://instagram.com/kauafpss_">@kauafpss_</a>

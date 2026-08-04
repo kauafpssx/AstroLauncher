@@ -57,6 +57,7 @@ infrastructure/modloader/
 ```
 
 Dois pipelines distintos:
+
 - **Fabric/Quilt**: consomem API REST (`meta.fabricmc.net/v2`, `meta.quiltmc.org/v3`) que já devolve um `LoaderProfile` pronto (main class + libraries), sem precisar rodar instalador.
 - **Forge/NeoForge**: baixam e executam o jar instalador oficial do loader (`java -jar installer.jar --installClient <dir>`) via `mc_launcher_core`, exigindo o JSON da versão vanilla já em disco (`ensure_vanilla_json_on_disk`) para o merge `inheritsFrom` funcionar. Usa `mc_launcher_core::command::builder::build_launch_command` para o comando final, não `process/launcher.rs`.
 

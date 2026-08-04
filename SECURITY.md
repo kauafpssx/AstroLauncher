@@ -4,10 +4,10 @@
 
 O AstroLauncher ainda está em desenvolvimento ativo, pré-1.0. Só a versão mais recente publicada recebe correções de segurança.
 
-| Versão  | Suportada          |
-| ------- | ------------------- |
-| 0.2.x   | :white_check_mark: |
-| < 0.2   | :x:                 |
+| Versão | Suportada          |
+| ------ | ------------------ |
+| 0.2.x  | :white_check_mark: |
+| < 0.2  | :x:                |
 
 ## Reportando uma Vulnerabilidade
 

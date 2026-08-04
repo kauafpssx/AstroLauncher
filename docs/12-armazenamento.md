@@ -2,10 +2,10 @@
 
 ## 12.1 Filosofia
 
-| Camada | Tecnologia | Motivo |
-|---|---|---|
-| Dados do launcher | **SQLite** (bundled) | Relações, queries, ACID |
-| Config de usuário | **JSON** | Editável, simples |
+| Camada              | Tecnologia            | Motivo                                          |
+| ------------------- | --------------------- | ----------------------------------------------- |
+| Dados do launcher   | **SQLite** (bundled)  | Relações, queries, ACID                         |
+| Config de usuário   | **JSON**              | Editável, simples                               |
 | Assets do Minecraft | **Arquivos por hash** | Padrão Mojang (SHA1 prefix folders), inalterado |
 
 Não existe cache em disco (manifests, buscas, thumbnails) — nenhum subsistema de cache está implementado hoje. Isso é uma lacuna real, não uma decisão de design (ver [09 — Evoluções Futuras](09-evolucoes-futuras.md)).
@@ -90,13 +90,13 @@ CREATE TABLE IF NOT EXISTS meta (
 
 ### 12.2.2 Migrações posteriores (v2–v6, aplicadas via `ALTER TABLE`)
 
-| Versão | Arquivo | Mudança |
-|---|---|---|
-| v2 | `v2_account_ordering.rs` | `accounts` ganha `position INTEGER NOT NULL DEFAULT 0` e `is_default INTEGER NOT NULL DEFAULT 0` |
-| v3 | `v3_mod_icon.rs` | `instance_mods` ganha `icon_url TEXT` |
-| v4 | `v4_mod_kind.rs` | `instance_mods` ganha `kind TEXT NOT NULL DEFAULT 'mod'` (`mod`/`resourcepack`/`shader`) |
-| v5 | `v5_instance_position.rs` | `instances` ganha `position INTEGER NOT NULL DEFAULT 0` |
-| v6 | `v6_folder_icon.rs` | `folders` ganha `icon_path TEXT` |
+| Versão | Arquivo                   | Mudança                                                                                          |
+| ------ | ------------------------- | ------------------------------------------------------------------------------------------------ |
+| v2     | `v2_account_ordering.rs`  | `accounts` ganha `position INTEGER NOT NULL DEFAULT 0` e `is_default INTEGER NOT NULL DEFAULT 0` |
+| v3     | `v3_mod_icon.rs`          | `instance_mods` ganha `icon_url TEXT`                                                            |
+| v4     | `v4_mod_kind.rs`          | `instance_mods` ganha `kind TEXT NOT NULL DEFAULT 'mod'` (`mod`/`resourcepack`/`shader`)         |
+| v5     | `v5_instance_position.rs` | `instances` ganha `position INTEGER NOT NULL DEFAULT 0`                                          |
+| v6     | `v6_folder_icon.rs`       | `folders` ganha `icon_path TEXT`                                                                 |
 
 `installed_modpacks` existe no schema desde v1, mas não há repositório dedicado para ela na camada de domínio (repos ativos cobrem instance/folder/account/mod/playtime).
 
@@ -201,11 +201,11 @@ Sem subpasta `cache/`.
 
 ## 12.10 Resumo das Decisões
 
-| Decisão | Escolha | Motivo |
-|---|---|---|
-| Banco principal | SQLite (`rusqlite`, bundled) | Queries, relações, ACID, sem dependência externa de binário |
-| Config de usuário | JSON (`settings.json`) | Editável, simples — schema hoje é mínimo |
-| ORM/Query Builder | Nenhum (SQL raw) | Projeto pequeno, controle total |
-| Migrações | Function-pointer table manual | Sem dependência de `sqlx-cli`/`rusqlite_migration` |
-| Async no banco | Não — repositórios síncronos | Banco local, sem necessidade de I/O assíncrono |
-| Cache | Não implementado | Lacuna conhecida, não decisão deliberada |
+| Decisão           | Escolha                       | Motivo                                                      |
+| ----------------- | ----------------------------- | ----------------------------------------------------------- |
+| Banco principal   | SQLite (`rusqlite`, bundled)  | Queries, relações, ACID, sem dependência externa de binário |
+| Config de usuário | JSON (`settings.json`)        | Editável, simples — schema hoje é mínimo                    |
+| ORM/Query Builder | Nenhum (SQL raw)              | Projeto pequeno, controle total                             |
+| Migrações         | Function-pointer table manual | Sem dependência de `sqlx-cli`/`rusqlite_migration`          |
+| Async no banco    | Não — repositórios síncronos  | Banco local, sem necessidade de I/O assíncrono              |
+| Cache             | Não implementado              | Lacuna conhecida, não decisão deliberada                    |

@@ -281,6 +281,7 @@ jobs:
         id: large
         continue-on-error: true
         run: |
+          # shellcheck disable=SC2129
           echo "### Arquivos > 5MB (fora de .git):" >> "$GITHUB_STEP_SUMMARY"
           big=$(find . -type f -not -path './.git/*' -size +5M -printf '%s\t%p\n' | sort -rn)
           if [ -n "$big" ]; then
@@ -296,6 +297,7 @@ jobs:
         id: junk
         continue-on-error: true
         run: |
+          # shellcheck disable=SC2129
           found=$(find . -not -path './.git/*' \( \
             -name '.DS_Store' -o -name 'Thumbs.db' -o -name '*.log' \
             -o -path '*/node_modules/*' -o -path '*/target/*' \
@@ -508,7 +510,8 @@ jobs:
         continue-on-error: true
         run: |
           cargo install cargo-geiger --locked || true
-          cd src-tauri && cargo geiger --output-format Ascii || true
+          cd src-tauri
+          cargo geiger --output-format Ascii || true
 
       - name: Report
         if: always()
