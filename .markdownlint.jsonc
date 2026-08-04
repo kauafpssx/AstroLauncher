@@ -8,5 +8,5 @@
   // MD033: permite HTML inline (usado em README/docs).
   "MD033": false,
   // MD024: permite headings repetidos (ex.: "Changelog" em cada release).
-  "MD024": { "siblings_only": true }
+  "MD024": { "siblings_only": true },
 }

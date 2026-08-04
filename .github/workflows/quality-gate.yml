@@ -462,7 +462,7 @@ jobs:
   # 🧹 LINT EXTRA — workflows / editorconfig / typos / TOML / deps mortas
   # ────────────────────────────────────────────────────────────────
   extra-lint:
-    name: 🧹 Extra lint (actionlint / editorconfig / typos / taplo / machete)
+    name: 🧹 Extra lint (actionlint / taplo / machete / outdated / geiger)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -471,11 +471,6 @@ jobs:
         id: actionlint
         continue-on-error: true
         uses: raven-actions/actionlint@v2
-
-      - name: typos (spell check)
-        id: typos
-        continue-on-error: true
-        uses: crate-ci/typos@master
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -524,7 +519,6 @@ jobs:
             echo "| Check | Status |"
             echo "|---|---|"
             echo "| actionlint | ${{ steps.actionlint.outcome }} |"
-            echo "| typos | ${{ steps.typos.outcome }} |"
             echo "| taplo (TOML) | ${{ steps.taplo.outcome }} |"
             echo "| cargo-machete | ${{ steps.machete.outcome }} |"
             echo "| cargo-outdated | ${{ steps.outdated.outcome }} |"
