@@ -20,13 +20,13 @@
 
 ## Estruturais
 
-| Termo                    | Definição                                                      |
-| ------------------------ | -------------------------------------------------------------- |
-| **Application Layer**    | Camada que orquestra casos de uso                              |
-| **Domain Layer**         | Camada com regras de negócio e entidades                       |
-| **Infrastructure Layer** | Camada com implementações concretas (I/O, rede, arquivos)      |
-| **Presentation Layer**   | Camada de comandos Tauri (IPC)                                 |
-| **Shared**               | Código compartilhado entre camadas (config, logger, constants) |
+| Termo                    | Definição                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------ |
+| **Application Layer**    | Camada que orquestra casos de uso                                              |
+| **Domain Layer**         | Camada com regras de negócio e entidades                                       |
+| **Infrastructure Layer** | Camada com implementações concretas (I/O, rede, arquivos)                      |
+| **Presentation Layer**   | Camada de comandos Tauri (IPC)                                                 |
+| **Shared**               | Código compartilhado entre camadas (config, logger, constants)                 |
 | **Feature**              | Unidade funcional no frontend (ex: instances, mods, accounts, skins, settings) |
 
 ## Minecraft

@@ -4,21 +4,21 @@
 
 Comandos ficam em `src-tauri/app/presentation/commands/*_commands.rs`, um arquivo por domínio, registrados via `tauri::generate_handler![...]` em `src-tauri/src/lib.rs`.
 
-| Arquivo | Comandos |
-|---|---|
-| `instance_commands.rs` | `list_instances`, `create_instance`, `update_instance`, `delete_instance`, `move_instance_to_folder`, `reorder_instances` |
-| `folder_commands.rs` | `list_folders`, `create_folder`, `update_folder`, `delete_folder`, `reorder_folders` |
+| Arquivo                          | Comandos                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `instance_commands.rs`           | `list_instances`, `create_instance`, `update_instance`, `delete_instance`, `move_instance_to_folder`, `reorder_instances`                                                                                                                                                                                                                                                   |
+| `folder_commands.rs`             | `list_folders`, `create_folder`, `update_folder`, `delete_folder`, `reorder_folders`                                                                                                                                                                                                                                                                                        |
 | `instance_workspace_commands.rs` | 22 comandos: log, notas, arquivos de config, mundos, servers, screenshots — ex.: `read_instance_log`, `list_instance_notes`, `write_instance_note`, `list_instance_config_files`, `write_instance_config_file`, `list_instance_worlds`, `delete_instance_world`, `list_instance_servers`, `add_instance_server`, `list_instance_screenshots`, `save_instance_screenshot_as` |
-| `minecraft_commands.rs` | `list_minecraft_versions` (async), `launch_instance` (async), `stop_instance`, `cancel_launch`, `get_total_system_memory_mb`, `list_audio_output_devices` |
-| `account_commands.rs` | `list_accounts`, `create_account`, `update_account`, `delete_account`, `set_default_account`, `reorder_accounts` |
-| `mod_commands.rs` | `search_mods`, `get_mod_versions`, `get_mod_project` (async), `install_mod` (async), `install_custom_mod`, `list_instance_mods`, `set_instance_mod_enabled`, `delete_instance_mod`, `install_modrinth_modpack`, `install_curseforge_modpack` (async), `cancel_modpack_install` |
-| `skin_commands.rs` | `search_skins`, `get_skin`, `download_skin` (async) |
-| `astropack_commands.rs` | `preview_astropack`, `get_astropack_export_summary`, `export_instance`, `import_astropack` (async) |
-| `playtime_commands.rs` | `get_playtime_summary` |
-| `settings_commands.rs` | `get_settings`, `update_settings` |
-| `discord_commands.rs` | `discord_set_presence` |
-| `custom_icon_commands.rs` | `list_custom_icons`, `save_custom_icon`, `delete_custom_icon` |
-| `splash_commands.rs` | `finish_splash` |
+| `minecraft_commands.rs`          | `list_minecraft_versions` (async), `launch_instance` (async), `stop_instance`, `cancel_launch`, `get_total_system_memory_mb`, `list_audio_output_devices`                                                                                                                                                                                                                   |
+| `account_commands.rs`            | `list_accounts`, `create_account`, `update_account`, `delete_account`, `set_default_account`, `reorder_accounts`                                                                                                                                                                                                                                                            |
+| `mod_commands.rs`                | `search_mods`, `get_mod_versions`, `get_mod_project` (async), `install_mod` (async), `install_custom_mod`, `list_instance_mods`, `set_instance_mod_enabled`, `delete_instance_mod`, `install_modrinth_modpack`, `install_curseforge_modpack` (async), `cancel_modpack_install`                                                                                              |
+| `skin_commands.rs`               | `search_skins`, `get_skin`, `download_skin` (async)                                                                                                                                                                                                                                                                                                                         |
+| `astropack_commands.rs`          | `preview_astropack`, `get_astropack_export_summary`, `export_instance`, `import_astropack` (async)                                                                                                                                                                                                                                                                          |
+| `playtime_commands.rs`           | `get_playtime_summary`                                                                                                                                                                                                                                                                                                                                                      |
+| `settings_commands.rs`           | `get_settings`, `update_settings`                                                                                                                                                                                                                                                                                                                                           |
+| `discord_commands.rs`            | `discord_set_presence`                                                                                                                                                                                                                                                                                                                                                      |
+| `custom_icon_commands.rs`        | `list_custom_icons`, `save_custom_icon`, `delete_custom_icon`                                                                                                                                                                                                                                                                                                               |
+| `splash_commands.rs`             | `finish_splash`                                                                                                                                                                                                                                                                                                                                                             |
 
 ## 6.2 Cada Comando Deve Ser Fino
 
@@ -41,7 +41,10 @@ O comando só recebe o DTO de input, delega pro use case/service e retorna o DTO
 `src/lib/api/client.ts` expõe um wrapper fino:
 
 ```typescript
-export function apiInvoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+export function apiInvoke<T>(
+  command: string,
+  args?: Record<string, unknown>,
+): Promise<T> {
   return invoke<T>(command, args)
 }
 ```
@@ -50,12 +53,12 @@ Cada feature tem seu próprio módulo de serviço em `src/features/*/services/*.
 
 ## 6.4 Eventos (Tauri Events)
 
-| Evento | Direção | Descrição |
-|---|---|---|
-| `launch://event` | Backend → Frontend | Progresso/estágios do lançamento da instância |
-| `instance://stopped` | Backend → Frontend | Instância/processo do jogo encerrou |
-| `modpack://event` | Backend → Frontend | Progresso de instalação de modpack |
-| `astropack://event` | Backend → Frontend | Progresso de import/export de AstroPack |
+| Evento               | Direção            | Descrição                                     |
+| -------------------- | ------------------ | --------------------------------------------- |
+| `launch://event`     | Backend → Frontend | Progresso/estágios do lançamento da instância |
+| `instance://stopped` | Backend → Frontend | Instância/processo do jogo encerrou           |
+| `modpack://event`    | Backend → Frontend | Progresso de instalação de modpack            |
+| `astropack://event`  | Backend → Frontend | Progresso de import/export de AstroPack       |
 
 Namespacing usa `://`, não `:`. `src/stores/launch.store.ts` ouve `launch://event` via `listen()` e atualiza `ProgressState { stage, currentItem, stageCurrent, stageTotal }`.
 

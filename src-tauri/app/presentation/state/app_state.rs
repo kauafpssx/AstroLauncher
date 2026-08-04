@@ -51,6 +51,8 @@ pub struct AppState {
 }
 
 impl AppState {
+    // Construtor de injeção de dependências: muitos parâmetros é esperado aqui.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         instance_repository: Arc<dyn InstanceRepository>,
         account_repository: Arc<dyn AccountRepository>,

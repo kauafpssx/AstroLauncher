@@ -56,12 +56,12 @@ Não existem `java.store.ts`, `download.store.ts` ou `settings.store.ts`.
 
 `react-router-dom` v7 via `HashRouter`, rotas definidas inline em `App.tsx`:
 
-| Rota | Página |
-|---|---|
-| `/` | InstancesPage |
-| `/instances/new` | CreateInstancePage |
-| `/instances/:id/edit` | EditInstancePage |
-| `/skins` | SkinsPage |
+| Rota                  | Página             |
+| --------------------- | ------------------ |
+| `/`                   | InstancesPage      |
+| `/instances/new`      | CreateInstancePage |
+| `/instances/:id/edit` | EditInstancePage   |
+| `/skins`              | SkinsPage          |
 
 Não existem `/settings`, `/java`, `/downloads`, `/console`, `/modpacks`, `/stats` — settings/mods/versões são dialogs/sheets/tabs dentro das páginas de instância, não rotas próprias. `LaunchProgressDialog` e `Toaster` renderizam fora de `<Routes>` como overlays globais.
 

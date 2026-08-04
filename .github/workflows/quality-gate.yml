@@ -281,15 +281,17 @@ jobs:
         id: large
         continue-on-error: true
         run: |
-          echo "### Arquivos > 5MB (fora de .git):" >> "$GITHUB_STEP_SUMMARY"
           big=$(find . -type f -not -path './.git/*' -size +5M -printf '%s\t%p\n' | sort -rn)
           if [ -n "$big" ]; then
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
-            echo "$big" >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo "### Arquivos > 5MB (fora de .git):"
+              echo '```'
+              echo "$big"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           else
-            echo "Nenhum." >> "$GITHUB_STEP_SUMMARY"
+            echo "### Arquivos > 5MB: nenhum." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Junk files (.DS_Store / Thumbs.db / logs / dirs proibidos)
@@ -301,13 +303,15 @@ jobs:
             -o -path '*/node_modules/*' -o -path '*/target/*' \
             -o -path '*/dist/*' \) -print)
           if [ -n "$found" ]; then
-            echo "### ⚠️ Lixo commitado:" >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
-            echo "$found" >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo "### ⚠️ Lixo commitado:"
+              echo '```'
+              echo "$found"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           else
-            echo "Sem lixo commitado. ✅" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Lixo commitado: nenhum. ✅" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Report
@@ -508,7 +512,8 @@ jobs:
         continue-on-error: true
         run: |
           cargo install cargo-geiger --locked || true
-          cd src-tauri && cargo geiger --output-format Ascii || true
+          cd src-tauri
+          cargo geiger --output-format Ascii || true
 
       - name: Report
         if: always()
