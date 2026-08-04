@@ -14,10 +14,10 @@ reviews:
     enabled: true
     drafts: false
   path_filters:
-    - "!**/*.lock"
-    - "!**/node_modules/**"
-    - "!src-tauri/target/**"
-    - "!dist/**"
+    - '!**/*.lock'
+    - '!**/node_modules/**'
+    - '!src-tauri/target/**'
+    - '!dist/**'
   tools:
     ruff:
       enabled: false
