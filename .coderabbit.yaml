@@ -1,0 +1,33 @@
+# CodeRabbit — review IA automático em PRs.
+# ⚠️ Requer instalar o GitHub App: https://github.com/apps/coderabbitai
+# (grátis para repos públicos). Sem o app, este arquivo é ignorado.
+# Docs: https://docs.coderabbit.ai/guides/configure-coderabbit
+language: pt-BR
+reviews:
+  profile: assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    - "!**/*.lock"
+    - "!**/node_modules/**"
+    - "!src-tauri/target/**"
+    - "!dist/**"
+  tools:
+    ruff:
+      enabled: false
+    markdownlint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    eslint:
+      enabled: true
+    clippy:
+      enabled: true
+chat:
+  auto_reply: true
