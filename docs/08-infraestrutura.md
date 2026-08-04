@@ -117,8 +117,16 @@ Usa Modrinth API v3 (pública, sem key). Sem cache de resultados.
 infrastructure/playermc/client.rs
 ```
 
-Integração com API de terceiros para busca/preview de skins: `api.playermc.site/v1`. Modelos `SkinPlayer`/`SkinSummary`/`SkinDetail`. Não documentado em versões anteriores deste doc.
+Integração com API de terceiros para texturas de skins: `api.playermc.site/v1`. Modelos `SkinPlayer`/`SkinSummary`/`SkinDetail`.
 
-## 8.12 Bootstrap
+## 8.12 MCStat (Skins)
+
+```
+infrastructure/mcstat/client.rs
+```
+
+Fonte de skins adicionada na v0.4.0 (`mcstat.org`), usada na busca/detalhe de skins. Modelos `Skin`/`SkinOwner`/`SkinDetail`/`SkinPlayerUsing`. Substituiu a renderização de avatares que antes vinha do `vzge.me` (não mais utilizado).
+
+## 8.13 Bootstrap
 
 `src-tauri/app/bootstrap/setup.rs::build_app_state(app_data_dir, discord_client_id, discord_logo_asset_key)` é o único ponto de DI: abre SQLite, roda migrations, monta os 5 repositórios (`Arc<dyn Trait>` compartilhando uma `Arc<Mutex<Connection>>`), monta um `reqwest::Client` (`User-Agent: AstroLauncher/0.1.0`) e retorna o `AppState`. Chamado uma vez em `src-tauri/src/lib.rs` no setup do Tauri.

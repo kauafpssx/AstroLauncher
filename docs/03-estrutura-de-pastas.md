@@ -40,7 +40,8 @@ src-tauri/
 │   │   ├── modloader/          # fabric_like, forge_like (via mc-launcher-core), liteloader, profile
 │   │   ├── curseforge/         # client, modpack
 │   │   ├── modrinth/           # client, mrpack
-│   │   ├── playermc/           # client — busca de skins (api.playermc.site)
+│   │   ├── playermc/           # client — texturas de skins (api.playermc.site)
+│   │   ├── mcstat/             # client — busca/detalhe de skins (mcstat.org)
 │   │   └── persistence/
 │   │       ├── sqlite/         # connection.rs
 │   │       ├── migrations/     # v1..v6 (function-pointer table)
@@ -57,6 +58,8 @@ src-tauri/
 │
 ├── capabilities/default.json  # permissões/plugins Tauri
 ├── tauri.conf.json
+├── tauri.ci.conf.json         # override de CI (desliga signing do updater no build de validação)
+├── deny.toml                  # config do cargo-deny (licenças/audit no CI)
 ├── Cargo.toml
 └── build.rs
 ```

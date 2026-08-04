@@ -109,12 +109,12 @@ As seguintes bibliotecas Rust são utilizadas pelo AstroLauncher. As versões li
 
 | Crate          | Versão | Licença           |
 | -------------- | ------ | ----------------- |
-| `sha1`         | 0.10.7 | MIT OR Apache-2.0 |
-| `sha2`         | 0.10.9 | MIT OR Apache-2.0 |
+| `sha1`         | 0.11.0 | MIT OR Apache-2.0 |
+| `sha2`         | 0.11.0 | MIT OR Apache-2.0 |
 | `md-5`         | 0.10.6 | MIT OR Apache-2.0 |
 | `hex`          | 0.4.3  | MIT OR Apache-2.0 |
-| `base64`       | 0.22.1 | MIT OR Apache-2.0 |
-| `jsonwebtoken` | 9.3.1  | MIT               |
+| `base64`       | 0.23.0 | MIT OR Apache-2.0 |
+| `jsonwebtoken` | 11.0.0 | MIT               |
 | `rusqlite`     | 0.40.1 | MIT               |
 
 ### Sistema, Arquivos e Áudio
@@ -122,7 +122,7 @@ As seguintes bibliotecas Rust são utilizadas pelo AstroLauncher. As versões li
 | Crate        | Versão | Licença           |
 | ------------ | ------ | ----------------- |
 | `dirs`       | 6.0.0  | MIT OR Apache-2.0 |
-| `sysinfo`    | 0.36.1 | MIT               |
+| `sysinfo`    | 0.39.6 | MIT               |
 | `cpal`       | 0.18.1 | Apache-2.0        |
 | `tempfile`   | 3.27.0 | MIT OR Apache-2.0 |
 | `walkdir`    | 2.5.0  | Unlicense/MIT     |
@@ -161,7 +161,7 @@ As seguintes bibliotecas Rust são utilizadas pelo AstroLauncher. As versões li
 
 | Crate       | Versão | Licença           |
 | ----------- | ------ | ----------------- |
-| `criterion` | 0.5.1  | Apache-2.0 OR MIT |
+| `criterion` | 0.8.2  | Apache-2.0 OR MIT |
 | `mockall`   | 0.15.0 | MIT OR Apache-2.0 |
 
 ---
@@ -176,10 +176,10 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 | ---------------------- | ------ | ---------- |
 | `react`                | 19.2.8 | MIT        |
 | `react-dom`            | 19.2.8 | MIT        |
-| `react-router-dom`     | 7.18.1 | MIT        |
+| `react-router-dom`     | 7.18.2 | MIT        |
 | `typescript`           | 6.0.3  | Apache-2.0 |
-| `vite`                 | 8.1.5  | MIT        |
-| `@vitejs/plugin-react` | 6.0.4  | MIT        |
+| `vite`                 | 8.2.0  | MIT        |
+| `@vitejs/plugin-react` | 6.0.5  | MIT        |
 
 ### UI e Design System
 
@@ -188,9 +188,9 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 | `tailwindcss`              | 4.3.3   | MIT        |
 | `@tailwindcss/vite`        | 4.3.3   | MIT        |
 | `radix-ui`                 | 1.6.7   | MIT        |
-| `shadcn`                   | 4.15.0  | MIT        |
-| `framer-motion`            | 12.42.2 | MIT        |
-| `lucide-react`             | 1.27.0  | ISC        |
+| `shadcn`                   | 4.16.1  | MIT        |
+| `framer-motion`            | 12.43.0 | MIT        |
+| `lucide-react`             | 1.28.0  | ISC        |
 | `@phosphor-icons/react`    | 2.1.10  | MIT        |
 | `react-icons`              | 5.7.0   | MIT        |
 | `sonner`                   | 2.0.7   | MIT        |
@@ -270,16 +270,17 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 | `typescript-eslint`           | 8.65.0  | MIT     |
 | `eslint-plugin-react-hooks`   | 7.1.1   | MIT     |
 | `eslint-plugin-react-refresh` | 0.5.3   | MIT     |
+| `eslint-config-prettier`      | 10.1.8  | MIT     |
 | `globals`                     | 17.8.0  | MIT     |
 | `prettier`                    | 3.9.6   | MIT     |
 | `prettier-plugin-tailwindcss` | 0.8.1   | MIT     |
-| `postcss`                     | 8.5.23  | MIT     |
+| `postcss`                     | 8.5.25  | MIT     |
 | `autoprefixer`                | 10.5.4  | MIT     |
 | `cross-env`                   | 10.1.0  | MIT     |
 | `@tailwindcss/typography`     | 0.5.20  | MIT     |
-| `@types/react`                | 19.2.17 | MIT     |
-| `@types/react-dom`            | 19.2.3  | MIT     |
-| `@types/node`                 | 24.13.3 | MIT     |
+| `@types/react`                | 19.2.18 | MIT     |
+| `@types/react-dom`            | 19.2.4  | MIT     |
+| `@types/node`                 | 26.1.2  | MIT     |
 
 ---
 
@@ -299,7 +300,7 @@ O AstroLauncher utiliza e agradece às seguintes APIs e serviços, que tornam o 
 | 🪄 **LiteLoader**                 | https://dl.liteloader.com                           | Lista de versões e repositório do LiteLoader                                                |
 | 📚 **Maven Central**              | https://repo1.maven.org                             | Bibliotecas Java (launchwrapper e dependências)                                             |
 | 👕 **PlayerMC**                   | https://api.playermc.site                           | Texturas de skins dos jogadores                                                             |
-| 🖼️ **vzge.me**                    | https://vzge.me                                     | Renderização de avatares 3D das skins                                                       |
+| 🖼️ **MCStat**                     | https://mcstat.org                                  | Fonte de skins e renderização de avatares (substituiu o vzge.me)                            |
 | 💬 **Discord**                    | https://discord.com                                 | Discord Rich Presence (status do jogo no perfil)                                            |
 | 🚀 **GitHub Releases**            | https://github.com/kauafpssx/AstroLauncher/releases | Manifesto e binários do auto-update                                                         |
 
