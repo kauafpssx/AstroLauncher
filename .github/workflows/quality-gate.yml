@@ -6,7 +6,10 @@
 name: Quality Gate
 
 on:
+  # push só na main e tags (evita rodar 2x em PR da própria repo)
   push:
+    branches: [main]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
