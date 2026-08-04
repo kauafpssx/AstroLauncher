@@ -9,4 +9,11 @@
   "MD033": false,
   // MD024: permite headings repetidos (ex.: "Changelog" em cada release).
   "MD024": { "siblings_only": true },
+  // MD040: blocos de código sem linguagem — usados p/ árvores de pastas ASCII.
+  "MD040": false,
+  // MD051: âncoras com emoji (ex.: #-notas-de-release) funcionam no GitHub,
+  // mas o markdownlint calcula o slug diferente → falso positivo.
+  "MD051": false,
+  // MD034: URLs cruas — aceitáveis em COPYING.md (atribuições de terceiros).
+  "MD034": false,
 }

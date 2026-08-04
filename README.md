@@ -14,6 +14,7 @@
   <img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fkauafpssx%2FAstroLauncher%2Frefs%2Fheads%2Fmain%2Fsrc-tauri%2Ftauri.conf.json&query=%24.version&label=version&style=flat&color=8b5cf6" alt="Versão" />
   <img src="https://img.shields.io/badge/system-windows-0078D6.svg?style=flat" alt="Windows" />
   <img src="https://img.shields.io/github/actions/workflow/status/kauafpssx/AstroLauncher/build.yml?style=flat&label=build" alt="Build" />
+  <img src="https://img.shields.io/github/actions/workflow/status/kauafpssx/AstroLauncher/quality-gate.yml?style=flat&label=quality%20gate&color=8b5cf6" alt="Quality Gate" />
   <img src="https://img.shields.io/github/downloads/kauafpssx/AstroLauncher/total?style=flat&label=downloads&color=38bdf8" alt="Downloads" />
   <img src="https://img.shields.io/github/license/kauafpssx/AstroLauncher?style=flat&color=22c55e" alt="GPL-3.0" />
   <img src="https://visitor-badge.laobi.icu/badge?page_id=kauafpssx.AstroLauncher&style=flat&color=f43f5e" alt="Visualizações" />
@@ -188,7 +189,9 @@ AstroLauncher/
 │       └── presentation/       #   comandos Tauri, estado, IPC
 ├── public/                     # 🖼️ Assets estáticos (logo, ícones, providers)
 ├── .github/
-│   ├── workflows/build.yml     #   CI/CD: build + release + updater
+│   ├── workflows/              #   CI/CD:
+│   │   ├── build.yml           #     build + release + updater
+│   │   └── quality-gate.yml    #     lint, testes, build, segurança e cobertura
 │   └── releases/               #   notas de release versionadas
 ├── components.json             # shadcn/ui config
 └── package.json

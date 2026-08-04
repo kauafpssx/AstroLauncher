@@ -10,6 +10,7 @@ Este guia descreve o fluxo para contribuir com o projeto: configuração do ambi
 - [Estrutura do projeto](#-estrutura-do-projeto)
 - [Fluxo de trabalho](#-fluxo-de-trabalho)
 - [Padrões de código](#-padrões-de-código)
+- [Verificações automáticas (CI)](#-verificações-automáticas-ci)
 - [Convenção de commits](#-convenção-de-commits)
 - [Pull Requests](#-pull-requests)
 - [Notas de release](#-notas-de-release)
@@ -146,6 +147,26 @@ Abra um Pull Request no GitHub contra a branch `main`, preenchendo o [template d
 > [!NOTE]
 > A documentação (`docs/` e arquivos `.md`) é escrita em português. O código-fonte é em inglês.
 
+## 🤖 Verificações automáticas (CI)
+
+Todo push e Pull Request dispara o workflow **Quality Gate** (`.github/workflows/quality-gate.yml`), com jobs paralelos por área e um relatório agregado no summary do Actions:
+
+| Área            | O que roda                                                                     |
+| --------------- | ------------------------------------------------------------------------------ |
+| ⚛️ Frontend     | ESLint, Prettier, `tsc`, build Vite, knip (dead code), type-coverage           |
+| 🦀 Rust         | `cargo fmt`, `check`, `clippy -D warnings`, `test`, `doc`                      |
+| 📦 Dependências | `npm audit`, `cargo audit`, `cargo deny` (licenças/duplicadas via `deny.toml`) |
+| 🔐 Segurança    | gitleaks (secrets) + CodeQL                                                    |
+| 🧹 Lint extra   | actionlint, taplo (TOML), cargo-machete/outdated/geiger                        |
+| 📄 Docs         | markdownlint (config em `.markdownlint.jsonc`) + verificação de links          |
+| 🚀 Build        | build Tauri completo no Windows + verificação do binário NSIS                  |
+| 🧪 Cobertura    | `cargo-llvm-cov` → Codecov + SonarQube Cloud                                   |
+
+Revisão por IA (**CodeRabbit**) e análise do **SonarCloud** comentam direto no PR. O build de release fica separado em `.github/workflows/build.yml`.
+
+> [!TIP]
+> A maioria dos checks é informativa (não bloqueia merge), mas o objetivo é manter tudo verde. Rode `npm run lint`, `npm run format` e `cargo clippy` localmente antes de abrir o PR para evitar surpresas.
+
 ## 💬 Convenção de commits
 
 Usamos [Conventional Commits](https://www.conventionalcommits.org/pt-br/):
@@ -182,8 +203,12 @@ git commit -m "docs(readme): atualiza instruções de build"
 - [ ] Código segue os [padrões do projeto](#-padrões-de-código)
 - [ ] `npm run lint` passou sem erros
 - [ ] `npm run build` (typecheck) passou
+- [ ] `npm run format` aplicado (Prettier) e `cargo clippy` sem warnings novos
 - [ ] Testado manualmente (ou com testes automatizados, quando houver)
 - [ ] [Notas de release](#-notas-de-release) atualizadas se necessário
+
+> [!TIP]
+> Ao abrir o PR, o **Quality Gate** roda sozinho. Espere os checks fecharem antes de mergear — veja [Verificações automáticas (CI)](#-verificações-automáticas-ci).
 
 ### Durante a revisão
 

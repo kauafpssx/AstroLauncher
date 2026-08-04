@@ -48,8 +48,8 @@ Não há `flate2` no Cargo.toml.
 
 | Biblioteca | Versão | Finalidade         |
 | ---------- | ------ | ------------------ |
-| `sha1`     | 0.10.7 | Checksum de assets |
-| `sha2`     | 0.10.9 | SHA-256/512        |
+| `sha1`     | 0.11.0 | Checksum de assets |
+| `sha2`     | 0.11.0 | SHA-256/512        |
 | `md-5`     | 0.10.6 | MD5                |
 | `hex`      | 0.4.3  | Encoding hex       |
 
@@ -62,7 +62,7 @@ Não há `flate2` no Cargo.toml.
 | `walkdir`    | 2.5.0  | Iteração recursiva em diretórios                                                                     |
 | `fs_extra`   | 1.3.0  | Cópia/move de arquivos                                                                               |
 | `path-clean` | 1.0.1  | Normalização de paths                                                                                |
-| `sysinfo`    | 0.36.1 | Info de memória/sistema (`get_total_system_memory_mb`)                                               |
+| `sysinfo`    | 0.39.6 | Info de memória/sistema (`get_total_system_memory_mb`)                                               |
 
 ### Processos e Áudio
 
@@ -107,7 +107,7 @@ Não há `rusqlite_migration` — migrações são uma tabela de function pointe
 | Biblioteca     | Versão | Finalidade   |
 | -------------- | ------ | ------------ |
 | `toml`         | 1.0.7  | Parsing TOML |
-| `jsonwebtoken` | 9.3.1  | JWT          |
+| `jsonwebtoken` | 11.0.0 | JWT          |
 
 ### Utilitários
 
@@ -121,14 +121,14 @@ Não há `rusqlite_migration` — migrações são uma tabela de function pointe
 | `regex`       | 1.13.1 | Expressões regulares                                     |
 | `semver`      | 1.0.28 | Comparação de versões                                    |
 | `async-trait` | 0.1.91 | Traits assíncronas                                       |
-| `base64`      | 0.22.1 | Encoding base64 (ícones customizados)                    |
+| `base64`      | 0.23.0 | Encoding base64 (ícones customizados)                    |
 
 ### Desenvolvimento (dev-dependencies)
 
 | Biblioteca  | Versão | Finalidade     |
 | ----------- | ------ | -------------- |
 | `mockall`   | 0.15.0 | Mock de traits |
-| `criterion` | 0.5.1  | Benchmarks     |
+| `criterion` | 0.8.2  | Benchmarks     |
 
 Não existe `tauri-plugin-mock`.
 
@@ -141,10 +141,10 @@ Não existe `tauri-plugin-mock`.
 | Pacote                                 | Versão | Finalidade                    |
 | -------------------------------------- | ------ | ----------------------------- |
 | `react` / `react-dom`                  | 19.2.7 | UI Library                    |
-| `react-router-dom`                     | 7.18.1 | Roteamento SPA (`HashRouter`) |
+| `react-router-dom`                     | 7.18.2 | Roteamento SPA (`HashRouter`) |
 | `typescript`                           | ~6.0.2 | Type safety                   |
-| `vite`                                 | 8.1.1  | Bundler e dev server          |
-| `@vitejs/plugin-react`                 | 6.0.3  | Plugin Vite para React        |
+| `vite`                                 | 8.2.0  | Bundler e dev server          |
+| `@vitejs/plugin-react`                 | 6.0.5  | Plugin Vite para React        |
 | `@tauri-apps/api`                      | 2.11.1 | API IPC Tauri                 |
 | `@tauri-apps/plugin-dialog`            | 2.7.2  | Diálogos nativos              |
 | `@tauri-apps/plugin-fs`                | 2.5.1  | Acesso a arquivos             |
@@ -160,11 +160,11 @@ Não existe `tauri-plugin-mock`.
 | `tailwindcss`                            | 4.3.3           | Utility-first CSS                                                             |
 | `@tailwindcss/vite`                      | 4.3.3           | Plugin Tailwind para Vite                                                     |
 | `tailwindcss-animate` + `tw-animate-css` | 1.0.7 / 1.4.0   | Animações Tailwind                                                            |
-| `postcss` / `autoprefixer`               | 8.5.23 / 10.5.4 | Processamento CSS                                                             |
+| `postcss` / `autoprefixer`               | 8.5.25 / 10.5.4 | Processamento CSS                                                             |
 | `class-variance-authority`               | 0.7.1           | Variantes de classe (cva)                                                     |
 | `clsx`                                   | 2.1.1           | Junção condicional de classes                                                 |
 | `tailwind-merge`                         | 3.6.0           | Merge de classes Tailwind                                                     |
-| `lucide-react`                           | ^1.27.0         | Ícones (esquema de versionamento mudou — não é mais `0.4xx`)                  |
+| `lucide-react`                           | ^1.28.0         | Ícones (esquema de versionamento mudou — não é mais `0.4xx`)                  |
 | `radix-ui`                               | ^1.6.7          | **Meta-pacote único** — substituiu os pacotes individuais `@radix-ui/react-*` |
 | `shadcn`                                 | ^4.15.0         | CLI do shadcn/ui, presente como dependência (não só via `npx`)                |
 
@@ -193,7 +193,7 @@ Discord é controlado inteiramente pelo backend Rust (`discord-rich-presence`). 
 
 | Pacote                  | Versão  | Finalidade                   |
 | ----------------------- | ------- | ---------------------------- |
-| `lucide-react`          | ^1.27.0 | Ícones principais            |
+| `lucide-react`          | ^1.28.0 | Ícones principais            |
 | `@phosphor-icons/react` | 2.1.10  | Ícones alternativos          |
 | `react-icons`           | 5.7.0   | Coleção adicional (fallback) |
 
@@ -228,7 +228,7 @@ Nenhum desses estava documentado antes — cobrem o editor de config e as notas 
 | `date-fns`                   | 4.4.0   | Manipulação de datas     |
 | `sonner`                     | 2.0.7   | Toasts                   |
 | `recharts`                   | 3.10.1  | Gráficos                 |
-| `framer-motion`              | 12.42.2 | Animações                |
+| `framer-motion`              | 12.43.0 | Animações                |
 | `react-resizable-panels`     | 4.12.2  | Painéis redimensionáveis |
 | `cmdk`                       | 1.1.1   | Command palette          |
 | `next-themes`                | 0.4.6   | Tema claro/escuro        |
@@ -238,8 +238,8 @@ Nenhum desses estava documentado antes — cobrem o editor de config e as notas 
 
 | Pacote                              | Versão           | Finalidade                                                 |
 | ----------------------------------- | ---------------- | ---------------------------------------------------------- |
-| `@types/react` / `@types/react-dom` | 19.2.17 / 19.2.3 | Types                                                      |
-| `@types/node`                       | 24.13.2          | Types Node                                                 |
+| `@types/react` / `@types/react-dom` | 19.2.18 / 19.2.4 | Types                                                      |
+| `@types/node`                       | 26.1.2           | Types Node                                                 |
 | `eslint`                            | 10.6.0           | Linter                                                     |
 | `@eslint/js`                        | 10.0.1           | Config ESLint                                              |
 | `typescript-eslint`                 | 8.65.0           | ESLint para TS                                             |
@@ -274,5 +274,5 @@ Não há `menubar`, `navigation-menu`, `radio-group`, `aspect-ratio` nem `toast`
 
 - **`reqwest-retry` está morto**: é dependência declarada mas nenhum retry/backoff é implementado em nenhum ponto do código de download.
 - **Radix consolidado**: pare de procurar `@radix-ui/react-*` individuais no `package.json` — tudo vem via `radix-ui` (pacote único).
-- **`lucide-react` mudou de esquema de versão**: está em `^1.27.0`, não `0.4xx` como versões antigas do launcher usavam.
+- **`lucide-react` mudou de esquema de versão**: está em `^1.28.0`, não `0.4xx` como versões antigas do launcher usavam.
 - **`zod` é v4**, não v3.
