@@ -1,6 +1,6 @@
 [package]
 name = "astrolauncher"
-version = "0.2.0"
+version = "0.5.0"
 description = "A modern Minecraft launcher"
 authors = []
 license = "GPL-3.0"
@@ -34,8 +34,6 @@ mc-launcher-core = "0.1.2"
 mc_chat = "0.3.0"
 uuid = { version = "1.20.0", features = ["v4", "serde"] }
 reqwest = { version = "0.13.3", features = ["json", "stream"] }
-reqwest-middleware = "0.5.2"
-reqwest-retry = "0.9.1"
 zip = "2"
 sha1 = "0.11.0"
 sha2 = "0.11.0"
