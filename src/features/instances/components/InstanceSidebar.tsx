@@ -40,7 +40,7 @@ export function InstanceSidebar({
   const secondaryActions = rest.filter((a) => a.key !== 'delete')
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col gap-4 border-l p-4">
+    <aside className="flex h-full min-w-0 flex-col gap-4 border-l p-4">
       <div className="flex flex-col items-center gap-2 text-center">
         <IconPickerButton
           iconPath={instance.iconPath}

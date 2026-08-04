@@ -4,6 +4,7 @@ import { CreateInstancePage } from '@/features/instances/pages/CreateInstancePag
 import { EditInstancePage } from '@/features/instances/pages/EditInstancePage'
 import { InstancesPage } from '@/features/instances/pages/InstancesPage'
 import { SkinsPage } from '@/features/skins/pages/SkinsPage'
+import { CursorTooltip } from '@/components/common/CursorTooltip'
 import { LaunchProgressDialog } from '@/components/layout/LaunchProgressDialog'
 import { Toaster } from '@/components/ui/sonner'
 
@@ -18,6 +19,7 @@ function App() {
       </Routes>
       <Toaster />
       <LaunchProgressDialog />
+      <CursorTooltip />
     </HashRouter>
   )
 }

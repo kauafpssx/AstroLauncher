@@ -29,6 +29,8 @@ interface ModDetailPanelProps {
   gameVersion?: string
   loader?: string | null
   isSelected: boolean
+  isInstalled?: boolean
+  installedFileNames?: Set<string>
   onToggleSelect: (version: ModVersion) => void
 }
 
@@ -37,6 +39,8 @@ export function ModDetailPanel({
   gameVersion,
   loader,
   isSelected,
+  isInstalled = false,
+  installedFileNames,
   onToggleSelect,
 }: ModDetailPanelProps) {
   const [project, setProject] = useState<ModProject | null>(null)
@@ -88,6 +92,10 @@ export function ModDetailPanel({
   }, [result, gameVersion, loader])
 
   const selectedVersion = versions.find((v) => v.id === versionId) ?? null
+  const isSelectedVersionDuplicate =
+    !!selectedVersion &&
+    !!installedFileNames?.has(selectedVersion.fileName.toLowerCase())
+  const isBlocked = isInstalled || isSelectedVersionDuplicate
 
   if (isLoading) {
     return <CenteredSpinner className="h-full" />
@@ -193,9 +201,15 @@ export function ModDetailPanel({
           </SelectContent>
         </Select>
 
+        {isBlocked && !isSelected && (
+          <p className="text-muted-foreground text-center text-xs">
+            Já instalado nesta instância.
+          </p>
+        )}
+
         <Button
           variant={isSelected ? 'outline' : 'default'}
-          disabled={!isSelected && !selectedVersion}
+          disabled={isSelected ? false : !selectedVersion || isBlocked}
           onClick={() => selectedVersion && onToggleSelect(selectedVersion)}
         >
           {isSelected ? (

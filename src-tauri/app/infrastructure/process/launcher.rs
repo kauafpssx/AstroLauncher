@@ -42,7 +42,11 @@ pub fn library_path(libraries_dir: &Path, maven_name: &str) -> PathBuf {
         Some(classifier) => format!("{artifact}-{version}-{classifier}.jar"),
         None => format!("{artifact}-{version}.jar"),
     };
-    libraries_dir.join(group_path).join(artifact).join(version).join(file_name)
+    libraries_dir
+        .join(group_path)
+        .join(artifact)
+        .join(version)
+        .join(file_name)
 }
 
 pub fn extract_natives(jar_path: &Path, dest: &Path) -> anyhow::Result<()> {
@@ -53,10 +57,14 @@ pub fn extract_natives(jar_path: &Path, dest: &Path) -> anyhow::Result<()> {
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i)?;
         let name = entry.name().to_string();
-        if name.ends_with('/') || !(name.ends_with(".dll") || name.ends_with(".so") || name.ends_with(".dylib")) {
+        if name.ends_with('/')
+            || !(name.ends_with(".dll") || name.ends_with(".so") || name.ends_with(".dylib"))
+        {
             continue;
         }
-        let Some(file_name) = Path::new(&name).file_name() else { continue };
+        let Some(file_name) = Path::new(&name).file_name() else {
+            continue;
+        };
         let mut out_file = std::fs::File::create(dest.join(file_name))?;
         std::io::copy(&mut entry, &mut out_file)?;
     }
@@ -66,14 +74,25 @@ pub fn extract_natives(jar_path: &Path, dest: &Path) -> anyhow::Result<()> {
 pub fn build_classpath(libraries: &[PathBuf], client_jar: &Path) -> String {
     let mut paths: Vec<String> = libraries.iter().map(|p| p.display().to_string()).collect();
     paths.push(client_jar.display().to_string());
-    paths.join(if cfg!(target_os = "windows") { ";" } else { ":" })
+    paths.join(if cfg!(target_os = "windows") {
+        ";"
+    } else {
+        ":"
+    })
 }
 
-pub fn spawn_game(options: LaunchOptions, classpath: &str, log_path: &Path) -> anyhow::Result<std::process::Child> {
+pub fn spawn_game(
+    options: LaunchOptions,
+    classpath: &str,
+    log_path: &Path,
+) -> anyhow::Result<std::process::Child> {
     let mut args: Vec<String> = Vec::new();
     args.push(format!("-Xms{}M", options.min_memory_mb));
     args.push(format!("-Xmx{}M", options.max_memory_mb));
-    args.push(format!("-Djava.library.path={}", options.natives_dir.display()));
+    args.push(format!(
+        "-Djava.library.path={}",
+        options.natives_dir.display()
+    ));
     args.extend(options.extra_jvm_args.iter().cloned());
     args.push("-cp".to_string());
     args.push(classpath.to_string());
@@ -98,14 +117,24 @@ pub fn spawn_game(options: LaunchOptions, classpath: &str, log_path: &Path) -> a
     args.push("release".to_string());
     args.extend(options.extra_game_args.iter().cloned());
 
-    spawn_with_parts(Path::new(options.java_bin), &args, options.game_dir, log_path)
+    spawn_with_parts(
+        Path::new(options.java_bin),
+        &args,
+        options.game_dir,
+        log_path,
+    )
 }
 
 /// Spawns a Java process with a pre-built argument list, piping stdout/stderr
 /// to the instance's log file. Shared by the vanilla/Fabric/Quilt/LiteLoader
 /// argument builder above and the Forge/NeoForge branch, which builds its
 /// argument list via `mc-launcher-core`'s command builder instead.
-pub fn spawn_with_parts(java_bin: &Path, args: &[String], game_dir: &Path, log_path: &Path) -> anyhow::Result<std::process::Child> {
+pub fn spawn_with_parts(
+    java_bin: &Path,
+    args: &[String],
+    game_dir: &Path,
+    log_path: &Path,
+) -> anyhow::Result<std::process::Child> {
     if let Some(parent) = log_path.parent() {
         std::fs::create_dir_all(parent)?;
     }

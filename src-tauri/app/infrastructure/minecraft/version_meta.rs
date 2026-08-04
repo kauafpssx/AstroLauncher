@@ -55,7 +55,16 @@ pub struct VersionMeta {
     pub java_version: Option<JavaVersionRequirement>,
 }
 
-pub async fn fetch_version_meta(client: &reqwest::Client, url: &str) -> anyhow::Result<VersionMeta> {
-    let meta = client.get(url).send().await?.error_for_status()?.json::<VersionMeta>().await?;
+pub async fn fetch_version_meta(
+    client: &reqwest::Client,
+    url: &str,
+) -> anyhow::Result<VersionMeta> {
+    let meta = client
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<VersionMeta>()
+        .await?;
     Ok(meta)
 }

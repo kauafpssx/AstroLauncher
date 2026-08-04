@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-const BASE_URL: &str = "https://api.modrinth.com/v2";
+fn base_url() -> &'static str {
+    crate::infrastructure::config::api().modrinth.as_str()
+}
 
 #[derive(Debug, Deserialize)]
 pub struct SearchResponse {
@@ -29,7 +31,10 @@ impl SearchHit {
     /// Modrinth tags a modpack's loader as a regular category (alongside
     /// things like "adventure" or "technology") rather than a separate field.
     pub fn primary_loader(&self) -> Option<&str> {
-        self.categories.iter().find(|c| LOADER_CATEGORIES.contains(&c.as_str())).map(|c| c.as_str())
+        self.categories
+            .iter()
+            .find(|c| LOADER_CATEGORIES.contains(&c.as_str()))
+            .map(|c| c.as_str())
     }
 
     /// The newest Minecraft version this project supports — `versions` is
@@ -88,13 +93,19 @@ pub async fn search(
     }
     let facets_json = serde_json::to_string(&facets)?;
 
-    let mut url = reqwest::Url::parse(&format!("{BASE_URL}/search"))?;
+    let mut url = reqwest::Url::parse(&format!("{}/search", base_url()))?;
     url.query_pairs_mut()
         .append_pair("query", query)
         .append_pair("facets", &facets_json)
         .append_pair("limit", "30");
 
-    let response = client.get(url).send().await?.error_for_status()?.json::<SearchResponse>().await?;
+    let response = client
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<SearchResponse>()
+        .await?;
     Ok(response.hits)
 }
 
@@ -112,8 +123,14 @@ pub struct Project {
 }
 
 pub async fn get_project(client: &reqwest::Client, project_id: &str) -> anyhow::Result<Project> {
-    let url = format!("{BASE_URL}/project/{project_id}");
-    let project = client.get(&url).send().await?.error_for_status()?.json::<Project>().await?;
+    let url = format!("{}/project/{project_id}", base_url());
+    let project = client
+        .get(&url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<Project>()
+        .await?;
     Ok(project)
 }
 
@@ -123,7 +140,7 @@ pub async fn get_versions(
     game_version: Option<&str>,
     loader: Option<&str>,
 ) -> anyhow::Result<Vec<Version>> {
-    let mut url = reqwest::Url::parse(&format!("{BASE_URL}/project/{project_id}/version"))?;
+    let mut url = reqwest::Url::parse(&format!("{}/project/{project_id}/version", base_url()))?;
     {
         let mut pairs = url.query_pairs_mut();
         if let Some(gv) = game_version {
@@ -133,7 +150,13 @@ pub async fn get_versions(
             pairs.append_pair("loaders", &format!("[\"{l}\"]"));
         }
     }
-    let versions = client.get(url).send().await?.error_for_status()?.json::<Vec<Version>>().await?;
+    let versions = client
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<Vec<Version>>()
+        .await?;
     Ok(versions)
 }
 
@@ -146,13 +169,26 @@ struct VersionFilesRequest<'a> {
 /// Resolves many files at once by their sha1 hash — used to recover each
 /// modpack file's project/version metadata after downloading it, since the
 /// `.mrpack` manifest only lists hashes, not names.
-pub async fn get_versions_by_hashes(client: &reqwest::Client, sha1_hashes: &[String]) -> anyhow::Result<HashMap<String, Version>> {
+pub async fn get_versions_by_hashes(
+    client: &reqwest::Client,
+    sha1_hashes: &[String],
+) -> anyhow::Result<HashMap<String, Version>> {
     if sha1_hashes.is_empty() {
         return Ok(HashMap::new());
     }
-    let url = format!("{BASE_URL}/version_files");
-    let body = VersionFilesRequest { hashes: sha1_hashes, algorithm: "sha1" };
-    let versions = client.post(url).json(&body).send().await?.error_for_status()?.json::<HashMap<String, Version>>().await?;
+    let url = format!("{}/version_files", base_url());
+    let body = VersionFilesRequest {
+        hashes: sha1_hashes,
+        algorithm: "sha1",
+    };
+    let versions = client
+        .post(url)
+        .json(&body)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<HashMap<String, Version>>()
+        .await?;
     Ok(versions)
 }
 
@@ -164,14 +200,23 @@ pub struct ProjectSummary {
 
 /// Resolves many projects' icons at once — used to fetch every modpack mod's
 /// icon up front instead of one call per project.
-pub async fn get_projects_by_ids(client: &reqwest::Client, project_ids: &[String]) -> anyhow::Result<Vec<ProjectSummary>> {
+pub async fn get_projects_by_ids(
+    client: &reqwest::Client,
+    project_ids: &[String],
+) -> anyhow::Result<Vec<ProjectSummary>> {
     if project_ids.is_empty() {
         return Ok(Vec::new());
     }
     let ids_json = serde_json::to_string(project_ids)?;
-    let mut url = reqwest::Url::parse(&format!("{BASE_URL}/projects"))?;
+    let mut url = reqwest::Url::parse(&format!("{}/projects", base_url()))?;
     url.query_pairs_mut().append_pair("ids", &ids_json);
 
-    let projects = client.get(url).send().await?.error_for_status()?.json::<Vec<ProjectSummary>>().await?;
+    let projects = client
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<Vec<ProjectSummary>>()
+        .await?;
     Ok(projects)
 }

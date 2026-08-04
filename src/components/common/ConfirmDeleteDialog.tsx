@@ -19,6 +19,7 @@ interface ConfirmDeleteDialogProps {
   confirmLabel?: string
   cancelLabel?: string
   isPending?: boolean
+  hideConfirm?: boolean
   onConfirm: () => void
 }
 
@@ -30,6 +31,7 @@ export function ConfirmDeleteDialog({
   confirmLabel = 'Excluir',
   cancelLabel = 'Cancelar',
   isPending,
+  hideConfirm,
   onConfirm,
 }: ConfirmDeleteDialogProps) {
   return (
@@ -41,13 +43,15 @@ export function ConfirmDeleteDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            onClick={onConfirm}
-            disabled={isPending}
-          >
-            {confirmLabel}
-          </AlertDialogAction>
+          {!hideConfirm && (
+            <AlertDialogAction
+              variant="destructive"
+              onClick={onConfirm}
+              disabled={isPending}
+            >
+              {confirmLabel}
+            </AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

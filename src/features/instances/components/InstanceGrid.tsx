@@ -22,8 +22,11 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import { useContextMenuStore } from '@/stores/context-menu.store'
 import type { FolderDTO } from '@/types/folder'
 import type { InstanceDTO } from '@/types/instance'
+
+const GRID_BACKGROUND_MENU_ID = 'instance-grid-background'
 
 import { EmptyInstances } from './EmptyInstances'
 import { FolderSection } from './FolderSection'
@@ -91,6 +94,10 @@ export function InstanceGrid({
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
   )
+  const isBackgroundMenuOpen = useContextMenuStore(
+    (s) => s.openId === GRID_BACKGROUND_MENU_ID,
+  )
+  const setOpenContextMenuId = useContextMenuStore((s) => s.setOpenId)
 
   if (instances.length === 0 && folders.length === 0) {
     return <EmptyInstances onCreate={onCreate} onImport={onImport} />
@@ -169,7 +176,12 @@ export function InstanceGrid({
       collisionDetection={collisionDetection}
       onDragEnd={handleDragEnd}
     >
-      <ContextMenu>
+      <ContextMenu
+        open={isBackgroundMenuOpen}
+        onOpenChange={(next) =>
+          setOpenContextMenuId(next ? GRID_BACKGROUND_MENU_ID : null)
+        }
+      >
         <ContextMenuTrigger asChild>
           <div className="flex min-h-full flex-col px-4">
             <SortableContext

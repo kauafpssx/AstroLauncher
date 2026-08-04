@@ -129,6 +129,7 @@ pub struct InstalledModDTO {
     pub source: String,
     pub name: String,
     pub version: String,
+    pub file_name: String,
     pub icon_url: Option<String>,
     pub kind: String,
     pub enabled: bool,

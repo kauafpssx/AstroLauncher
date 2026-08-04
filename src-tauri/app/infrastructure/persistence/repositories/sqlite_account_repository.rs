@@ -17,7 +17,8 @@ impl SqliteAccountRepository {
     }
 }
 
-const SELECT_COLUMNS: &str = "id, username, type, uuid, position, is_default, last_used, created_at";
+const SELECT_COLUMNS: &str =
+    "id, username, type, uuid, position, is_default, last_used, created_at";
 
 fn map_row(row: &Row) -> rusqlite::Result<Account> {
     Ok(Account {
@@ -36,8 +37,12 @@ impl AccountRepository for SqliteAccountRepository {
     fn find_all(&self) -> Result<Vec<Account>> {
         let conn = self.conn.lock();
         let sql = format!("SELECT {SELECT_COLUMNS} FROM accounts ORDER BY position");
-        let mut stmt = conn.prepare(&sql).map_err(|e| AccountError::Persistence(e.to_string()))?;
-        let rows = stmt.query_map([], map_row).map_err(|e| AccountError::Persistence(e.to_string()))?;
+        let mut stmt = conn
+            .prepare(&sql)
+            .map_err(|e| AccountError::Persistence(e.to_string()))?;
+        let rows = stmt
+            .query_map([], map_row)
+            .map_err(|e| AccountError::Persistence(e.to_string()))?;
 
         let mut accounts = Vec::new();
         for row in rows {
@@ -91,27 +96,39 @@ impl AccountRepository for SqliteAccountRepository {
 
     fn set_default(&self, id: &str) -> Result<()> {
         let conn = self.conn.lock();
-        let tx = conn.unchecked_transaction().map_err(|e| AccountError::Persistence(e.to_string()))?;
+        let tx = conn
+            .unchecked_transaction()
+            .map_err(|e| AccountError::Persistence(e.to_string()))?;
         tx.execute("UPDATE accounts SET is_default = 0", [])
             .map_err(|e| AccountError::Persistence(e.to_string()))?;
         let affected = tx
-            .execute("UPDATE accounts SET is_default = 1 WHERE id = ?1", params![id])
+            .execute(
+                "UPDATE accounts SET is_default = 1 WHERE id = ?1",
+                params![id],
+            )
             .map_err(|e| AccountError::Persistence(e.to_string()))?;
         if affected == 0 {
             return Err(AccountError::NotFound(id.to_string()));
         }
-        tx.commit().map_err(|e| AccountError::Persistence(e.to_string()))?;
+        tx.commit()
+            .map_err(|e| AccountError::Persistence(e.to_string()))?;
         Ok(())
     }
 
     fn reorder(&self, ordered_ids: &[String]) -> Result<()> {
         let conn = self.conn.lock();
-        let tx = conn.unchecked_transaction().map_err(|e| AccountError::Persistence(e.to_string()))?;
+        let tx = conn
+            .unchecked_transaction()
+            .map_err(|e| AccountError::Persistence(e.to_string()))?;
         for (index, id) in ordered_ids.iter().enumerate() {
-            tx.execute("UPDATE accounts SET position = ?1 WHERE id = ?2", params![index as i64, id])
-                .map_err(|e| AccountError::Persistence(e.to_string()))?;
+            tx.execute(
+                "UPDATE accounts SET position = ?1 WHERE id = ?2",
+                params![index as i64, id],
+            )
+            .map_err(|e| AccountError::Persistence(e.to_string()))?;
         }
-        tx.commit().map_err(|e| AccountError::Persistence(e.to_string()))?;
+        tx.commit()
+            .map_err(|e| AccountError::Persistence(e.to_string()))?;
         Ok(())
     }
 }

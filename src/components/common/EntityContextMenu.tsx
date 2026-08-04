@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useId } from 'react'
 
 import {
   ContextMenu,
@@ -11,6 +12,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import { useContextMenuStore } from '@/stores/context-menu.store'
 
 export interface ContextMenuAction {
   key: string
@@ -89,8 +91,15 @@ export function EntityContextMenu({
   children,
   stopPropagation = false,
 }: EntityContextMenuProps) {
+  const id = useId()
+  const isOpen = useContextMenuStore((s) => s.openId === id)
+  const setOpenId = useContextMenuStore((s) => s.setOpenId)
+
   return (
-    <ContextMenu>
+    <ContextMenu
+      open={isOpen}
+      onOpenChange={(next) => setOpenId(next ? id : null)}
+    >
       <ContextMenuTrigger
         asChild
         onContextMenu={stopPropagation ? (e) => e.stopPropagation() : undefined}

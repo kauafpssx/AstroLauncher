@@ -2,14 +2,18 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use crate::application::use_cases::{
-    AstroPackService, CreateAccountUseCase, CreateFolderUseCase, CreateInstanceUseCase, CustomIconService,
-    DeleteAccountUseCase, DeleteFolderUseCase, DeleteInstanceUseCase, FetchVersionManifestUseCase,
-    InstanceWorkspaceService, LaunchInstanceUseCase, ListAccountsUseCase, ListFoldersUseCase, ListInstancesUseCase,
-    ModBrowserService, ModManagerService, ModpackInstallerService, MoveInstanceToFolderUseCase, PlaytimeService,
-    ReorderAccountsUseCase, ReorderFoldersUseCase, ReorderInstancesUseCase, SetDefaultAccountUseCase, SettingsService,
-    SkinBrowserService, StopInstanceUseCase, UpdateAccountUseCase, UpdateFolderUseCase, UpdateInstanceUseCase,
+    AstroPackService, CreateAccountUseCase, CreateFolderUseCase, CreateInstanceUseCase,
+    CustomIconService, DeleteAccountUseCase, DeleteFolderUseCase, DeleteInstanceUseCase,
+    FetchVersionManifestUseCase, InstanceWorkspaceService, LaunchInstanceUseCase,
+    ListAccountsUseCase, ListFoldersUseCase, ListInstancesUseCase, ModBrowserService,
+    ModManagerService, ModpackInstallerService, MoveInstanceToFolderUseCase, PlaytimeService,
+    ReorderAccountsUseCase, ReorderFoldersUseCase, ReorderInstancesUseCase,
+    SetDefaultAccountUseCase, SettingsService, SkinBrowserService, StopInstanceUseCase,
+    UpdateAccountUseCase, UpdateFolderUseCase, UpdateInstanceUseCase,
 };
-use crate::domain::repositories::{AccountRepository, FolderRepository, InstanceRepository, ModRepository, PlaytimeRepository};
+use crate::domain::repositories::{
+    AccountRepository, FolderRepository, InstanceRepository, ModRepository, PlaytimeRepository,
+};
 use crate::infrastructure::discord::DiscordRpcHandle;
 use crate::infrastructure::process::manager::ProcessManager;
 
@@ -59,7 +63,10 @@ impl AppState {
         discord_logo_asset_key: String,
     ) -> Self {
         let process_manager = ProcessManager::new();
-        let playtime_service = Arc::new(PlaytimeService::new(instance_repository.clone(), playtime_repository));
+        let playtime_service = Arc::new(PlaytimeService::new(
+            instance_repository.clone(),
+            playtime_repository,
+        ));
         let discord = DiscordRpcHandle::spawn(discord_client_id, discord_logo_asset_key);
         discord.set_idle();
 
@@ -74,7 +81,10 @@ impl AppState {
             ),
             move_instance_to_folder: MoveInstanceToFolderUseCase::new(instance_repository.clone()),
             reorder_instances: ReorderInstancesUseCase::new(instance_repository.clone()),
-            instance_workspace: InstanceWorkspaceService::new(instance_repository.clone(), app_data_dir.clone()),
+            instance_workspace: InstanceWorkspaceService::new(
+                instance_repository.clone(),
+                app_data_dir.clone(),
+            ),
             settings: SettingsService::new(app_data_dir.clone()),
             mod_browser: ModBrowserService::new(http_client.clone(), app_data_dir.clone()),
             mod_manager: ModManagerService::new(
@@ -91,9 +101,14 @@ impl AppState {
                 http_client.clone(),
                 app_data_dir.clone(),
             ),
-            astropack: AstroPackService::new(instance_repository.clone(), mod_repository.clone(), http_client.clone(), app_data_dir.clone()),
+            astropack: AstroPackService::new(
+                instance_repository.clone(),
+                mod_repository.clone(),
+                http_client.clone(),
+                app_data_dir.clone(),
+            ),
             custom_icon: CustomIconService::new(app_data_dir.clone()),
-            skin_browser: SkinBrowserService::new(http_client.clone()),
+            skin_browser: SkinBrowserService::new(http_client.clone(), app_data_dir.clone()),
             fetch_version_manifest: FetchVersionManifestUseCase::new(http_client.clone()),
             launch_instance: LaunchInstanceUseCase::new(
                 instance_repository,

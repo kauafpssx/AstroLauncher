@@ -1,6 +1,8 @@
 use serde::Deserialize;
 
-const BASE_URL: &str = "https://api.playermc.site/v1";
+fn base_url() -> &'static str {
+    crate::infrastructure::config::api().playermc.as_str()
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SkinPlayer {
@@ -56,25 +58,44 @@ pub async fn search(
     sort_by: &str,
     limit: u32,
 ) -> anyhow::Result<Vec<SkinSummary>> {
-    let mut url = reqwest::Url::parse(&format!("{BASE_URL}/skins"))?;
+    let mut url = reqwest::Url::parse(&format!("{}/skins", base_url()))?;
     {
         let mut pairs = url.query_pairs_mut();
-        pairs.append_pair("page", &page.to_string()).append_pair("sortBy", sort_by).append_pair("limit", &limit.to_string());
+        pairs
+            .append_pair("page", &page.to_string())
+            .append_pair("sortBy", sort_by)
+            .append_pair("limit", &limit.to_string());
         if !query.trim().is_empty() {
             pairs.append_pair("search", query.trim());
         }
     }
 
-    let response = client.get(url).send().await?.error_for_status()?.json::<SearchResponse>().await?;
+    let response = client
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<SearchResponse>()
+        .await?;
     Ok(response.data)
 }
 
 /// Fetches a skin's detail, including every player profile currently wearing
 /// it — used to let the user copy a specific in-game name for a skin they like.
 pub async fn get_skin(client: &reqwest::Client, hash: &str) -> anyhow::Result<SkinDetail> {
-    let response = client.get(format!("{BASE_URL}/skins/{hash}")).send().await?.error_for_status()?.json::<SkinDetailResponse>().await?;
+    let response = client
+        .get(format!("{}/skins/{hash}", base_url()))
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<SkinDetailResponse>()
+        .await?;
     if !response.success {
-        anyhow::bail!(response.error.unwrap_or_else(|| "Skin não encontrada".to_string()));
+        anyhow::bail!(response
+            .error
+            .unwrap_or_else(|| "Skin não encontrada".to_string()));
     }
-    response.data.ok_or_else(|| anyhow::anyhow!("Skin não encontrada"))
+    response
+        .data
+        .ok_or_else(|| anyhow::anyhow!("Skin não encontrada"))
 }

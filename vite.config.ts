@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   clearScreen: false,
@@ -19,8 +19,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html'),
-        splash: path.resolve(__dirname, 'splash.html'),
+        main: path.resolve(import.meta.dirname, 'index.html'),
+        splash: path.resolve(import.meta.dirname, 'splash.html'),
       },
     },
   },

@@ -26,6 +26,7 @@ import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ModAPI } from '@/features/mods/services/mod.api'
 import type { AstroPackEvent } from '@/features/instances/services/astropack.api'
+import { tooltipProps } from '@/lib/tooltip'
 import type {
   ModProject,
   ModSearchResult,
@@ -322,7 +323,7 @@ export function ModpackDetailPanel({
                   variant="outline"
                   size="icon"
                   className="shrink-0"
-                  title="Parar instalação"
+                  {...tooltipProps('Parar instalação')}
                   onClick={() => setShowCancelConfirm(true)}
                 >
                   <X />

@@ -33,7 +33,10 @@ pub struct PackFileEnv {
 impl PackFile {
     /// Files can be marked "unsupported" on the client (server-only plugins).
     pub fn is_client_supported(&self) -> bool {
-        self.env.as_ref().map(|e| e.client != "unsupported").unwrap_or(true)
+        self.env
+            .as_ref()
+            .map(|e| e.client != "unsupported")
+            .unwrap_or(true)
     }
 }
 
@@ -59,7 +62,9 @@ pub fn extract_overrides(bytes: &[u8], instance_dir: &Path) -> anyhow::Result<()
 
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i)?;
-        let Some(enclosed) = entry.enclosed_name() else { continue };
+        let Some(enclosed) = entry.enclosed_name() else {
+            continue;
+        };
         let name = enclosed.to_string_lossy();
 
         let relative = if let Some(rest) = name.strip_prefix("overrides/") {

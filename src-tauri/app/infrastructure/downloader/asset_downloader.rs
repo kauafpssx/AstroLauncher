@@ -9,7 +9,6 @@ use serde::Deserialize;
 use super::file_downloader::download_to_file;
 use super::progress::ProgressReporter;
 
-const ASSETS_BASE_URL: &str = "https://resources.download.minecraft.net";
 const CONCURRENCY: usize = 16;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -23,8 +22,17 @@ pub struct AssetIndex {
     pub objects: HashMap<String, AssetObject>,
 }
 
-pub async fn fetch_asset_index(client: &reqwest::Client, index_url: &str) -> anyhow::Result<(AssetIndex, Vec<u8>)> {
-    let bytes = client.get(index_url).send().await?.error_for_status()?.bytes().await?;
+pub async fn fetch_asset_index(
+    client: &reqwest::Client,
+    index_url: &str,
+) -> anyhow::Result<(AssetIndex, Vec<u8>)> {
+    let bytes = client
+        .get(index_url)
+        .send()
+        .await?
+        .error_for_status()?
+        .bytes()
+        .await?;
     let index: AssetIndex = serde_json::from_slice(&bytes)?;
     Ok((index, bytes.to_vec()))
 }
@@ -63,7 +71,10 @@ pub async fn download_assets(
             }
             let prefix = &hash[0..2];
             let dest = objects_dir.join(prefix).join(&hash);
-            let url = format!("{ASSETS_BASE_URL}/{prefix}/{hash}");
+            let url = format!(
+                "{}/{prefix}/{hash}",
+                crate::infrastructure::config::api().mojang_assets,
+            );
             download_to_file(&client, &url, &dest, Some(&hash)).await?;
             let done = completed.fetch_add(1, Ordering::Relaxed) + 1;
             reporter.report_item("Assets", &hash, size, done, total);
@@ -71,7 +82,10 @@ pub async fn download_assets(
         }
     });
 
-    let results: Vec<anyhow::Result<()>> = stream::iter(downloads).buffer_unordered(CONCURRENCY).collect().await;
+    let results: Vec<anyhow::Result<()>> = stream::iter(downloads)
+        .buffer_unordered(CONCURRENCY)
+        .collect()
+        .await;
     for result in results {
         result?;
     }

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { AccountDropdown } from '@/components/layout/AccountDropdown'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { tooltipProps } from '@/lib/tooltip'
 
 interface TopBarProps {
   onCreateInstance: () => void
@@ -23,7 +24,7 @@ export function TopBar({ onCreateInstance, onImportInstance }: TopBarProps) {
         <Button
           variant="ghost"
           size="icon"
-          title="Importar .astropack"
+          {...tooltipProps('Importar .astropack')}
           onClick={onImportInstance}
         >
           <Download />
@@ -32,14 +33,14 @@ export function TopBar({ onCreateInstance, onImportInstance }: TopBarProps) {
       <Button
         variant="ghost"
         size="icon"
-        title="Skins"
+        {...tooltipProps('Skins')}
         onClick={() => navigate('/skins')}
       >
         <Shirt />
       </Button>
       <div className="ml-auto flex items-center gap-1">
         <AccountDropdown />
-        <Button variant="ghost" size="icon" title="Atualizações">
+        <Button variant="ghost" size="icon" {...tooltipProps('Atualizações')}>
           <RefreshCw />
         </Button>
       </div>

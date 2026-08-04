@@ -94,4 +94,15 @@ impl PlaytimeRepository for SqlitePlaytimeRepository {
         }
         Ok(())
     }
+
+    fn close_orphaned_sessions(&self) -> Result<()> {
+        let conn = self.conn.lock();
+        conn.execute(
+            "UPDATE playtime_sessions SET ended_at = started_at, duration_seconds = 0 \
+             WHERE ended_at IS NULL",
+            [],
+        )
+        .map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        Ok(())
+    }
 }

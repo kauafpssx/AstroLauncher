@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
+import { TabHeader } from '@/components/common/TabHeader'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -108,17 +109,14 @@ export function ServersTab({ instanceId }: ServersTabProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          Servidores salvos nesta instância.
-        </p>
+      <TabHeader description="Servidores salvos nesta instância.">
         <Button
           size="sm"
           onClick={() => setEditing({ index: null, name: '', ip: '' })}
         >
           <Plus /> Adicionar Servidor
         </Button>
-      </div>
+      </TabHeader>
 
       <div className="rounded-lg border">
         <Table>

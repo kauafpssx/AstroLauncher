@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
+import { TabHeader } from '@/components/common/TabHeader'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -64,30 +65,25 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          Mundos salvos nesta instância.
-        </p>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setIsLoading(true)
-              load()
-            }}
-          >
-            <RefreshCw /> Atualizar
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => InstanceWorkspaceAPI.openFolder(instanceId)}
-          >
-            <FolderOpen /> Abrir Pasta
-          </Button>
-        </div>
-      </div>
+      <TabHeader description="Mundos salvos nesta instância.">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setIsLoading(true)
+            load()
+          }}
+        >
+          <RefreshCw /> Atualizar
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => InstanceWorkspaceAPI.openFolder(instanceId)}
+        >
+          <FolderOpen /> Abrir Pasta
+        </Button>
+      </TabHeader>
 
       <div className="rounded-lg border">
         <Table>

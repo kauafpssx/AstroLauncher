@@ -80,7 +80,7 @@ export function SplashScreen() {
     >
       <motion.img
         data-tauri-drag-region
-        src="/logo.svg"
+        src="/logos/logo.svg"
         alt="AstroLauncher"
         className="h-20 w-auto"
         initial={{ opacity: 0, scale: 0.85 }}

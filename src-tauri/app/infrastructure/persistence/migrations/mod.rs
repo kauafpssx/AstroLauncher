@@ -19,13 +19,19 @@ const MIGRATIONS: &[(u32, MigrationFn)] = &[
 ];
 
 pub fn run(conn: &Connection) -> Result<()> {
-    conn.execute_batch("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);")?;
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);",
+    )?;
 
     let current: u32 = conn
-        .query_row("SELECT value FROM meta WHERE key = 'schema_version'", [], |row| {
-            let v: String = row.get(0)?;
-            Ok(v.parse().unwrap_or(0))
-        })
+        .query_row(
+            "SELECT value FROM meta WHERE key = 'schema_version'",
+            [],
+            |row| {
+                let v: String = row.get(0)?;
+                Ok(v.parse().unwrap_or(0))
+            },
+        )
         .unwrap_or(0);
 
     for &(version, up) in MIGRATIONS {

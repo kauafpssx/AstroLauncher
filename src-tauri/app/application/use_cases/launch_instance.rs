@@ -84,7 +84,9 @@ impl LaunchInstanceUseCase {
         self.cancelled.store(false, Ordering::SeqCst);
         let result = self.run(instance_id, on_event.clone(), on_exit).await;
         if let Err(err) = &result {
-            (*on_event)(LaunchEventDTO::Error { message: err.to_string() });
+            (*on_event)(LaunchEventDTO::Error {
+                message: err.to_string(),
+            });
         }
         result
     }
@@ -104,55 +106,101 @@ impl LaunchInstanceUseCase {
         let account = {
             let repository = self.account_repository.clone();
             let accounts = tokio::task::spawn_blocking(move || repository.find_all()).await??;
-            accounts
-                .into_iter()
-                .find(|a| a.is_default)
-                .ok_or_else(|| anyhow::anyhow!("Nenhuma conta configurada. Adicione uma conta antes de iniciar o jogo."))?
+            accounts.into_iter().find(|a| a.is_default).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Nenhuma conta configurada. Adicione uma conta antes de iniciar o jogo."
+                )
+            })?
         };
 
         self.check_cancelled()?;
-        (*on_event)(LaunchEventDTO::Stage { label: "Buscando informações da versão".to_string() });
+        (*on_event)(LaunchEventDTO::Stage {
+            label: "Buscando informações da versão".to_string(),
+        });
         let versions = manifest::fetch_manifest(&self.http_client).await?;
         let entry = versions
             .versions
             .iter()
             .find(|v| v.id == instance.version)
-            .ok_or_else(|| anyhow::anyhow!("Versão '{}' não encontrada no manifesto", instance.version))?;
+            .ok_or_else(|| {
+                anyhow::anyhow!("Versão '{}' não encontrada no manifesto", instance.version)
+            })?;
         let meta = version_meta::fetch_version_meta(&self.http_client, &entry.url).await?;
 
         self.check_cancelled()?;
-        (*on_event)(LaunchEventDTO::Stage { label: "Verificando Java".to_string() });
-        let required_major = meta.java_version.as_ref().map(|v| v.major_version).unwrap_or(8);
+        (*on_event)(LaunchEventDTO::Stage {
+            label: "Verificando Java".to_string(),
+        });
+        let required_major = meta
+            .java_version
+            .as_ref()
+            .map(|v| v.major_version)
+            .unwrap_or(8);
         let on_event_for_java = on_event.clone();
-        let java_bin = java::manager::ensure_java(&self.app_data_dir, required_major, &self.http_client, |label| {
-            (*on_event_for_java)(LaunchEventDTO::Stage { label: label.to_string() });
-        })
+        let java_bin = java::manager::ensure_java(
+            &self.app_data_dir,
+            required_major,
+            &self.http_client,
+            |label| {
+                (*on_event_for_java)(LaunchEventDTO::Stage {
+                    label: label.to_string(),
+                });
+            },
+        )
         .await?;
 
         self.check_cancelled()?;
-        if instance.loader.as_deref().is_some_and(forge_like::is_supported) {
-            return self.run_forge_like(&instance, &account, &java_bin, on_event, on_exit).await;
+        if instance
+            .loader
+            .as_deref()
+            .is_some_and(forge_like::is_supported)
+        {
+            return self
+                .run_forge_like(&instance, &account, &java_bin, on_event, on_exit)
+                .await;
         }
 
         let loader_profile = match instance.loader.as_deref() {
             Some(loader) if fabric_like::meta_base_for(loader).is_some() => {
                 let meta_base = fabric_like::meta_base_for(loader).unwrap();
-                (*on_event)(LaunchEventDTO::Stage { label: format!("Preparando {loader}") });
+                (*on_event)(LaunchEventDTO::Stage {
+                    label: format!("Preparando {loader}"),
+                });
                 let loader_version = match &instance.loader_version {
                     Some(v) => v.clone(),
-                    None => fabric_like::fetch_latest_stable_loader_version(&self.http_client, meta_base, &instance.version).await?,
+                    None => {
+                        fabric_like::fetch_latest_stable_loader_version(
+                            &self.http_client,
+                            meta_base,
+                            &instance.version,
+                        )
+                        .await?
+                    }
                 };
-                Some(fabric_like::fetch_profile(&self.http_client, meta_base, &instance.version, &loader_version).await?)
+                Some(
+                    fabric_like::fetch_profile(
+                        &self.http_client,
+                        meta_base,
+                        &instance.version,
+                        &loader_version,
+                    )
+                    .await?,
+                )
             }
             Some("liteloader") => {
-                (*on_event)(LaunchEventDTO::Stage { label: "Preparando LiteLoader".to_string() });
+                (*on_event)(LaunchEventDTO::Stage {
+                    label: "Preparando LiteLoader".to_string(),
+                });
                 Some(liteloader::fetch_profile(&self.http_client, &instance.version).await?)
             }
             _ => None,
         };
 
-        (*on_event)(LaunchEventDTO::Stage { label: "Calculando downloads".to_string() });
-        let (asset_index, asset_index_bytes) = asset_downloader::fetch_asset_index(&self.http_client, &meta.asset_index.url).await?;
+        (*on_event)(LaunchEventDTO::Stage {
+            label: "Calculando downloads".to_string(),
+        });
+        let (asset_index, asset_index_bytes) =
+            asset_downloader::fetch_asset_index(&self.http_client, &meta.asset_index.url).await?;
 
         let mut total_bytes = meta.downloads.client.size;
         if let Some(profile) = &loader_profile {
@@ -192,8 +240,13 @@ impl LaunchInstanceUseCase {
         let natives_dir = instance_dir.join("natives");
 
         let client_jar = versions_dir.join(&meta.id).join("client.jar");
-        file_downloader::download_to_file(&self.http_client, &meta.downloads.client.url, &client_jar, Some(&meta.downloads.client.sha1))
-            .await?;
+        file_downloader::download_to_file(
+            &self.http_client,
+            &meta.downloads.client.url,
+            &client_jar,
+            Some(&meta.downloads.client.sha1),
+        )
+        .await?;
         reporter.report_item("Cliente", "client.jar", meta.downloads.client.size, 1, 1);
 
         let mut library_paths = Vec::new();
@@ -203,23 +256,45 @@ impl LaunchInstanceUseCase {
             if !rules_allow(&library.rules) {
                 continue;
             }
-            let Some(downloads) = &library.downloads else { continue };
+            let Some(downloads) = &library.downloads else {
+                continue;
+            };
 
             if let Some(artifact) = &downloads.artifact {
                 let dest = launcher::library_path(&libraries_dir, &library.name);
-                file_downloader::download_to_file(&self.http_client, &artifact.url, &dest, Some(&artifact.sha1)).await?;
+                file_downloader::download_to_file(
+                    &self.http_client,
+                    &artifact.url,
+                    &dest,
+                    Some(&artifact.sha1),
+                )
+                .await?;
                 library_paths.push(dest);
                 lib_index += 1;
-                reporter.report_item("Bibliotecas", &library.name, artifact.size, lib_index, total_library_downloads);
+                reporter.report_item(
+                    "Bibliotecas",
+                    &library.name,
+                    artifact.size,
+                    lib_index,
+                    total_library_downloads,
+                );
             }
 
             if let (Some(natives), Some(classifiers)) = (&library.natives, &downloads.classifiers) {
                 if let Some(classifier_key) = natives.get("windows") {
                     if let Some(artifact) = classifiers.get(classifier_key) {
-                        let dest = libraries_dir
-                            .join("natives")
-                            .join(format!("{}-{}.jar", library.name.replace(':', "_"), classifier_key));
-                        file_downloader::download_to_file(&self.http_client, &artifact.url, &dest, Some(&artifact.sha1)).await?;
+                        let dest = libraries_dir.join("natives").join(format!(
+                            "{}-{}.jar",
+                            library.name.replace(':', "_"),
+                            classifier_key
+                        ));
+                        file_downloader::download_to_file(
+                            &self.http_client,
+                            &artifact.url,
+                            &dest,
+                            Some(&artifact.sha1),
+                        )
+                        .await?;
                         launcher::extract_natives(&dest, &natives_dir)?;
                     }
                 }
@@ -234,19 +309,41 @@ impl LaunchInstanceUseCase {
                 let url = library_download_url(library);
                 file_downloader::download_to_file(&self.http_client, &url, &dest, None).await?;
                 library_paths.push(dest);
-                reporter.report_item("Bibliotecas do Loader", &library.name, ESTIMATED_LOADER_LIBRARY_BYTES, index as u64 + 1, total_loader_libs);
+                reporter.report_item(
+                    "Bibliotecas do Loader",
+                    &library.name,
+                    ESTIMATED_LOADER_LIBRARY_BYTES,
+                    index as u64 + 1,
+                    total_loader_libs,
+                );
             }
         }
 
         self.check_cancelled()?;
-        asset_downloader::download_assets(&self.http_client, &asset_index, &asset_index_bytes, &meta.asset_index.id, &assets_dir, &self.cancelled, &reporter)
-            .await?;
+        asset_downloader::download_assets(
+            &self.http_client,
+            &asset_index,
+            &asset_index_bytes,
+            &meta.asset_index.id,
+            &assets_dir,
+            &self.cancelled,
+            &reporter,
+        )
+        .await?;
 
         self.check_cancelled()?;
-        (*on_event)(LaunchEventDTO::Stage { label: "Iniciando jogo".to_string() });
-        let main_class = loader_profile.as_ref().map(|p| p.main_class.as_str()).unwrap_or(&meta.main_class);
+        (*on_event)(LaunchEventDTO::Stage {
+            label: "Iniciando jogo".to_string(),
+        });
+        let main_class = loader_profile
+            .as_ref()
+            .map(|p| p.main_class.as_str())
+            .unwrap_or(&meta.main_class);
         let no_extra_args: Vec<String> = Vec::new();
-        let extra_game_args = loader_profile.as_ref().map(|p| &p.extra_game_args).unwrap_or(&no_extra_args);
+        let extra_game_args = loader_profile
+            .as_ref()
+            .map(|p| &p.extra_game_args)
+            .unwrap_or(&no_extra_args);
         let classpath = launcher::build_classpath(&library_paths, &client_jar);
         let log_path = instance_dir.join("logs").join("latest.log");
 
@@ -270,7 +367,8 @@ impl LaunchInstanceUseCase {
             &log_path,
         )?;
 
-        self.register_with_playtime(instance.id.clone(), instance.name.clone(), child, on_exit).await;
+        self.register_with_playtime(instance.id.clone(), instance.name.clone(), child, on_exit)
+            .await;
 
         Ok(())
     }
@@ -365,40 +463,69 @@ impl LaunchInstanceUseCase {
         let on_event_blocking = on_event.clone();
         let instance_dir_for_build = instance_dir.clone();
 
-        let command = tokio::task::spawn_blocking(move || -> anyhow::Result<forge_like::BuiltCommand> {
-            (*on_event_blocking)(LaunchEventDTO::Stage { label: format!("Preparando {loader}") });
-            let loader_version = match requested_version {
-                Some(v) => v,
-                None => forge_like::resolve_loader_version(&loader, &mc_version)?,
-            };
+        let command =
+            tokio::task::spawn_blocking(move || -> anyhow::Result<forge_like::BuiltCommand> {
+                (*on_event_blocking)(LaunchEventDTO::Stage {
+                    label: format!("Preparando {loader}"),
+                });
+                let loader_version = match requested_version {
+                    Some(v) => v,
+                    None => forge_like::resolve_loader_version(&loader, &mc_version)?,
+                };
 
-            forge_like::ensure_vanilla_json_on_disk(&app_data_dir, &mc_version)?;
+                forge_like::ensure_vanilla_json_on_disk(&app_data_dir, &mc_version)?;
 
-            (*on_event_blocking)(LaunchEventDTO::Stage { label: format!("Baixando instalador do {loader}") });
-            let url = forge_like::installer_url(&loader, &loader_version)?;
-            let installer_path = forge_like::download_installer(&app_data_dir, &loader, &loader_version, &url)?;
+                (*on_event_blocking)(LaunchEventDTO::Stage {
+                    label: format!("Baixando instalador do {loader}"),
+                });
+                let url = forge_like::installer_url(&loader, &loader_version)?;
+                let installer_path =
+                    forge_like::download_installer(&app_data_dir, &loader, &loader_version, &url)?;
 
-            (*on_event_blocking)(LaunchEventDTO::Stage { label: format!("Instalando {loader} (isso pode levar um tempo)") });
-            forge_like::run_installer(&java_bin_path, &installer_path, &app_data_dir, &loader)?;
+                (*on_event_blocking)(LaunchEventDTO::Stage {
+                    label: format!("Instalando {loader} (isso pode levar um tempo)"),
+                });
+                forge_like::run_installer(&java_bin_path, &installer_path, &app_data_dir, &loader)?;
 
-            let version_id = forge_like::installed_version_id(&loader, &mc_version, &loader_version)?;
-            let merged = forge_like::load_merged_version(&app_data_dir, &version_id)?;
+                let version_id =
+                    forge_like::installed_version_id(&loader, &mc_version, &loader_version)?;
+                let merged = forge_like::load_merged_version(&app_data_dir, &version_id)?;
 
-            (*on_event_blocking)(LaunchEventDTO::Stage { label: "Baixando bibliotecas e assets".to_string() });
-            let on_event_files = on_event_blocking.clone();
-            forge_like::install_files(&merged, &app_data_dir, move |label| {
-                (*on_event_files)(LaunchEventDTO::Stage { label });
-            })?;
+                (*on_event_blocking)(LaunchEventDTO::Stage {
+                    label: "Baixando bibliotecas e assets".to_string(),
+                });
+                let on_event_files = on_event_blocking.clone();
+                forge_like::install_files(&merged, &app_data_dir, move |label| {
+                    (*on_event_files)(LaunchEventDTO::Stage { label });
+                })?;
 
-            (*on_event_blocking)(LaunchEventDTO::Stage { label: "Montando comando de inicialização".to_string() });
-            forge_like::build_command(&app_data_dir, &merged, &java_bin_path, &instance_dir_for_build, &natives_dir, &username, &uuid)
-        })
-        .await??;
+                (*on_event_blocking)(LaunchEventDTO::Stage {
+                    label: "Montando comando de inicialização".to_string(),
+                });
+                forge_like::build_command(
+                    &app_data_dir,
+                    &merged,
+                    &java_bin_path,
+                    &instance_dir_for_build,
+                    &natives_dir,
+                    &username,
+                    &uuid,
+                )
+            })
+            .await??;
 
-        (*on_event)(LaunchEventDTO::Stage { label: "Iniciando jogo".to_string() });
+        (*on_event)(LaunchEventDTO::Stage {
+            label: "Iniciando jogo".to_string(),
+        });
         let log_path = instance_dir.join("logs").join("latest.log");
-        let child = launcher::spawn_with_parts(&command.executable, &command.args, &command.working_dir, &log_path)?;
-        self.register_with_playtime(instance.id.clone(), instance.name.clone(), child, on_exit).await;
+        let child = launcher::spawn_with_parts(
+            &command.executable,
+            &command.args,
+            &command.working_dir,
+            &log_path,
+        )?;
+        self.register_with_playtime(instance.id.clone(), instance.name.clone(), child, on_exit)
+            .await;
         Ok(())
     }
 }

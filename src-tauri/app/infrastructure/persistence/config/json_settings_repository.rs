@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 pub struct LauncherSettings {
     pub curseforge_api_key: Option<String>,
     #[serde(default)]
+    pub mcstat_api_key: Option<String>,
+    #[serde(default)]
     pub root_group_name: Option<String>,
     #[serde(default)]
     pub root_group_icon: Option<String>,
@@ -37,10 +39,29 @@ pub fn write(app_data_dir: &Path, settings: &LauncherSettings) -> anyhow::Result
 /// `CURSEFORGE_API_KEY` env var (set from a GitHub Actions secret, so it is
 /// never committed or logged). Returns `None` when neither is available.
 pub fn resolve_curseforge_api_key(app_data_dir: &Path) -> Option<String> {
-    let configured = read(app_data_dir).curseforge_api_key.filter(|k| !k.trim().is_empty());
+    let configured = read(app_data_dir)
+        .curseforge_api_key
+        .filter(|k| !k.trim().is_empty());
     configured.or_else(build_time_curseforge_api_key)
 }
 
 fn build_time_curseforge_api_key() -> Option<String> {
-    option_env!("CURSEFORGE_API_KEY").map(str::to_string).filter(|k| !k.trim().is_empty())
+    option_env!("CURSEFORGE_API_KEY")
+        .map(str::to_string)
+        .filter(|k| !k.trim().is_empty())
+}
+
+/// Resolves the mcstat.org API key: user-configured first, falling back to
+/// the key baked in at build time via the `MCSTAT_API_KEY` env var.
+pub fn resolve_mcstat_api_key(app_data_dir: &Path) -> Option<String> {
+    let configured = read(app_data_dir)
+        .mcstat_api_key
+        .filter(|k| !k.trim().is_empty());
+    configured.or_else(build_time_mcstat_api_key)
+}
+
+fn build_time_mcstat_api_key() -> Option<String> {
+    option_env!("MCSTAT_API_KEY")
+        .map(str::to_string)
+        .filter(|k| !k.trim().is_empty())
 }

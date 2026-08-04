@@ -9,6 +9,9 @@ pub fn get_settings(state: State<AppState>) -> SettingsDTO {
 }
 
 #[tauri::command]
-pub fn update_settings(state: State<AppState>, input: UpdateSettingsInput) -> Result<SettingsDTO, String> {
+pub fn update_settings(
+    state: State<AppState>,
+    input: UpdateSettingsInput,
+) -> Result<SettingsDTO, String> {
     state.settings.update(input).map_err(|e| e.to_string())
 }

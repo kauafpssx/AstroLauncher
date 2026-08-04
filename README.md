@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/logo.svg" alt="AstroLauncher" width="294" />
+  <img src="public/logos/logo.svg" alt="AstroLauncher" width="294" />
 </p>
 
 <h1 align="center" style="border-bottom: 0;">AstroLauncher</h1>
@@ -248,17 +248,14 @@ graph LR
     A[push main] --> B[Setup Node e Rust]
     B --> C[Build Tauri]
     C --> D[NSIS .exe]
-    C --> E[MSI .msi]
     D --> F[Create tag + Release]
-    E --> F
     F --> G[Generate updater manifest]
     G --> H[Auto-update in-app 🪐]
 ```
 
 | Artefato                | Formato       | Uso                                  |
 | ----------------------- | ------------- | ------------------------------------ |
-| 🖥️ **NSIS Installer**   | `.exe`        | Instalador padrão recomendado        |
-| 🏢 **MSI Installer**    | `.msi`        | Instalação corporativa/empresarial   |
+| 🖥️ **NSIS Installer**   | `.exe`        | Instalador padrão                    |
 | 🔄 **Updater manifest** | `latest.json` | Atualização automática pelo launcher |
 
 > [!IMPORTANT]

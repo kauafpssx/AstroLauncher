@@ -9,8 +9,14 @@ pub fn list_custom_icons(state: State<AppState>) -> Result<Vec<CustomIconDTO>, S
 }
 
 #[tauri::command]
-pub fn save_custom_icon(state: State<AppState>, base64_png: String) -> Result<CustomIconDTO, String> {
-    state.custom_icon.save(&base64_png).map_err(|e| e.to_string())
+pub fn save_custom_icon(
+    state: State<AppState>,
+    base64_png: String,
+) -> Result<CustomIconDTO, String> {
+    state
+        .custom_icon
+        .save(&base64_png)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

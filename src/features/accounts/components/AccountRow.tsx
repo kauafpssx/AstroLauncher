@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { TableCell, TableRow } from '@/components/ui/table'
+import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
 import type { AccountDTO } from '@/types/account'
 
@@ -62,7 +63,7 @@ export function AccountRow({
           type="button"
           onClick={onSetDefault}
           className="flex items-center gap-2.5 text-left"
-          title="Definir como padrão"
+          {...tooltipProps('Definir como padrão')}
         >
           <span
             className={cn(

@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-const BASE_URL: &str = "https://api.curseforge.com/v1";
+fn base_url() -> &'static str {
+    crate::infrastructure::config::api().curseforge.as_str()
+}
 const MINECRAFT_GAME_ID: u32 = 432;
 
 pub const CLASS_ID_MOD: u32 = 6;
@@ -39,18 +41,22 @@ impl ModEntry {
     /// indexes carries a recognized `modLoader` value (CurseForge's enum:
     /// 1=Forge, 4=Fabric, 5=Quilt, 6=NeoForge).
     pub fn primary_loader(&self) -> Option<&'static str> {
-        self.latest_files_indexes.iter().find_map(|f| match f.mod_loader {
-            Some(1) => Some("forge"),
-            Some(4) => Some("fabric"),
-            Some(5) => Some("quilt"),
-            Some(6) => Some("neoforge"),
-            _ => None,
-        })
+        self.latest_files_indexes
+            .iter()
+            .find_map(|f| match f.mod_loader {
+                Some(1) => Some("forge"),
+                Some(4) => Some("fabric"),
+                Some(5) => Some("quilt"),
+                Some(6) => Some("neoforge"),
+                _ => None,
+            })
     }
 
     /// The newest Minecraft version this modpack has a build for.
     pub fn latest_game_version(&self) -> Option<&str> {
-        self.latest_files_indexes.first().map(|f| f.game_version.as_str())
+        self.latest_files_indexes
+            .first()
+            .map(|f| f.game_version.as_str())
     }
 }
 
@@ -92,9 +98,20 @@ pub struct FileResponse {
     pub data: File,
 }
 
-pub async fn get_mod(client: &reqwest::Client, api_key: &str, mod_id: u32) -> anyhow::Result<ModEntry> {
-    let url = format!("{BASE_URL}/mods/{mod_id}");
-    let response = client.get(&url).header("x-api-key", api_key).send().await?.error_for_status()?.json::<ModResponse>().await?;
+pub async fn get_mod(
+    client: &reqwest::Client,
+    api_key: &str,
+    mod_id: u32,
+) -> anyhow::Result<ModEntry> {
+    let url = format!("{}/mods/{mod_id}", base_url());
+    let response = client
+        .get(&url)
+        .header("x-api-key", api_key)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<ModResponse>()
+        .await?;
     Ok(response.data)
 }
 
@@ -106,14 +123,25 @@ struct ModsByIdsRequest<'a> {
 
 /// Resolves many mods' metadata (including their icon) in a single request —
 /// used to fetch every modpack mod's icon up front instead of one call each.
-pub async fn get_mods_by_ids(client: &reqwest::Client, api_key: &str, mod_ids: &[u32]) -> anyhow::Result<Vec<ModEntry>> {
+pub async fn get_mods_by_ids(
+    client: &reqwest::Client,
+    api_key: &str,
+    mod_ids: &[u32],
+) -> anyhow::Result<Vec<ModEntry>> {
     if mod_ids.is_empty() {
         return Ok(Vec::new());
     }
-    let url = format!("{BASE_URL}/mods");
+    let url = format!("{}/mods", base_url());
     let body = ModsByIdsRequest { mod_ids };
-    let response =
-        client.post(url).header("x-api-key", api_key).json(&body).send().await?.error_for_status()?.json::<SearchResponse>().await?;
+    let response = client
+        .post(url)
+        .header("x-api-key", api_key)
+        .json(&body)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<SearchResponse>()
+        .await?;
     Ok(response.data)
 }
 
@@ -124,18 +152,41 @@ struct DescriptionResponse {
 
 /// The mod's full project page, as raw HTML — CurseForge doesn't include this
 /// in `get_mod`'s response, it's a dedicated endpoint.
-pub async fn get_description(client: &reqwest::Client, api_key: &str, mod_id: u32) -> anyhow::Result<String> {
-    let url = format!("{BASE_URL}/mods/{mod_id}/description");
-    let response = client.get(&url).header("x-api-key", api_key).send().await?.error_for_status()?.json::<DescriptionResponse>().await?;
+pub async fn get_description(
+    client: &reqwest::Client,
+    api_key: &str,
+    mod_id: u32,
+) -> anyhow::Result<String> {
+    let url = format!("{}/mods/{mod_id}/description", base_url());
+    let response = client
+        .get(&url)
+        .header("x-api-key", api_key)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<DescriptionResponse>()
+        .await?;
     Ok(response.data)
 }
 
 /// Resolves a single file's metadata (including its download URL) — needed
 /// when installing a modpack, whose manifest only lists `projectID`/`fileID`
 /// pairs for each mod, not URLs.
-pub async fn get_file(client: &reqwest::Client, api_key: &str, mod_id: u32, file_id: u32) -> anyhow::Result<File> {
-    let url = format!("{BASE_URL}/mods/{mod_id}/files/{file_id}");
-    let response = client.get(&url).header("x-api-key", api_key).send().await?.error_for_status()?.json::<FileResponse>().await?;
+pub async fn get_file(
+    client: &reqwest::Client,
+    api_key: &str,
+    mod_id: u32,
+    file_id: u32,
+) -> anyhow::Result<File> {
+    let url = format!("{}/mods/{mod_id}/files/{file_id}", base_url());
+    let response = client
+        .get(&url)
+        .header("x-api-key", api_key)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<FileResponse>()
+        .await?;
     Ok(response.data)
 }
 
@@ -158,7 +209,7 @@ pub async fn search(
     game_version: Option<&str>,
     loader: Option<&str>,
 ) -> anyhow::Result<Vec<ModEntry>> {
-    let mut url = reqwest::Url::parse(&format!("{BASE_URL}/mods/search"))?;
+    let mut url = reqwest::Url::parse(&format!("{}/mods/search", base_url()))?;
     {
         let mut pairs = url.query_pairs_mut();
         pairs
@@ -194,7 +245,7 @@ pub async fn get_files(
     game_version: Option<&str>,
     loader: Option<&str>,
 ) -> anyhow::Result<Vec<File>> {
-    let mut url = reqwest::Url::parse(&format!("{BASE_URL}/mods/{mod_id}/files"))?;
+    let mut url = reqwest::Url::parse(&format!("{}/mods/{mod_id}/files", base_url()))?;
     {
         let mut pairs = url.query_pairs_mut();
         pairs.append_pair("pageSize", "30");
@@ -206,6 +257,13 @@ pub async fn get_files(
         }
     }
 
-    let response = client.get(url).header("x-api-key", api_key).send().await?.error_for_status()?.json::<FilesResponse>().await?;
+    let response = client
+        .get(url)
+        .header("x-api-key", api_key)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<FilesResponse>()
+        .await?;
     Ok(response.data)
 }

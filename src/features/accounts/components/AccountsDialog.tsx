@@ -20,6 +20,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/common/EmptyState'
+import { TabHeader } from '@/components/common/TabHeader'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -104,17 +105,15 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
             <DialogDescription>Gerencie suas contas offline.</DialogDescription>
           </DialogHeader>
 
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground text-sm">
-              {accounts.length}{' '}
-              {accounts.length === 1
-                ? 'conta cadastrada'
-                : 'contas cadastradas'}
-            </p>
+          <TabHeader
+            description={`${accounts.length} ${
+              accounts.length === 1 ? 'conta cadastrada' : 'contas cadastradas'
+            }`}
+          >
             <Button size="sm" onClick={openCreate}>
               <Plus /> Adicionar Conta
             </Button>
-          </div>
+          </TabHeader>
 
           {accounts.length === 0 ? (
             <EmptyState

@@ -28,11 +28,22 @@ impl CustomIconService {
             if path.extension().and_then(|e| e.to_str()) != Some("png") {
                 continue;
             }
-            let Some(id) = path.file_stem().and_then(|s| s.to_str()) else { continue };
-            let modified = entry.metadata()?.modified().unwrap_or(std::time::SystemTime::UNIX_EPOCH);
-            entries.push((modified, CustomIconDTO { id: id.to_string(), path: path.to_string_lossy().to_string() }));
+            let Some(id) = path.file_stem().and_then(|s| s.to_str()) else {
+                continue;
+            };
+            let modified = entry
+                .metadata()?
+                .modified()
+                .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+            entries.push((
+                modified,
+                CustomIconDTO {
+                    id: id.to_string(),
+                    path: path.to_string_lossy().to_string(),
+                },
+            ));
         }
-        entries.sort_by(|a, b| b.0.cmp(&a.0));
+        entries.sort_by_key(|a| std::cmp::Reverse(a.0));
         Ok(entries.into_iter().map(|(_, dto)| dto).collect())
     }
 
@@ -46,7 +57,10 @@ impl CustomIconService {
         let path = dir.join(format!("{id}.png"));
         std::fs::write(&path, bytes)?;
 
-        Ok(CustomIconDTO { id, path: path.to_string_lossy().to_string() })
+        Ok(CustomIconDTO {
+            id,
+            path: path.to_string_lossy().to_string(),
+        })
     }
 
     pub fn delete(&self, id: &str) -> anyhow::Result<()> {

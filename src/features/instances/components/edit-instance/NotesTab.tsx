@@ -10,6 +10,7 @@ import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
+import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
 import type { NoteDTO } from '@/types/note'
 
@@ -255,7 +256,7 @@ export function NotesTab({ instanceId }: NotesTabProps) {
                 type="button"
                 onClick={() => startRename(note)}
                 className="text-muted-foreground hover:text-foreground hidden group-hover:inline-flex"
-                title="Renomear"
+                {...tooltipProps('Renomear')}
               >
                 <Pencil className="size-3" />
               </button>
@@ -264,7 +265,7 @@ export function NotesTab({ instanceId }: NotesTabProps) {
                   type="button"
                   onClick={() => setDeleteTarget(note)}
                   className="text-muted-foreground hover:text-destructive hidden group-hover:inline-flex"
-                  title="Excluir"
+                  {...tooltipProps('Excluir')}
                 >
                   <X className="size-3" />
                 </button>
@@ -276,7 +277,7 @@ export function NotesTab({ instanceId }: NotesTabProps) {
           variant="ghost"
           size="icon-sm"
           onClick={handleCreate}
-          title="Nova nota"
+          {...tooltipProps('Nova nota')}
         >
           <Plus className="size-4" />
         </Button>

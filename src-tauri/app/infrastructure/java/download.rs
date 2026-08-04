@@ -37,23 +37,43 @@ fn platform_arch() -> &'static str {
 
 async fn fetch_jre_download_url(client: &reqwest::Client, major: u32) -> anyhow::Result<String> {
     let url = format!(
-        "https://api.adoptium.net/v3/assets/latest/{major}/hotspot?image_type=jre&os={}&architecture={}",
+        "{}/assets/latest/{major}/hotspot?image_type=jre&os={}&architecture={}",
+        crate::infrastructure::config::api().adoptium,
         platform_os(),
         platform_arch()
     );
-    let assets: Vec<AdoptiumAsset> = client.get(&url).send().await?.error_for_status()?.json().await?;
-    let asset = assets
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow::anyhow!("Nenhum Java {major} disponível para {} {}", platform_os(), platform_arch()))?;
+    let assets: Vec<AdoptiumAsset> = client
+        .get(&url)
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?;
+    let asset = assets.into_iter().next().ok_or_else(|| {
+        anyhow::anyhow!(
+            "Nenhum Java {major} disponível para {} {}",
+            platform_os(),
+            platform_arch()
+        )
+    })?;
     Ok(asset.binary.package.link)
 }
 
 /// Downloads a portable Adoptium JRE zip and extracts it into `dest_dir`,
 /// stripping the single top-level folder Adoptium zips ship with.
-pub async fn download_portable_jre(client: &reqwest::Client, major: u32, dest_dir: &Path) -> anyhow::Result<()> {
+pub async fn download_portable_jre(
+    client: &reqwest::Client,
+    major: u32,
+    dest_dir: &Path,
+) -> anyhow::Result<()> {
     let url = fetch_jre_download_url(client, major).await?;
-    let bytes = client.get(&url).send().await?.error_for_status()?.bytes().await?;
+    let bytes = client
+        .get(&url)
+        .send()
+        .await?
+        .error_for_status()?
+        .bytes()
+        .await?;
 
     tokio::fs::create_dir_all(dest_dir).await?;
     let dest_dir = dest_dir.to_path_buf();
@@ -69,7 +89,9 @@ fn extract_jre_zip(bytes: &[u8], dest_dir: &Path) -> anyhow::Result<()> {
 
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i)?;
-        let Some(enclosed) = entry.enclosed_name() else { continue };
+        let Some(enclosed) = entry.enclosed_name() else {
+            continue;
+        };
 
         // Adoptium zips wrap everything in a single "jdk-21.0.2+13-jre/" folder; drop it.
         let relative: PathBuf = enclosed.components().skip(1).collect();

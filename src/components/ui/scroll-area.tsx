@@ -8,8 +8,13 @@ import { cn } from '@/lib/utils'
 function ScrollArea({
   className,
   children,
+  viewportRef,
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
+  /** Access to the scrollable viewport itself — e.g. to reset scrollTop
+   * when the content underneath changes but the ScrollArea doesn't remount. */
+  viewportRef?: React.Ref<HTMLDivElement>
+}) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -17,6 +22,7 @@ function ScrollArea({
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
+        ref={viewportRef}
         data-slot="scroll-area-viewport"
         // Radix wraps children in an internal `display:table` sizer div for
         // scroll measurement — that shrink-to-fit layout ignores the

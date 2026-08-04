@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatDate } from '@/lib/format'
+import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
 import type { VersionDTO, VersionType } from '@/types/version'
 
@@ -67,7 +68,7 @@ export function VersionSelectionCard({
           <Button
             variant="outline"
             size="icon"
-            title="Atualizar versões"
+            {...tooltipProps('Atualizar versões')}
             onClick={onRefresh}
           >
             <RefreshCw />

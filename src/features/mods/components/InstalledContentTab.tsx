@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { EntityAvatar } from '@/components/common/EntityAvatar'
+import { TabHeader } from '@/components/common/TabHeader'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -110,12 +111,11 @@ export function InstalledContentTab({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">{labels.title}</p>
+      <TabHeader description={labels.title}>
         <Button size="sm" onClick={() => setSearchOpen(true)}>
           <Plus /> {labels.addLabel}
         </Button>
-      </div>
+      </TabHeader>
 
       <div className="rounded-lg border">
         <Table>

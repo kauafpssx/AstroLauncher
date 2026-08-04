@@ -1,8 +1,10 @@
+pub mod config;
 pub mod curseforge;
 pub mod discord;
 pub mod downloader;
 pub mod filesystem;
 pub mod java;
+pub mod mcstat;
 pub mod minecraft;
 pub mod modloader;
 pub mod modrinth;

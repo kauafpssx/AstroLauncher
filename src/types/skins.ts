@@ -1,4 +1,8 @@
-export type SkinSortBy = 'popular-desc' | 'popular-asc'
+export type SkinSource = 'playermc' | 'mcstat'
+export type PlayerMcSortBy = 'popular-desc' | 'popular-asc'
+export type McstatSortBy = 'recent' | 'popular' | 'trending'
+export type SkinSortBy = PlayerMcSortBy | McstatSortBy
+export type SkinModel = 'classic' | 'slim'
 
 export interface SkinPlayer {
   uuid: string
@@ -6,7 +10,8 @@ export interface SkinPlayer {
 }
 
 export interface SkinSummary {
-  hash: string
+  id: string
+  source: SkinSource
   skinUrl: string
   model: string
   playerCount: number
@@ -14,7 +19,8 @@ export interface SkinSummary {
 }
 
 export interface SkinDetail {
-  hash: string
+  id: string
+  source: SkinSource
   skinUrl: string
   model: string
   playerCount: number
@@ -23,7 +29,10 @@ export interface SkinDetail {
 }
 
 export interface SearchSkinsInput {
+  source: SkinSource
   query: string
   page: number
   sortBy: SkinSortBy
+  /** MCStat only — Classic/Slim skin model filter. */
+  model?: SkinModel | null
 }

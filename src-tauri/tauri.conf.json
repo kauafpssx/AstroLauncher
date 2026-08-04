@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "AstroLauncher",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "identifier": "com.astrolauncher.app",
   "build": {
     "frontendDist": "../dist",
@@ -47,7 +47,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
     "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
@@ -71,6 +71,26 @@
     }
   },
   "plugins": {
+    "env": {
+      "api": {
+        "curseforge": "https://api.curseforge.com/v1",
+        "mcstat": "https://mcstat.org/api/v1",
+        "playermc": "https://api.playermc.site/v1",
+        "modrinth": "https://api.modrinth.com/v2",
+        "mojangManifest": "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json",
+        "mojangAssets": "https://resources.download.minecraft.net",
+        "adoptium": "https://api.adoptium.net/v3",
+        "fabricMeta": "https://meta.fabricmc.net/v2",
+        "quiltMeta": "https://meta.quiltmc.org/v3",
+        "liteloaderVersions": "http://dl.liteloader.com/versions/versions.json",
+        "liteloaderRepo": "http://repo.liteloader.com/",
+        "mavenCentral": "https://repo1.maven.org/maven2/"
+      },
+      "githubRepo": "kauafpssx/AstroLauncher",
+      "mcstatDashboard": "https://mcstat.org/dashboard/api-keys",
+      "mcstatDocs": "https://mcstat.org/api-docs",
+      "curseforgeConsole": "https://console.curseforge.com/"
+    },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIzODdENTdGQUVCRjYwRUYKUldUdllMK3VmOVdIc3dheUFDaXd2eVNLSWl6WGVmWDkveHBoRlFBOE92UldWbjk1eUZQUEcxQkwK",
       "endpoints": [

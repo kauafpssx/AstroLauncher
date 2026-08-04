@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
-use crate::application::dto::{GetModProjectInput, GetModVersionsInput, ModProjectDTO, ModSearchResultDTO, ModSource, ModVersionDTO, SearchModsInput};
+use crate::application::dto::{
+    GetModProjectInput, GetModVersionsInput, ModProjectDTO, ModSearchResultDTO, ModSource,
+    ModVersionDTO, SearchModsInput,
+};
 use crate::infrastructure::persistence::config::json_settings_repository;
 use crate::infrastructure::{curseforge, modrinth};
 
@@ -20,12 +23,16 @@ fn curseforge_class_id(project_type: &str) -> u32 {
 
 impl ModBrowserService {
     pub fn new(http_client: reqwest::Client, app_data_dir: PathBuf) -> Self {
-        Self { http_client, app_data_dir }
+        Self {
+            http_client,
+            app_data_dir,
+        }
     }
 
     fn curseforge_api_key(&self) -> anyhow::Result<String> {
-        json_settings_repository::resolve_curseforge_api_key(&self.app_data_dir)
-            .ok_or_else(|| anyhow::anyhow!("Configure sua API key do CurseForge em Configurações antes de buscar."))
+        json_settings_repository::resolve_curseforge_api_key(&self.app_data_dir).ok_or_else(|| {
+            anyhow::anyhow!("Configure sua API key do CurseForge em Configurações antes de buscar.")
+        })
     }
 
     pub async fn search(&self, input: SearchModsInput) -> anyhow::Result<Vec<ModSearchResultDTO>> {
@@ -77,14 +84,21 @@ impl ModBrowserService {
                         description: entry.summary,
                         icon_url: entry.logo.map(|l| l.url),
                         downloads: entry.download_count,
-                        author: entry.authors.first().map(|a| a.name.clone()).unwrap_or_default(),
+                        author: entry
+                            .authors
+                            .first()
+                            .map(|a| a.name.clone())
+                            .unwrap_or_default(),
                     })
                     .collect())
             }
         }
     }
 
-    pub async fn get_versions(&self, input: GetModVersionsInput) -> anyhow::Result<Vec<ModVersionDTO>> {
+    pub async fn get_versions(
+        &self,
+        input: GetModVersionsInput,
+    ) -> anyhow::Result<Vec<ModVersionDTO>> {
         match input.source {
             ModSource::Modrinth => {
                 let versions = modrinth::client::get_versions(
@@ -97,7 +111,11 @@ impl ModBrowserService {
                 Ok(versions
                     .into_iter()
                     .map(|v| {
-                        let primary_file = v.files.iter().find(|f| f.primary).or_else(|| v.files.first());
+                        let primary_file = v
+                            .files
+                            .iter()
+                            .find(|f| f.primary)
+                            .or_else(|| v.files.first());
                         let required_dependency_project_ids = v
                             .dependencies
                             .iter()
@@ -117,7 +135,10 @@ impl ModBrowserService {
             }
             ModSource::Curseforge => {
                 let api_key = self.curseforge_api_key()?;
-                let project_id: u32 = input.project_id.parse().map_err(|_| anyhow::anyhow!("ID de projeto inválido"))?;
+                let project_id: u32 = input
+                    .project_id
+                    .parse()
+                    .map_err(|_| anyhow::anyhow!("ID de projeto inválido"))?;
                 let files = curseforge::client::get_files(
                     &self.http_client,
                     &api_key,
@@ -144,7 +165,8 @@ impl ModBrowserService {
     pub async fn get_project(&self, input: GetModProjectInput) -> anyhow::Result<ModProjectDTO> {
         match input.source {
             ModSource::Modrinth => {
-                let project = modrinth::client::get_project(&self.http_client, &input.project_id).await?;
+                let project =
+                    modrinth::client::get_project(&self.http_client, &input.project_id).await?;
                 Ok(ModProjectDTO {
                     source: ModSource::Modrinth,
                     project_id: input.project_id,
@@ -161,9 +183,16 @@ impl ModBrowserService {
             }
             ModSource::Curseforge => {
                 let api_key = self.curseforge_api_key()?;
-                let project_id: u32 = input.project_id.parse().map_err(|_| anyhow::anyhow!("ID de projeto inválido"))?;
-                let entry = curseforge::client::get_mod(&self.http_client, &api_key, project_id).await?;
-                let body = curseforge::client::get_description(&self.http_client, &api_key, project_id).await.ok();
+                let project_id: u32 = input
+                    .project_id
+                    .parse()
+                    .map_err(|_| anyhow::anyhow!("ID de projeto inválido"))?;
+                let entry =
+                    curseforge::client::get_mod(&self.http_client, &api_key, project_id).await?;
+                let body =
+                    curseforge::client::get_description(&self.http_client, &api_key, project_id)
+                        .await
+                        .ok();
                 Ok(ModProjectDTO {
                     source: ModSource::Curseforge,
                     project_id: input.project_id,

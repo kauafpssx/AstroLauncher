@@ -1,7 +1,5 @@
 use serde::Deserialize;
 
-pub const MANIFEST_URL: &str = "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
-
 #[derive(Debug, Clone, Deserialize)]
 pub struct VersionManifestEntry {
     pub id: String,
@@ -19,7 +17,11 @@ pub struct VersionManifest {
 
 pub async fn fetch_manifest(client: &reqwest::Client) -> anyhow::Result<VersionManifest> {
     let manifest = client
-        .get(MANIFEST_URL)
+        .get(
+            crate::infrastructure::config::api()
+                .mojang_manifest
+                .as_str(),
+        )
         .send()
         .await?
         .error_for_status()?

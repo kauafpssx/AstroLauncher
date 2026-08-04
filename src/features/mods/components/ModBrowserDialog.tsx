@@ -1,12 +1,14 @@
 import { open as openFileDialog } from '@tauri-apps/plugin-dialog'
 import { AlertTriangle, Loader2, Upload } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
+import { EmptyState } from '@/components/common/EmptyState'
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { SearchInput } from '@/components/common/SearchInput'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -20,9 +22,11 @@ import {
 } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CONTENT_KIND_LABELS } from '@/lib/content-kind'
+import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
 import type {
   ContentKind,
+  InstalledMod,
   ModSearchResult,
   ModSource,
   ModVersion,
@@ -76,6 +80,10 @@ export function ModBrowserDialog({
   const [selection, setSelection] = useState<SelectionMap>({})
   const [view, setView] = useState<'browse' | 'review'>('browse')
   const [isUploading, setIsUploading] = useState(false)
+  const [installedMods, setInstalledMods] = useState<InstalledMod[]>([])
+  // Keys with an in-flight version fetch — checkbox reflects these instantly
+  // instead of waiting for the network round-trip.
+  const [pendingKeys, setPendingKeys] = useState<Set<string>>(new Set())
 
   // Only mods are loader-specific; resource packs/shaders shouldn't be
   // filtered by fabric/forge/etc.
@@ -94,10 +102,34 @@ export function ModBrowserDialog({
       setResults([])
       setViewing(null)
       setSelection({})
+      setPendingKeys(new Set())
       setError(null)
       setView('browse')
     }
   }
+
+  useEffect(() => {
+    if (!open) return
+    ModAPI.listInstalled(instanceId, kind)
+      .then(setInstalledMods)
+      .catch(() => setInstalledMods([]))
+  }, [open, instanceId, kind])
+
+  // Mods already installed in this instance — matched both by exact
+  // source+projectId (reinstalling the same mod) and by jar filename
+  // (the same mod pulled from the other platform), since CurseForge and
+  // Modrinth use different project IDs for what is otherwise the same file.
+  const installedKeys = useMemo(
+    () =>
+      new Set(
+        installedMods.map((m) => selectionKey(m.source as ModSource, m.modId)),
+      ),
+    [installedMods],
+  )
+  const installedFileNames = useMemo(
+    () => new Set(installedMods.map((m) => m.fileName.toLowerCase())),
+    [installedMods],
+  )
 
   useEffect(() => {
     if (!open) return
@@ -148,11 +180,29 @@ export function ModBrowserDialog({
       return
     }
 
+    if (pendingKeys.has(key)) {
+      // Second click while the version fetch is still in flight: cancel it,
+      // the checkbox flips back off instantly.
+      setPendingKeys((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+      return
+    }
+
+    if (installedKeys.has(key)) return
+
     if (version) {
+      if (installedFileNames.has(version.fileName.toLowerCase())) {
+        toast.error('Este mod já está instalado (mesmo arquivo).')
+        return
+      }
       setSelection((prev) => ({ ...prev, [key]: { result, version } }))
       return
     }
 
+    setPendingKeys((prev) => new Set(prev).add(key))
     try {
       const versions = await ModAPI.getVersions({
         source: result.source,
@@ -160,12 +210,33 @@ export function ModBrowserDialog({
         gameVersion,
         loader: effectiveLoader,
       })
-      if (!versions[0]) return
+
+      let wasCancelled = false
+      setPendingKeys((prev) => {
+        if (!prev.has(key)) {
+          wasCancelled = true
+          return prev
+        }
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+      if (wasCancelled || !versions[0]) return
+
+      if (installedFileNames.has(versions[0].fileName.toLowerCase())) {
+        toast.error('Este mod já está instalado (mesmo arquivo).')
+        return
+      }
       setSelection((prev) => ({
         ...prev,
         [key]: { result, version: versions[0] },
       }))
     } catch (err) {
+      setPendingKeys((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
       setError(String(err))
     }
   }
@@ -207,6 +278,8 @@ export function ModBrowserDialog({
             gameVersion={gameVersion}
             loader={effectiveLoader}
             kind={kind}
+            installedKeys={installedKeys}
+            installedFileNames={installedFileNames}
             onBack={() => setView('browse')}
             onInstalled={() => {
               onInstalled()
@@ -238,7 +311,9 @@ export function ModBrowserDialog({
                 <Button
                   variant="outline"
                   size="icon"
-                  title={`Enviar ${kindLabel.toLowerCase()} customizado`}
+                  {...tooltipProps(
+                    `Enviar ${kindLabel.toLowerCase()} customizado`,
+                  )}
                   disabled={isUploading}
                   onClick={handleUploadCustom}
                 >
@@ -264,13 +339,13 @@ export function ModBrowserDialog({
                 <ScrollArea type="always" className="min-h-0 flex-1">
                   <div className="flex flex-col gap-0.5 p-2">
                     {!error && sortedResults.length === 0 && (
-                      <p className="text-muted-foreground p-4 text-center text-sm">
-                        Nenhum resultado.
-                      </p>
+                      <EmptyState title="Nenhum resultado." className="p-4" />
                     )}
                     {sortedResults.map((result) => {
                       const key = selectionKey(result.source, result.projectId)
-                      const isSelected = !!selection[key]
+                      const isSelected =
+                        !!selection[key] || pendingKeys.has(key)
+                      const isInstalled = installedKeys.has(key)
                       const isViewing =
                         viewing &&
                         selectionKey(viewing.source, viewing.projectId) === key
@@ -282,11 +357,13 @@ export function ModBrowserDialog({
                           className={cn(
                             'hover:bg-accent flex items-center gap-3 rounded-lg p-2 text-left transition-colors',
                             isViewing && 'bg-primary/10',
+                            isInstalled && 'opacity-50',
                           )}
                         >
                           <span onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={isSelected}
+                              disabled={isInstalled}
                               onCheckedChange={() => toggleSelection(result)}
                             />
                           </span>
@@ -296,9 +373,16 @@ export function ModBrowserDialog({
                             className="size-9"
                           />
                           <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium">
-                              {result.name}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="truncate font-medium">
+                                {result.name}
+                              </p>
+                              {isInstalled && (
+                                <Badge variant="secondary" className="shrink-0">
+                                  Instalado
+                                </Badge>
+                              )}
+                            </div>
                             <p className="text-muted-foreground truncate text-xs">
                               {result.description}
                             </p>
@@ -340,16 +424,26 @@ export function ModBrowserDialog({
                   gameVersion={gameVersion}
                   loader={effectiveLoader}
                   isSelected={
-                    !!selection[selectionKey(viewing.source, viewing.projectId)]
+                    !!selection[
+                      selectionKey(viewing.source, viewing.projectId)
+                    ] ||
+                    pendingKeys.has(
+                      selectionKey(viewing.source, viewing.projectId),
+                    )
                   }
+                  isInstalled={installedKeys.has(
+                    selectionKey(viewing.source, viewing.projectId),
+                  )}
+                  installedFileNames={installedFileNames}
                   onToggleSelect={(version) =>
                     toggleSelection(viewing, version)
                   }
                 />
               ) : (
-                <div className="text-muted-foreground flex h-full items-center justify-center p-6 text-center text-sm">
-                  Selecione um item na lista para ver detalhes.
-                </div>
+                <EmptyState
+                  title="Selecione um item na lista para ver detalhes."
+                  className="h-full p-6"
+                />
               )}
             </div>
           </div>

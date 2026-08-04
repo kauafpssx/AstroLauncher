@@ -111,8 +111,7 @@ jobs:
               "",
               "## Instaladores",
               "",
-              "- **NSIS Installer (`.exe`)**: instalador padrao recomendado para a maioria dos usuarios.",
-              "- **MSI Installer (`.msi`)**: opcao voltada para instalacao corporativa.",
+              "- **NSIS Installer (`.exe`)**: instalador padrao para Windows.",
               "",
               "## Changelog",
               "",
@@ -167,7 +166,6 @@ jobs:
         with:
           name: AstroLauncher-Windows
           path: |
-            src-tauri/target/release/bundle/msi/*.msi
             src-tauri/target/release/bundle/nsis/*.exe
             ${{ steps.updater_manifest.outputs.path }}
           if-no-files-found: ignore
@@ -189,7 +187,6 @@ jobs:
           body_path: ${{ steps.release_notes.outputs.path }}
           generate_release_notes: false
           files: |
-            src-tauri/target/release/bundle/msi/*.msi
             src-tauri/target/release/bundle/nsis/*.exe
             ${{ steps.updater_manifest.outputs.path }}
         env:

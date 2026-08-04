@@ -3,7 +3,9 @@ use std::path::{Path, PathBuf};
 use mc_launcher_core::account::Account;
 use mc_launcher_core::command::builder::{build_launch_command, LaunchOptions};
 use mc_launcher_core::core::version::VersionJson;
-use mc_launcher_core::install::client::{fetch_vanilla_version, install_version_files, load_version_json, write_version_json};
+use mc_launcher_core::install::client::{
+    fetch_vanilla_version, install_version_files, load_version_json, write_version_json,
+};
 use mc_launcher_core::install::loader::{run_loader_installer, InstallerInvocation};
 use mc_launcher_core::loader::{forge, neoforge, LoaderKind};
 use mc_launcher_core::net::download::{execute_plan, DownloadPlan, DownloadTask};
@@ -49,10 +51,17 @@ pub fn installer_url(loader: &str, loader_version: &str) -> anyhow::Result<Strin
     }
 }
 
-pub fn installed_version_id(loader: &str, mc_version: &str, loader_version: &str) -> anyhow::Result<String> {
+pub fn installed_version_id(
+    loader: &str,
+    mc_version: &str,
+    loader_version: &str,
+) -> anyhow::Result<String> {
     match kind_for(loader) {
         Some(LoaderKind::Forge) => Ok(forge::forge_installed_version_id(loader_version)?),
-        Some(LoaderKind::NeoForge) => Ok(neoforge::neoforge_installed_version_id(mc_version, loader_version)),
+        Some(LoaderKind::NeoForge) => Ok(neoforge::neoforge_installed_version_id(
+            mc_version,
+            loader_version,
+        )),
         _ => anyhow::bail!("Loader '{loader}' não é Forge nem NeoForge"),
     }
 }
@@ -69,7 +78,12 @@ pub fn ensure_vanilla_json_on_disk(minecraft_dir: &Path, mc_version: &str) -> an
 /// Runs the downloaded installer jar with our own resolved Java runtime.
 /// Blocking — spawns `java -jar installer.jar --installClient <dir>` and
 /// waits for it to exit.
-pub fn run_installer(java_bin: &Path, installer_path: &Path, minecraft_dir: &Path, loader: &str) -> anyhow::Result<()> {
+pub fn run_installer(
+    java_bin: &Path,
+    installer_path: &Path,
+    minecraft_dir: &Path,
+    loader: &str,
+) -> anyhow::Result<()> {
     let Some(kind) = kind_for(loader) else {
         anyhow::bail!("Loader '{loader}' não é Forge nem NeoForge");
     };
@@ -91,7 +105,11 @@ pub fn load_merged_version(minecraft_dir: &Path, version_id: &str) -> anyhow::Re
 /// Downloads the client jar, merged libraries, assets, and extracts natives
 /// for the given (already merged) version. Replaces our own per-library
 /// download loop and asset downloader for this loader family only.
-pub fn install_files(version: &VersionJson, minecraft_dir: &Path, mut on_progress: impl FnMut(String) + Send) -> anyhow::Result<()> {
+pub fn install_files(
+    version: &VersionJson,
+    minecraft_dir: &Path,
+    mut on_progress: impl FnMut(String) + Send,
+) -> anyhow::Result<()> {
     struct Bridge<F: FnMut(String)>(F);
     impl<F: FnMut(String)> ProgressReporter for Bridge<F> {
         fn report(&mut self, event: mc_launcher_core::progress::ProgressEvent) {
@@ -111,7 +129,12 @@ pub fn installer_local_path(minecraft_dir: &Path, loader: &str, loader_version: 
 }
 
 /// Downloads the installer jar to `installer_local_path`. Blocking.
-pub fn download_installer(minecraft_dir: &Path, loader: &str, loader_version: &str, url: &str) -> anyhow::Result<PathBuf> {
+pub fn download_installer(
+    minecraft_dir: &Path,
+    loader: &str,
+    loader_version: &str,
+    url: &str,
+) -> anyhow::Result<PathBuf> {
     let destination = installer_local_path(minecraft_dir, loader, loader_version);
     let plan = DownloadPlan {
         tasks: vec![DownloadTask {
@@ -147,12 +170,19 @@ pub fn build_command(
     uuid: &str,
 ) -> anyhow::Result<BuiltCommand> {
     let options = LaunchOptions {
-        account: Account::Offline { username: username.to_string(), uuid: uuid.to_string() },
+        account: Account::Offline {
+            username: username.to_string(),
+            uuid: uuid.to_string(),
+        },
         java_executable: Some(java_bin.to_path_buf()),
         game_directory: Some(game_dir.to_path_buf()),
         natives_directory: Some(natives_dir.to_path_buf()),
         ..Default::default()
     };
     let command = build_launch_command(version, minecraft_dir.to_path_buf(), options)?;
-    Ok(BuiltCommand { executable: command.executable, args: command.args, working_dir: command.working_dir })
+    Ok(BuiltCommand {
+        executable: command.executable,
+        args: command.args,
+        working_dir: command.working_dir,
+    })
 }

@@ -19,7 +19,10 @@ pub struct InstanceWorkspaceService {
 
 impl InstanceWorkspaceService {
     pub fn new(instance_repository: Arc<dyn InstanceRepository>, app_data_dir: PathBuf) -> Self {
-        Self { instance_repository, app_data_dir }
+        Self {
+            instance_repository,
+            app_data_dir,
+        }
     }
 
     fn instance_dir(&self, id: &str) -> Result<PathBuf, InstanceError> {
@@ -41,7 +44,8 @@ impl InstanceWorkspaceService {
         let notes_dir = instance_dir.join("notes");
         if !notes_dir.exists() {
             let legacy = instance_dir.join("notes.txt");
-            std::fs::create_dir_all(&notes_dir).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+            std::fs::create_dir_all(&notes_dir)
+                .map_err(|e| InstanceError::Persistence(e.to_string()))?;
             if let Ok(legacy_content) = std::fs::read_to_string(&legacy) {
                 if !legacy_content.trim().is_empty() {
                     let _ = std::fs::write(notes_dir.join("Nota 1.md"), legacy_content);
@@ -52,7 +56,11 @@ impl InstanceWorkspaceService {
     }
 
     fn note_path(&self, id: &str, note_id: &str) -> Result<PathBuf, InstanceError> {
-        if note_id.is_empty() || note_id.contains("..") || note_id.contains('/') || note_id.contains('\\') {
+        if note_id.is_empty()
+            || note_id.contains("..")
+            || note_id.contains('/')
+            || note_id.contains('\\')
+        {
             return Err(InstanceError::InvalidName(note_id.to_string()));
         }
         Ok(self.notes_dir(id)?.join(format!("{note_id}.md")))
@@ -61,20 +69,30 @@ impl InstanceWorkspaceService {
     pub fn list_notes(&self, id: &str) -> Result<Vec<NoteDTO>, InstanceError> {
         let dir = self.notes_dir(id)?;
         let mut notes = Vec::new();
-        let entries = std::fs::read_dir(&dir).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let entries =
+            std::fs::read_dir(&dir).map_err(|e| InstanceError::Persistence(e.to_string()))?;
         for entry in entries.flatten() {
             let path = entry.path();
             if path.extension().and_then(|e| e.to_str()) != Some("md") {
                 continue;
             }
-            let Some(title) = path.file_stem().and_then(|s| s.to_str()) else { continue };
-            notes.push(NoteDTO { id: title.to_string(), title: title.to_string() });
+            let Some(title) = path.file_stem().and_then(|s| s.to_str()) else {
+                continue;
+            };
+            notes.push(NoteDTO {
+                id: title.to_string(),
+                title: title.to_string(),
+            });
         }
-        notes.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+        notes.sort_by_key(|a| a.title.to_lowercase());
 
         if notes.is_empty() {
-            std::fs::write(dir.join("Nota 1.md"), "").map_err(|e| InstanceError::Persistence(e.to_string()))?;
-            notes.push(NoteDTO { id: "Nota 1".to_string(), title: "Nota 1".to_string() });
+            std::fs::write(dir.join("Nota 1.md"), "")
+                .map_err(|e| InstanceError::Persistence(e.to_string()))?;
+            notes.push(NoteDTO {
+                id: "Nota 1".to_string(),
+                title: "Nota 1".to_string(),
+            });
         }
         Ok(notes)
     }
@@ -92,7 +110,11 @@ impl InstanceWorkspaceService {
     /// Finds a `<base> N.md`-style name that doesn't collide with an
     /// existing note — shared by note creation and renaming.
     fn unique_note_title(&self, dir: &Path, base: &str) -> String {
-        let base = if base.trim().is_empty() { "Nova Nota" } else { base.trim() };
+        let base = if base.trim().is_empty() {
+            "Nova Nota"
+        } else {
+            base.trim()
+        };
         if !dir.join(format!("{base}.md")).exists() {
             return base.to_string();
         }
@@ -109,17 +131,29 @@ impl InstanceWorkspaceService {
     pub fn create_note(&self, id: &str, title: &str) -> Result<NoteDTO, InstanceError> {
         let dir = self.notes_dir(id)?;
         let title = self.unique_note_title(&dir, title);
-        std::fs::write(dir.join(format!("{title}.md")), "").map_err(|e| InstanceError::Persistence(e.to_string()))?;
-        Ok(NoteDTO { id: title.clone(), title })
+        std::fs::write(dir.join(format!("{title}.md")), "")
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        Ok(NoteDTO {
+            id: title.clone(),
+            title,
+        })
     }
 
-    pub fn rename_note(&self, id: &str, note_id: &str, new_title: &str) -> Result<NoteDTO, InstanceError> {
+    pub fn rename_note(
+        &self,
+        id: &str,
+        note_id: &str,
+        new_title: &str,
+    ) -> Result<NoteDTO, InstanceError> {
         let source = self.note_path(id, note_id)?;
         let dir = self.notes_dir(id)?;
         let new_title = self.unique_note_title(&dir, new_title);
         let dest = dir.join(format!("{new_title}.md"));
         std::fs::rename(&source, &dest).map_err(|e| InstanceError::Persistence(e.to_string()))?;
-        Ok(NoteDTO { id: new_title.clone(), title: new_title })
+        Ok(NoteDTO {
+            id: new_title.clone(),
+            title: new_title,
+        })
     }
 
     pub fn delete_note(&self, id: &str, note_id: &str) -> Result<(), InstanceError> {
@@ -147,7 +181,8 @@ impl InstanceWorkspaceService {
         }
 
         let mut worlds = Vec::new();
-        let entries = std::fs::read_dir(&saves_dir).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let entries =
+            std::fs::read_dir(&saves_dir).map_err(|e| InstanceError::Persistence(e.to_string()))?;
         for entry in entries.flatten() {
             let path = entry.path();
             if !path.is_dir() {
@@ -160,19 +195,28 @@ impl InstanceWorkspaceService {
                 .ok()
                 .map(|t| DateTime::<Utc>::from(t).to_rfc3339());
 
-            worlds.push(WorldDTO { name, size_bytes, last_modified });
+            worlds.push(WorldDTO {
+                name,
+                size_bytes,
+                last_modified,
+            });
         }
         Ok(worlds)
     }
 
     pub fn delete_world(&self, id: &str, world_name: &str) -> Result<(), InstanceError> {
-        if world_name.is_empty() || world_name.contains("..") || world_name.contains('/') || world_name.contains('\\') {
+        if world_name.is_empty()
+            || world_name.contains("..")
+            || world_name.contains('/')
+            || world_name.contains('\\')
+        {
             return Err(InstanceError::InvalidName(world_name.to_string()));
         }
 
         let world_dir = self.instance_dir(id)?.join("saves").join(world_name);
         if world_dir.exists() {
-            std::fs::remove_dir_all(&world_dir).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+            std::fs::remove_dir_all(&world_dir)
+                .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         }
         Ok(())
     }
@@ -183,38 +227,60 @@ impl InstanceWorkspaceService {
 
     pub fn list_servers(&self, id: &str) -> Result<Vec<ServerEntryDTO>, InstanceError> {
         let path = self.servers_dat_path(id)?;
-        let servers = servers_dat::read_servers(&path).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let servers = servers_dat::read_servers(&path)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         Ok(servers
             .into_iter()
             .enumerate()
-            .map(|(index, s)| ServerEntryDTO { index, name: s.name, ip: s.ip })
+            .map(|(index, s)| ServerEntryDTO {
+                index,
+                name: s.name,
+                ip: s.ip,
+            })
             .collect())
     }
 
     pub fn add_server(&self, id: &str, name: &str, ip: &str) -> Result<(), InstanceError> {
         let path = self.servers_dat_path(id)?;
-        let mut servers = servers_dat::read_servers(&path).map_err(|e| InstanceError::Persistence(e.to_string()))?;
-        servers.push(ServerEntry { name: name.to_string(), ip: ip.to_string() });
-        servers_dat::write_servers(&path, &servers).map_err(|e| InstanceError::Persistence(e.to_string()))
+        let mut servers = servers_dat::read_servers(&path)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        servers.push(ServerEntry {
+            name: name.to_string(),
+            ip: ip.to_string(),
+        });
+        servers_dat::write_servers(&path, &servers)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))
     }
 
-    pub fn update_server(&self, id: &str, index: usize, name: &str, ip: &str) -> Result<(), InstanceError> {
+    pub fn update_server(
+        &self,
+        id: &str,
+        index: usize,
+        name: &str,
+        ip: &str,
+    ) -> Result<(), InstanceError> {
         let path = self.servers_dat_path(id)?;
-        let mut servers = servers_dat::read_servers(&path).map_err(|e| InstanceError::Persistence(e.to_string()))?;
-        let entry = servers.get_mut(index).ok_or_else(|| InstanceError::InvalidName(index.to_string()))?;
+        let mut servers = servers_dat::read_servers(&path)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let entry = servers
+            .get_mut(index)
+            .ok_or_else(|| InstanceError::InvalidName(index.to_string()))?;
         entry.name = name.to_string();
         entry.ip = ip.to_string();
-        servers_dat::write_servers(&path, &servers).map_err(|e| InstanceError::Persistence(e.to_string()))
+        servers_dat::write_servers(&path, &servers)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))
     }
 
     pub fn delete_server(&self, id: &str, index: usize) -> Result<(), InstanceError> {
         let path = self.servers_dat_path(id)?;
-        let mut servers = servers_dat::read_servers(&path).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let mut servers = servers_dat::read_servers(&path)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         if index >= servers.len() {
             return Err(InstanceError::InvalidName(index.to_string()));
         }
         servers.remove(index);
-        servers_dat::write_servers(&path, &servers).map_err(|e| InstanceError::Persistence(e.to_string()))
+        servers_dat::write_servers(&path, &servers)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))
     }
 
     fn screenshot_path(&self, id: &str, name: &str) -> Result<PathBuf, InstanceError> {
@@ -231,10 +297,17 @@ impl InstanceWorkspaceService {
         }
 
         let mut shots = Vec::new();
-        let entries = std::fs::read_dir(&dir).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let entries =
+            std::fs::read_dir(&dir).map_err(|e| InstanceError::Persistence(e.to_string()))?;
         for entry in entries.flatten() {
             let path = entry.path();
-            if !path.is_file() || path.extension().and_then(|e| e.to_str()).map(|e| e.to_lowercase()) != Some("png".to_string()) {
+            if !path.is_file()
+                || path
+                    .extension()
+                    .and_then(|e| e.to_str())
+                    .map(|e| e.to_lowercase())
+                    != Some("png".to_string())
+            {
                 continue;
             }
             let name = entry.file_name().to_string_lossy().to_string();
@@ -243,7 +316,11 @@ impl InstanceWorkspaceService {
             let taken_at = metadata
                 .and_then(|m| m.modified().ok())
                 .map(|t| DateTime::<Utc>::from(t).to_rfc3339());
-            shots.push(ScreenshotDTO { name, size_bytes, taken_at });
+            shots.push(ScreenshotDTO {
+                name,
+                size_bytes,
+                taken_at,
+            });
         }
         shots.sort_by(|a, b| b.taken_at.cmp(&a.taken_at));
         Ok(shots)
@@ -266,13 +343,25 @@ impl InstanceWorkspaceService {
     }
 
     /// Renames only the base name, keeping the original file extension intact.
-    pub fn rename_screenshot(&self, id: &str, name: &str, new_base_name: &str) -> Result<String, InstanceError> {
-        if new_base_name.is_empty() || new_base_name.contains("..") || new_base_name.contains('/') || new_base_name.contains('\\') {
+    pub fn rename_screenshot(
+        &self,
+        id: &str,
+        name: &str,
+        new_base_name: &str,
+    ) -> Result<String, InstanceError> {
+        if new_base_name.is_empty()
+            || new_base_name.contains("..")
+            || new_base_name.contains('/')
+            || new_base_name.contains('\\')
+        {
             return Err(InstanceError::InvalidName(new_base_name.to_string()));
         }
 
         let source = self.screenshot_path(id, name)?;
-        let ext = Path::new(name).extension().and_then(|e| e.to_str()).unwrap_or("png");
+        let ext = Path::new(name)
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("png");
         let new_name = format!("{new_base_name}.{ext}");
         if new_name == name {
             return Ok(new_name);
@@ -280,14 +369,21 @@ impl InstanceWorkspaceService {
 
         let dest = self.screenshot_path(id, &new_name)?;
         if dest.exists() {
-            return Err(InstanceError::Persistence("Já existe uma screenshot com esse nome".to_string()));
+            return Err(InstanceError::Persistence(
+                "Já existe uma screenshot com esse nome".to_string(),
+            ));
         }
 
         std::fs::rename(&source, &dest).map_err(|e| InstanceError::Persistence(e.to_string()))?;
         Ok(new_name)
     }
 
-    pub fn save_screenshot_as(&self, id: &str, name: &str, dest_path: &str) -> Result<(), InstanceError> {
+    pub fn save_screenshot_as(
+        &self,
+        id: &str,
+        name: &str,
+        dest_path: &str,
+    ) -> Result<(), InstanceError> {
         let source = self.screenshot_path(id, name)?;
         std::fs::copy(&source, dest_path).map_err(|e| InstanceError::Persistence(e.to_string()))?;
         Ok(())
@@ -296,7 +392,10 @@ impl InstanceWorkspaceService {
     /// Resolves a `/`-separated relative path against the instance directory,
     /// rejecting anything that would escape it (`..`, absolute paths).
     fn config_file_path(&self, id: &str, relative_path: &str) -> Result<PathBuf, InstanceError> {
-        if relative_path.split(['/', '\\']).any(|part| part.is_empty() || part == "..") {
+        if relative_path
+            .split(['/', '\\'])
+            .any(|part| part.is_empty() || part == "..")
+        {
             return Err(InstanceError::InvalidName(relative_path.to_string()));
         }
         Ok(self.instance_dir(id)?.join(relative_path))
@@ -312,19 +411,32 @@ impl InstanceWorkspaceService {
         for name in ["options.txt", "optionsof.txt"] {
             let path = instance_dir.join(name);
             if let Ok(metadata) = std::fs::metadata(&path) {
-                files.push(ConfigFileDTO { path: name.to_string(), size_bytes: metadata.len() });
+                files.push(ConfigFileDTO {
+                    path: name.to_string(),
+                    size_bytes: metadata.len(),
+                });
             }
         }
 
         let config_dir = instance_dir.join("config");
         if config_dir.exists() {
-            for entry in walkdir::WalkDir::new(&config_dir).into_iter().filter_map(|e| e.ok()) {
+            for entry in walkdir::WalkDir::new(&config_dir)
+                .into_iter()
+                .filter_map(|e| e.ok())
+            {
                 if !entry.file_type().is_file() {
                     continue;
                 }
-                let Ok(relative) = entry.path().strip_prefix(&instance_dir) else { continue };
-                let Some(size_bytes) = entry.metadata().ok().map(|m| m.len()) else { continue };
-                files.push(ConfigFileDTO { path: relative.to_string_lossy().replace('\\', "/"), size_bytes });
+                let Ok(relative) = entry.path().strip_prefix(&instance_dir) else {
+                    continue;
+                };
+                let Some(size_bytes) = entry.metadata().ok().map(|m| m.len()) else {
+                    continue;
+                };
+                files.push(ConfigFileDTO {
+                    path: relative.to_string_lossy().replace('\\', "/"),
+                    size_bytes,
+                });
             }
         }
 
@@ -336,10 +448,16 @@ impl InstanceWorkspaceService {
         std::fs::read_to_string(&path).map_err(|e| InstanceError::Persistence(e.to_string()))
     }
 
-    pub fn write_config_file(&self, id: &str, relative_path: &str, content: &str) -> Result<(), InstanceError> {
+    pub fn write_config_file(
+        &self,
+        id: &str,
+        relative_path: &str,
+        content: &str,
+    ) -> Result<(), InstanceError> {
         let path = self.config_file_path(id, relative_path)?;
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+            std::fs::create_dir_all(parent)
+                .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         }
         std::fs::write(path, content).map_err(|e| InstanceError::Persistence(e.to_string()))
     }

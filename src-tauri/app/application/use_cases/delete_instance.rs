@@ -14,8 +14,16 @@ pub struct DeleteInstanceUseCase {
 }
 
 impl DeleteInstanceUseCase {
-    pub fn new(repository: Arc<dyn InstanceRepository>, process_manager: Arc<ProcessManager>, app_data_dir: PathBuf) -> Self {
-        Self { repository, process_manager, app_data_dir }
+    pub fn new(
+        repository: Arc<dyn InstanceRepository>,
+        process_manager: Arc<ProcessManager>,
+        app_data_dir: PathBuf,
+    ) -> Self {
+        Self {
+            repository,
+            process_manager,
+            app_data_dir,
+        }
     }
 
     pub fn execute(&self, id: &str) -> Result<(), InstanceError> {
@@ -32,8 +40,13 @@ impl DeleteInstanceUseCase {
             // The instance is already gone from the DB/UI either way — a
             // few retries clear the transient case, and if it's genuinely
             // still in use we leave the folder rather than block deletion.
-            if let Err(err) = remove_dir_all_with_retry(&instance_dir, 5, Duration::from_millis(200)) {
-                tracing::warn!("could not fully remove instance directory {}: {err}", instance_dir.display());
+            if let Err(err) =
+                remove_dir_all_with_retry(&instance_dir, 5, Duration::from_millis(200))
+            {
+                tracing::warn!(
+                    "could not fully remove instance directory {}: {err}",
+                    instance_dir.display()
+                );
             }
         }
 

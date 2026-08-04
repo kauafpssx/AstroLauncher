@@ -33,8 +33,12 @@ impl FolderRepository for SqliteFolderRepository {
     fn find_all(&self) -> Result<Vec<Folder>> {
         let conn = self.conn.lock();
         let sql = format!("SELECT {SELECT_COLUMNS} FROM folders ORDER BY position, name");
-        let mut stmt = conn.prepare(&sql).map_err(|e| FolderError::Persistence(e.to_string()))?;
-        let rows = stmt.query_map([], map_row).map_err(|e| FolderError::Persistence(e.to_string()))?;
+        let mut stmt = conn
+            .prepare(&sql)
+            .map_err(|e| FolderError::Persistence(e.to_string()))?;
+        let rows = stmt
+            .query_map([], map_row)
+            .map_err(|e| FolderError::Persistence(e.to_string()))?;
 
         let mut folders = Vec::new();
         for row in rows {
@@ -83,12 +87,18 @@ impl FolderRepository for SqliteFolderRepository {
 
     fn reorder(&self, ordered_ids: &[String]) -> Result<()> {
         let conn = self.conn.lock();
-        let tx = conn.unchecked_transaction().map_err(|e| FolderError::Persistence(e.to_string()))?;
+        let tx = conn
+            .unchecked_transaction()
+            .map_err(|e| FolderError::Persistence(e.to_string()))?;
         for (index, id) in ordered_ids.iter().enumerate() {
-            tx.execute("UPDATE folders SET position = ?1 WHERE id = ?2", params![index as i64, id])
-                .map_err(|e| FolderError::Persistence(e.to_string()))?;
+            tx.execute(
+                "UPDATE folders SET position = ?1 WHERE id = ?2",
+                params![index as i64, id],
+            )
+            .map_err(|e| FolderError::Persistence(e.to_string()))?;
         }
-        tx.commit().map_err(|e| FolderError::Persistence(e.to_string()))?;
+        tx.commit()
+            .map_err(|e| FolderError::Persistence(e.to_string()))?;
         Ok(())
     }
 }

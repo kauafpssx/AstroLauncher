@@ -38,8 +38,12 @@ fn map_row(row: &Row) -> rusqlite::Result<InstalledMod> {
 impl ModRepository for SqliteModRepository {
     fn find_by_instance(&self, instance_id: &str) -> Result<Vec<InstalledMod>> {
         let conn = self.conn.lock();
-        let sql = format!("SELECT {SELECT_COLUMNS} FROM instance_mods WHERE instance_id = ?1 ORDER BY name");
-        let mut stmt = conn.prepare(&sql).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let sql = format!(
+            "SELECT {SELECT_COLUMNS} FROM instance_mods WHERE instance_id = ?1 ORDER BY name"
+        );
+        let mut stmt = conn
+            .prepare(&sql)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         let rows = stmt
             .query_map(params![instance_id], map_row)
             .map_err(|e| InstanceError::Persistence(e.to_string()))?;
@@ -51,10 +55,16 @@ impl ModRepository for SqliteModRepository {
         Ok(mods)
     }
 
-    fn find_by_instance_and_kind(&self, instance_id: &str, kind: &str) -> Result<Vec<InstalledMod>> {
+    fn find_by_instance_and_kind(
+        &self,
+        instance_id: &str,
+        kind: &str,
+    ) -> Result<Vec<InstalledMod>> {
         let conn = self.conn.lock();
         let sql = format!("SELECT {SELECT_COLUMNS} FROM instance_mods WHERE instance_id = ?1 AND kind = ?2 ORDER BY name");
-        let mut stmt = conn.prepare(&sql).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let mut stmt = conn
+            .prepare(&sql)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         let rows = stmt
             .query_map(params![instance_id, kind], map_row)
             .map_err(|e| InstanceError::Persistence(e.to_string()))?;
@@ -101,8 +111,11 @@ impl ModRepository for SqliteModRepository {
 
     fn set_enabled(&self, id: &str, enabled: bool) -> Result<()> {
         let conn = self.conn.lock();
-        conn.execute("UPDATE instance_mods SET enabled = ?1 WHERE id = ?2", params![enabled as i64, id])
-            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        conn.execute(
+            "UPDATE instance_mods SET enabled = ?1 WHERE id = ?2",
+            params![enabled as i64, id],
+        )
+        .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         Ok(())
     }
 }

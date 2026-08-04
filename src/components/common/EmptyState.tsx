@@ -4,9 +4,9 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 interface EmptyStateProps {
-  icon: LucideIcon
+  icon?: LucideIcon
   title: string
-  description?: string
+  description?: ReactNode
   action?: ReactNode
   className?: string
   iconClassName?: string
@@ -27,7 +27,9 @@ export function EmptyState({
         className,
       )}
     >
-      <Icon className={cn('text-muted-foreground size-8', iconClassName)} />
+      {Icon && (
+        <Icon className={cn('text-muted-foreground size-8', iconClassName)} />
+      )}
       <div className="flex flex-col gap-1">
         <p className="font-medium">{title}</p>
         {description && (

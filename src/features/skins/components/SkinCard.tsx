@@ -1,5 +1,11 @@
+import { useEffect, useState } from 'react'
+
 import { cn } from '@/lib/utils'
 import type { SkinSummary } from '@/types/skins'
+
+import { withThumbnailLimit } from '../lib/thumbnailQueue'
+import { renderStaticThumbnail } from '../lib/thumbnailRenderer'
+import { SkinAPI } from '../services/skin.api'
 
 interface SkinCardProps {
   skin: SkinSummary
@@ -8,12 +14,49 @@ interface SkinCardProps {
   onClick: () => void
 }
 
-/** vzge.me renders a skin texture (by its hash) as an isometric body pose. */
-function renderUrl(hash: string) {
-  return `https://vzge.me/full/200/${hash}?wide`
+function SkinThumbnail({ skin, alt }: { skin: SkinSummary; alt: string }) {
+  const [renderUrl, setRenderUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    // Rendered locally with skinview3d (same engine as the detail modal's 3D
+    // view) instead of a third-party render service — no network flakiness,
+    // no bot-detection surprises. The texture is fetched through our own
+    // backend into a data: URI first so the canvas read-back below never
+    // taints on a cross-origin image.
+    withThumbnailLimit(async () => {
+      const textureBase64 = await SkinAPI.fetchTextureBase64(skin.skinUrl)
+      return renderStaticThumbnail(
+        `data:image/png;base64,${textureBase64}`,
+        skin.model === 'slim' ? 'slim' : 'default',
+      )
+    })
+      .then((url) => !cancelled && setRenderUrl(url))
+      .catch((err) => {
+        if (!cancelled) console.error('Falha ao renderizar thumbnail:', err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [skin.skinUrl, skin.model])
+
+  if (!renderUrl) {
+    return <div className="bg-muted/60 size-full animate-pulse rounded-md" />
+  }
+
+  return (
+    <img
+      src={renderUrl}
+      alt={alt}
+      className="h-full w-auto [image-rendering:pixelated]"
+      loading="lazy"
+    />
+  )
 }
 
 export function SkinCard({ skin, matched, dimmed, onClick }: SkinCardProps) {
+  const username = skin.firstSeenPlayer.username
+
   return (
     <button
       type="button"
@@ -30,16 +73,13 @@ export function SkinCard({ skin, matched, dimmed, onClick }: SkinCardProps) {
         </span>
       )}
       <div className="bg-muted/40 flex h-52 w-full items-center justify-center overflow-hidden rounded-md py-4">
-        <img
-          src={renderUrl(skin.hash)}
-          alt={skin.firstSeenPlayer.username}
-          className="h-full w-auto [image-rendering:pixelated]"
-          loading="lazy"
-        />
+        <SkinThumbnail skin={skin} alt={username} />
       </div>
-      <span className="line-clamp-1 w-full text-sm font-medium break-words uppercase">
-        {skin.firstSeenPlayer.username}
-      </span>
+      {username && (
+        <span className="line-clamp-1 w-full text-sm font-medium break-words uppercase">
+          {username}
+        </span>
+      )}
     </button>
   )
 }

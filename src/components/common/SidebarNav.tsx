@@ -2,6 +2,7 @@ import { ArrowLeft } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
 
 export interface SidebarNavItem<T extends string> {
@@ -48,7 +49,7 @@ export function SidebarNav<T extends string>({
             type="button"
             onClick={onBack}
             disabled={disabled}
-            title="Voltar"
+            {...tooltipProps('Voltar')}
             className={cn(
               'bg-primary/10 text-primary hover:bg-primary/20 flex size-7 items-center justify-center rounded-md transition-colors',
               disabled && 'hover:bg-primary/10 cursor-not-allowed opacity-50',

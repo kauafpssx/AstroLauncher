@@ -35,11 +35,23 @@ impl ModManagerService {
         http_client: reqwest::Client,
         app_data_dir: PathBuf,
     ) -> Self {
-        Self { mod_repository, instance_repository, discord, http_client, app_data_dir }
+        Self {
+            mod_repository,
+            instance_repository,
+            discord,
+            http_client,
+            app_data_dir,
+        }
     }
 
-    pub fn list(&self, instance_id: &str, kind: &str) -> Result<Vec<InstalledModDTO>, InstanceError> {
-        let mods = self.mod_repository.find_by_instance_and_kind(instance_id, kind)?;
+    pub fn list(
+        &self,
+        instance_id: &str,
+        kind: &str,
+    ) -> Result<Vec<InstalledModDTO>, InstanceError> {
+        let mods = self
+            .mod_repository
+            .find_by_instance_and_kind(instance_id, kind)?;
         Ok(mods.into_iter().map(to_dto).collect())
     }
 
@@ -54,12 +66,16 @@ impl ModManagerService {
             "shader" => "Baixando shaders",
             _ => "Baixando mods",
         };
-        let _presence = self.discord.guard(details, format!("{instance_name} — {}", input.mod_name));
+        let _presence = self
+            .discord
+            .guard(details, format!("{instance_name} — {}", input.mod_name));
 
-        let target_dir = paths::instance_dir(&self.app_data_dir, &input.instance_id).join(target_folder(&input.kind));
+        let target_dir = paths::instance_dir(&self.app_data_dir, &input.instance_id)
+            .join(target_folder(&input.kind));
         let dest = target_dir.join(&input.file_name);
 
-        file_downloader::download_to_file(&self.http_client, &input.download_url, &dest, None).await?;
+        file_downloader::download_to_file(&self.http_client, &input.download_url, &dest, None)
+            .await?;
 
         let installed = InstalledMod::new(
             input.instance_id,
@@ -91,7 +107,8 @@ impl ModManagerService {
             .unwrap_or(&file_name)
             .to_string();
 
-        let target_dir = paths::instance_dir(&self.app_data_dir, &input.instance_id).join(target_folder(&input.kind));
+        let target_dir = paths::instance_dir(&self.app_data_dir, &input.instance_id)
+            .join(target_folder(&input.kind));
         std::fs::create_dir_all(&target_dir)?;
         let dest = target_dir.join(&file_name);
         std::fs::copy(source_path, &dest)?;
@@ -117,9 +134,17 @@ impl ModManagerService {
     /// The renamed path must be persisted back to `file_path`, otherwise the
     /// next toggle compares against the stale original name and never
     /// detects the file is already suffixed — silently breaking re-enable.
-    pub fn set_enabled(&self, instance_id: &str, id: &str, enabled: bool) -> Result<(), InstanceError> {
+    pub fn set_enabled(
+        &self,
+        instance_id: &str,
+        id: &str,
+        enabled: bool,
+    ) -> Result<(), InstanceError> {
         let mods = self.mod_repository.find_by_instance(instance_id)?;
-        let mut installed = mods.into_iter().find(|m| m.id == id).ok_or_else(|| InstanceError::NotFound(id.to_string()))?;
+        let mut installed = mods
+            .into_iter()
+            .find(|m| m.id == id)
+            .ok_or_else(|| InstanceError::NotFound(id.to_string()))?;
 
         let current_path = installed.file_path.clone();
         let new_path = if enabled && current_path.ends_with(".disabled") {
@@ -131,7 +156,8 @@ impl ModManagerService {
         };
 
         if new_path != current_path && std::path::Path::new(&current_path).exists() {
-            std::fs::rename(&current_path, &new_path).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+            std::fs::rename(&current_path, &new_path)
+                .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         }
 
         installed.file_path = new_path;
@@ -150,12 +176,19 @@ impl ModManagerService {
 }
 
 fn to_dto(m: InstalledMod) -> InstalledModDTO {
+    let file_name = std::path::Path::new(&m.file_path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or(&m.file_path)
+        .trim_end_matches(".disabled")
+        .to_string();
     InstalledModDTO {
         id: m.id,
         mod_id: m.mod_id,
         source: m.source,
         name: m.name,
         version: m.version,
+        file_name,
         icon_url: m.icon_url,
         kind: m.kind,
         enabled: m.enabled,

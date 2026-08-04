@@ -43,7 +43,9 @@ impl InstanceRepository for SqliteInstanceRepository {
     fn find_all(&self) -> Result<Vec<Instance>> {
         let conn = self.conn.lock();
         let sql = format!("SELECT {SELECT_COLUMNS} FROM instances ORDER BY position, name");
-        let mut stmt = conn.prepare(&sql).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let mut stmt = conn
+            .prepare(&sql)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         let rows = stmt
             .query_map([], map_row)
             .map_err(|e| InstanceError::Persistence(e.to_string()))?;
@@ -66,8 +68,12 @@ impl InstanceRepository for SqliteInstanceRepository {
 
     fn find_by_folder(&self, folder_id: &str) -> Result<Vec<Instance>> {
         let conn = self.conn.lock();
-        let sql = format!("SELECT {SELECT_COLUMNS} FROM instances WHERE folder_id = ?1 ORDER BY position, name");
-        let mut stmt = conn.prepare(&sql).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let sql = format!(
+            "SELECT {SELECT_COLUMNS} FROM instances WHERE folder_id = ?1 ORDER BY position, name"
+        );
+        let mut stmt = conn
+            .prepare(&sql)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         let rows = stmt
             .query_map(params![folder_id], map_row)
             .map_err(|e| InstanceError::Persistence(e.to_string()))?;
@@ -140,12 +146,18 @@ impl InstanceRepository for SqliteInstanceRepository {
 
     fn reorder(&self, ordered_ids: &[String]) -> Result<()> {
         let conn = self.conn.lock();
-        let tx = conn.unchecked_transaction().map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let tx = conn
+            .unchecked_transaction()
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         for (index, id) in ordered_ids.iter().enumerate() {
-            tx.execute("UPDATE instances SET position = ?1 WHERE id = ?2", params![index as i64, id])
-                .map_err(|e| InstanceError::Persistence(e.to_string()))?;
+            tx.execute(
+                "UPDATE instances SET position = ?1 WHERE id = ?2",
+                params![index as i64, id],
+            )
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         }
-        tx.commit().map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        tx.commit()
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         Ok(())
     }
 }

@@ -17,8 +17,14 @@ pub struct PlaytimeService {
 }
 
 impl PlaytimeService {
-    pub fn new(instance_repository: Arc<dyn InstanceRepository>, playtime_repository: Arc<dyn PlaytimeRepository>) -> Self {
-        Self { instance_repository, playtime_repository }
+    pub fn new(
+        instance_repository: Arc<dyn InstanceRepository>,
+        playtime_repository: Arc<dyn PlaytimeRepository>,
+    ) -> Self {
+        Self {
+            instance_repository,
+            playtime_repository,
+        }
     }
 
     pub fn start_session(&self, instance_id: &str) -> Result<PlaytimeSession, InstanceError> {
@@ -45,19 +51,26 @@ impl PlaytimeService {
         let duration_seconds = (Utc::now() - started_at).num_seconds().max(0);
         let ended_at = Utc::now().to_rfc3339();
 
-        self.playtime_repository.update_end(&session.id, &ended_at, duration_seconds)?;
+        self.playtime_repository
+            .update_end(&session.id, &ended_at, duration_seconds)?;
 
         let instance = self.instance_repository.find_by_id(&session.instance_id)?;
-        self.instance_repository
-            .update_playtime(&session.instance_id, instance.playtime_seconds + duration_seconds)?;
+        self.instance_repository.update_playtime(
+            &session.instance_id,
+            instance.playtime_seconds + duration_seconds,
+        )?;
 
         Ok(())
     }
 
     pub fn get_summary(&self, instance_id: &str) -> Result<PlaytimeSummaryDTO, InstanceError> {
         let instance = self.instance_repository.find_by_id(instance_id)?;
-        let latest = self.playtime_repository.find_latest_by_instance(instance_id)?;
-        let open = self.playtime_repository.find_open_by_instance(instance_id)?;
+        let latest = self
+            .playtime_repository
+            .find_latest_by_instance(instance_id)?;
+        let open = self
+            .playtime_repository
+            .find_open_by_instance(instance_id)?;
 
         // While a session is active, the denormalized total doesn't include it
         // yet — surface it live so the UI can tick up in real time.
@@ -74,7 +87,9 @@ impl PlaytimeService {
         Ok(PlaytimeSummaryDTO {
             total_seconds,
             last_played: instance.last_played.clone(),
-            last_session_seconds: latest.as_ref().and_then(|s| s.ended_at.as_ref().map(|_| s.duration_seconds)),
+            last_session_seconds: latest
+                .as_ref()
+                .and_then(|s| s.ended_at.as_ref().map(|_| s.duration_seconds)),
         })
     }
 }

@@ -44,6 +44,7 @@ export interface InstalledMod {
   source: string
   name: string
   version: string
+  fileName: string
   iconUrl: string | null
   kind: ContentKind
   enabled: boolean

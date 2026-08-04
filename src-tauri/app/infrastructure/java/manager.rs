@@ -4,8 +4,16 @@ use super::detect;
 use super::download;
 
 fn bundled_java_bin(app_data_dir: &Path, major: u32) -> std::path::PathBuf {
-    let bin_name = if cfg!(target_os = "windows") { "java.exe" } else { "java" };
-    app_data_dir.join("java").join(major.to_string()).join("bin").join(bin_name)
+    let bin_name = if cfg!(target_os = "windows") {
+        "java.exe"
+    } else {
+        "java"
+    };
+    app_data_dir
+        .join("java")
+        .join(major.to_string())
+        .join("bin")
+        .join(bin_name)
 }
 
 /// Resolves a Java binary that satisfies `required_major`: prefers the
@@ -35,7 +43,9 @@ pub async fn ensure_java(
     download::download_portable_jre(http_client, required_major, &dest_dir).await?;
 
     if !bundled.exists() {
-        return Err(anyhow::anyhow!("Falha ao preparar o Java {required_major} portátil"));
+        return Err(anyhow::anyhow!(
+            "Falha ao preparar o Java {required_major} portátil"
+        ));
     }
     Ok(bundled.display().to_string())
 }

@@ -6,6 +6,11 @@ import { toast } from 'sonner'
 import { Shell } from '@/components/layout/Shell'
 import { StatusBar } from '@/components/layout/StatusBar'
 import { TopBar } from '@/components/layout/TopBar'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
 import { SettingsAPI } from '@/features/settings/services/settings.api'
 import { useDiscordPresence } from '@/hooks/useDiscordPresence'
 import { useFolderStore } from '@/stores/folder.store'
@@ -20,6 +25,7 @@ import { FolderNameDialog } from '../components/FolderNameDialog'
 import { ImportAstropackDialog } from '../components/ImportAstropackDialog'
 import { InstanceGrid } from '../components/InstanceGrid'
 import { InstanceSidebar } from '../components/InstanceSidebar'
+import { InstancesBackground } from '../components/InstancesBackground'
 import { useFolders } from '../hooks/useFolders'
 import { useInstances } from '../hooks/useInstances'
 import { useLaunchInstance } from '../hooks/useLaunchInstance'
@@ -106,6 +112,7 @@ export function InstancesPage() {
     try {
       const updated = await SettingsAPI.update({
         curseforgeApiKey: settings?.curseforgeApiKey ?? null,
+        mcstatApiKey: settings?.mcstatApiKey ?? null,
         rootGroupName: settings?.rootGroupName ?? null,
         rootGroupIcon: iconPath,
       })
@@ -121,6 +128,7 @@ export function InstancesPage() {
       try {
         const updated = await SettingsAPI.update({
           curseforgeApiKey: settings?.curseforgeApiKey ?? null,
+          mcstatApiKey: settings?.mcstatApiKey ?? null,
           rootGroupName: name,
         })
         setSettings(updated)
@@ -194,71 +202,84 @@ export function InstancesPage() {
       }
       statusBar={<StatusBar instanceCount={instances.length} />}
     >
-      <div className="min-w-0 flex-1 overflow-y-auto py-2">
-        <InstanceGrid
-          instances={instances}
-          folders={folders}
-          rootGroupName={rootGroupName}
-          rootGroupIcon={rootGroupIcon}
-          selectedId={selectedInstance?.id ?? null}
-          runningId={runningId}
-          onSelect={selectInstance}
-          onLaunch={launch}
-          onStop={stop}
-          onEdit={handleEdit}
-          onDelete={setDeleteTargetId}
-          onExport={setExportTargetId}
-          onImport={handleImport}
-          onCreate={() => navigate('/instances/new')}
-          onCreateFolder={() => setFolderDialog({ mode: 'create' })}
-          onRenameFolder={(folderId) => {
-            const folder = folders.find((f) => f.id === folderId)
-            if (folder)
-              setFolderDialog({
-                mode: 'rename',
-                folderId,
-                initialName: folder.name,
-              })
-          }}
-          onDeleteFolder={setDeleteFolderTarget}
-          onRenameRoot={() =>
-            setFolderDialog({
-              mode: 'rename',
-              isRoot: true,
-              initialName: rootGroupName,
-            })
-          }
-          onPickRootIcon={handlePickRootIcon}
-          onToggleCollapsed={handleToggleCollapsed}
-          onMoveToFolder={handleMoveToFolder}
-          onReorderFolders={(orderedIds) =>
-            reorderFolders(orderedIds).catch(() =>
-              toast.error('Falha ao reordenar pastas'),
-            )
-          }
-          onReorderInstances={(orderedIds) =>
-            reorderInstances(orderedIds).catch(() =>
-              toast.error('Falha ao reordenar instâncias'),
-            )
-          }
-          onRefresh={() => {
-            refresh()
-            refreshFolders()
-          }}
-        />
-      </div>
+      <ResizablePanelGroup orientation="horizontal" className="min-w-0 flex-1">
+        <ResizablePanel minSize="320px">
+          <div className="relative h-full min-w-0 overflow-y-auto py-2">
+            <InstancesBackground />
+            <InstanceGrid
+              instances={instances}
+              folders={folders}
+              rootGroupName={rootGroupName}
+              rootGroupIcon={rootGroupIcon}
+              selectedId={selectedInstance?.id ?? null}
+              runningId={runningId}
+              onSelect={selectInstance}
+              onLaunch={launch}
+              onStop={stop}
+              onEdit={handleEdit}
+              onDelete={setDeleteTargetId}
+              onExport={setExportTargetId}
+              onImport={handleImport}
+              onCreate={() => navigate('/instances/new')}
+              onCreateFolder={() => setFolderDialog({ mode: 'create' })}
+              onRenameFolder={(folderId) => {
+                const folder = folders.find((f) => f.id === folderId)
+                if (folder)
+                  setFolderDialog({
+                    mode: 'rename',
+                    folderId,
+                    initialName: folder.name,
+                  })
+              }}
+              onDeleteFolder={setDeleteFolderTarget}
+              onRenameRoot={() =>
+                setFolderDialog({
+                  mode: 'rename',
+                  isRoot: true,
+                  initialName: rootGroupName,
+                })
+              }
+              onPickRootIcon={handlePickRootIcon}
+              onToggleCollapsed={handleToggleCollapsed}
+              onMoveToFolder={handleMoveToFolder}
+              onReorderFolders={(orderedIds) =>
+                reorderFolders(orderedIds).catch(() =>
+                  toast.error('Falha ao reordenar pastas'),
+                )
+              }
+              onReorderInstances={(orderedIds) =>
+                reorderInstances(orderedIds).catch(() =>
+                  toast.error('Falha ao reordenar instâncias'),
+                )
+              }
+              onRefresh={() => {
+                refresh()
+                refreshFolders()
+              }}
+            />
+          </div>
+        </ResizablePanel>
 
-      {selectedInstance && (
-        <InstanceSidebar
-          instance={selectedInstance}
-          isRunning={runningId === selectedInstance.id}
-          onLaunch={launch}
-          onStop={stop}
-          onEdit={handleEdit}
-          onDelete={setDeleteTargetId}
-          onExport={setExportTargetId}
-        />
-      )}
+        {selectedInstance && (
+          <>
+            <ResizableHandle />
+            {/* Capped well short of the middle of the screen — this is a
+                quick-glance info panel, not a workspace someone should be
+                able to drag out to half the window. */}
+            <ResizablePanel defaultSize="256px" minSize="220px" maxSize="420px">
+              <InstanceSidebar
+                instance={selectedInstance}
+                isRunning={runningId === selectedInstance.id}
+                onLaunch={launch}
+                onStop={stop}
+                onEdit={handleEdit}
+                onDelete={setDeleteTargetId}
+                onExport={setExportTargetId}
+              />
+            </ResizablePanel>
+          </>
+        )}
+      </ResizablePanelGroup>
 
       {folderDialog && (
         <FolderNameDialog

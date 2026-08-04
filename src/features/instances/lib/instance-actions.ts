@@ -77,7 +77,6 @@ export function getInstanceActions(
       icon: Folder,
       label: 'Mover para Pasta',
       items: moveItems,
-      separatorBefore: true,
     },
   ]
 

@@ -6,12 +6,22 @@ use crate::application::dto::VersionDTO;
 use crate::presentation::state::AppState;
 
 #[tauri::command]
-pub async fn list_minecraft_versions(state: State<'_, AppState>) -> Result<Vec<VersionDTO>, String> {
-    state.fetch_version_manifest.execute().await.map_err(|e| e.to_string())
+pub async fn list_minecraft_versions(
+    state: State<'_, AppState>,
+) -> Result<Vec<VersionDTO>, String> {
+    state
+        .fetch_version_manifest
+        .execute()
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub async fn launch_instance(app: AppHandle, state: State<'_, AppState>, id: String) -> Result<(), String> {
+pub async fn launch_instance(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<(), String> {
     let app_for_event = app.clone();
     let app_for_exit = app.clone();
 
@@ -55,6 +65,10 @@ pub fn list_audio_output_devices() -> Vec<String> {
 
     let host = cpal::default_host();
     host.output_devices()
-        .map(|devices| devices.filter_map(|d| d.description().ok().map(|desc| desc.name().to_string())).collect())
+        .map(|devices| {
+            devices
+                .filter_map(|d| d.description().ok().map(|desc| desc.name().to_string()))
+                .collect()
+        })
         .unwrap_or_default()
 }

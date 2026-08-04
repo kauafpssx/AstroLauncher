@@ -41,16 +41,24 @@ pub fn read_manifest(bytes: &[u8]) -> anyhow::Result<Manifest> {
 
 /// Extracts the pack's `overrides` folder (its name is declared in the
 /// manifest, conventionally `overrides`) directly into the instance directory.
-pub fn extract_overrides(bytes: &[u8], overrides_folder: &str, instance_dir: &Path) -> anyhow::Result<()> {
+pub fn extract_overrides(
+    bytes: &[u8],
+    overrides_folder: &str,
+    instance_dir: &Path,
+) -> anyhow::Result<()> {
     let cursor = std::io::Cursor::new(bytes);
     let mut archive = zip::ZipArchive::new(cursor)?;
     let prefix = format!("{overrides_folder}/");
 
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i)?;
-        let Some(enclosed) = entry.enclosed_name() else { continue };
+        let Some(enclosed) = entry.enclosed_name() else {
+            continue;
+        };
         let name = enclosed.to_string_lossy();
-        let Some(relative) = name.strip_prefix(prefix.as_str()) else { continue };
+        let Some(relative) = name.strip_prefix(prefix.as_str()) else {
+            continue;
+        };
         if relative.is_empty() {
             continue;
         }
@@ -74,7 +82,9 @@ pub fn extract_overrides(bytes: &[u8], overrides_folder: &str, instance_dir: &Pa
 pub fn parse_loader_id(id: &str) -> Option<(String, String)> {
     let (loader, version) = id.split_once('-')?;
     match loader {
-        "forge" | "fabric" | "neoforge" | "quilt" => Some((loader.to_string(), version.to_string())),
+        "forge" | "fabric" | "neoforge" | "quilt" => {
+            Some((loader.to_string(), version.to_string()))
+        }
         _ => None,
     }
 }

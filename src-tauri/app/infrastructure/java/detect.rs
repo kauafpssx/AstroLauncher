@@ -43,7 +43,9 @@ pub fn detect_major_version(java_bin: &str) -> anyhow::Result<u32> {
         .lines()
         .next()
         .and_then(|line| line.split('"').nth(1))
-        .ok_or_else(|| anyhow::anyhow!("Não foi possível interpretar a versão do Java a partir de: {text}"))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!("Não foi possível interpretar a versão do Java a partir de: {text}")
+        })?;
 
     let mut parts = version_str.split('.');
     let first: u32 = parts.next().unwrap_or("0").parse().unwrap_or(0);

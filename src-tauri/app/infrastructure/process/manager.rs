@@ -24,12 +24,19 @@ pub struct ProcessManager {
 
 impl ProcessManager {
     pub fn new() -> Arc<Self> {
-        Arc::new(Self { pids: Mutex::new(HashMap::new()) })
+        Arc::new(Self {
+            pids: Mutex::new(HashMap::new()),
+        })
     }
 
     /// Registers a freshly spawned child and waits for it in the background,
     /// removing it from the registry and notifying `on_exit` once it exits.
-    pub fn register(self: &Arc<Self>, instance_id: String, mut child: Child, on_exit: Arc<dyn Fn(&str) + Send + Sync>) {
+    pub fn register(
+        self: &Arc<Self>,
+        instance_id: String,
+        mut child: Child,
+        on_exit: Arc<dyn Fn(&str) + Send + Sync>,
+    ) {
         self.pids.lock().insert(instance_id.clone(), child.id());
 
         let manager = self.clone();
@@ -62,12 +69,16 @@ fn kill_pid(pid: u32) -> anyhow::Result<()> {
         cmd.creation_flags(CREATE_NO_WINDOW);
         cmd.status()?
     } else {
-        std::process::Command::new("kill").args(["-9", &pid.to_string()]).status()?
+        std::process::Command::new("kill")
+            .args(["-9", &pid.to_string()])
+            .status()?
     };
 
     if status.success() {
         Ok(())
     } else {
-        Err(anyhow::anyhow!("Falha ao encerrar o processo (código {status})"))
+        Err(anyhow::anyhow!(
+            "Falha ao encerrar o processo (código {status})"
+        ))
     }
 }

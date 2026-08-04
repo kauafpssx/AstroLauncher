@@ -1,3 +1,4 @@
+import { open as openFileDialog } from '@tauri-apps/plugin-dialog'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -9,6 +10,7 @@ import { useInstanceStore } from '@/stores/instance.store'
 import type { VersionDTO, VersionType } from '@/types/version'
 
 import { FiltersCard } from '../components/create-instance/FiltersCard'
+import { ImportAstropackDialog } from '../components/ImportAstropackDialog'
 import { InstanceInfoCard } from '../components/create-instance/InstanceInfoCard'
 import type { LoaderId } from '../components/create-instance/LoaderSelectionCard'
 import { LoaderSelectionCard } from '../components/create-instance/LoaderSelectionCard'
@@ -40,8 +42,18 @@ export function CreateInstancePage() {
   const [version, setVersion] = useState<VersionDTO | null>(null)
   const [loader, setLoader] = useState<LoaderId | null>('vanilla')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [astropackPath, setAstropackPath] = useState<string | null>(null)
 
   useDiscordPresence('Criando uma instância', name.trim() || 'Nova instância')
+
+  const handleImportAstropack = async () => {
+    const filePath = await openFileDialog({
+      multiple: false,
+      filters: [{ name: 'AstroPack', extensions: ['astropack'] }],
+    })
+    if (!filePath || Array.isArray(filePath)) return
+    setAstropackPath(filePath)
+  }
 
   // Auto-select the first release once the version list loads. Done during
   // render (React's "adjust state when a prop changes" pattern) instead of an
@@ -134,6 +146,7 @@ export function CreateInstancePage() {
               <SourcePlaceholder
                 platform={platform}
                 onAction={() => toast.info('Ainda não implementado')}
+                onImportAstropack={handleImportAstropack}
               />
             )}
           </div>
@@ -150,6 +163,13 @@ export function CreateInstancePage() {
           </footer>
         )}
       </div>
+
+      <ImportAstropackDialog
+        open={!!astropackPath}
+        onOpenChange={(open) => !open && setAstropackPath(null)}
+        filePath={astropackPath ?? ''}
+        onImported={() => navigate('/')}
+      />
     </div>
   )
 }

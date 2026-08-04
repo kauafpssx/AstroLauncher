@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use crate::application::dto::{AstroPackEventDTO, InstallModpackInput, InstanceDTO};
 use crate::application::mappers::instance_mapper;
-use crate::domain::entities::{Instance, InstalledMod};
+use crate::domain::entities::{InstalledMod, Instance};
 use crate::domain::repositories::{InstanceRepository, ModRepository};
 use crate::infrastructure::curseforge;
 use crate::infrastructure::discord::DiscordRpcHandle;
@@ -28,7 +28,11 @@ pub struct ModpackInstallerService {
 /// Cleans up a partially-downloaded instance after a cancelled install —
 /// otherwise the user would be left with a broken, incomplete instance
 /// silently sitting in their list.
-fn rollback_instance(instance_repository: &dyn InstanceRepository, app_data_dir: &std::path::Path, instance_id: &str) {
+fn rollback_instance(
+    instance_repository: &dyn InstanceRepository,
+    app_data_dir: &std::path::Path,
+    instance_id: &str,
+) {
     let _ = instance_repository.delete(instance_id);
     let instance_dir = paths::instance_dir(app_data_dir, instance_id);
     if instance_dir.exists() {
@@ -59,7 +63,14 @@ impl ModpackInstallerService {
         http_client: reqwest::Client,
         app_data_dir: PathBuf,
     ) -> Self {
-        Self { instance_repository, mod_repository, discord, http_client, app_data_dir, cancelled: Arc::new(AtomicBool::new(false)) }
+        Self {
+            instance_repository,
+            mod_repository,
+            discord,
+            http_client,
+            app_data_dir,
+            cancelled: Arc::new(AtomicBool::new(false)),
+        }
     }
 
     /// Signals the currently-running install (if any) to stop before its
@@ -72,7 +83,17 @@ impl ModpackInstallerService {
     /// custom icons, so it shows up like any other icon the user picked.
     async fn download_icon(&self, icon_url: &Option<String>) -> Option<String> {
         let url = icon_url.as_ref()?;
-        let bytes = self.http_client.get(url).send().await.ok()?.error_for_status().ok()?.bytes().await.ok()?;
+        let bytes = self
+            .http_client
+            .get(url)
+            .send()
+            .await
+            .ok()?
+            .error_for_status()
+            .ok()?
+            .bytes()
+            .await
+            .ok()?;
 
         let dir = paths::custom_icons_dir(&self.app_data_dir);
         std::fs::create_dir_all(&dir).ok()?;
@@ -90,7 +111,9 @@ impl ModpackInstallerService {
         on_event: Arc<dyn Fn(AstroPackEventDTO) + Send + Sync>,
     ) -> anyhow::Result<InstanceDTO> {
         self.cancelled.store(false, Ordering::SeqCst);
-        let _presence = self.discord.guard("Instalando modpack", input.instance_name.clone());
+        let _presence = self
+            .discord
+            .guard("Instalando modpack", input.instance_name.clone());
 
         let bytes = self
             .http_client
@@ -112,7 +135,12 @@ impl ModpackInstallerService {
 
         let (loader, loader_version) = ["fabric-loader", "quilt-loader", "forge", "neoforge"]
             .iter()
-            .find_map(|key| index.dependencies.get(*key).map(|v| (loader_id_for(key), v.clone())))
+            .find_map(|key| {
+                index
+                    .dependencies
+                    .get(*key)
+                    .map(|v| (loader_id_for(key), v.clone()))
+            })
             .map(|(id, v)| (Some(id), Some(v)))
             .unwrap_or((None, None));
 
@@ -126,16 +154,25 @@ impl ModpackInstallerService {
         let instance_dir = paths::instance_dir(&self.app_data_dir, &instance.id);
         std::fs::create_dir_all(&instance_dir)?;
 
-        let downloadable: Vec<_> = index.files.iter().filter(|f| f.is_client_supported()).collect();
+        let downloadable: Vec<_> = index
+            .files
+            .iter()
+            .filter(|f| f.is_client_supported())
+            .collect();
 
         // Resolve every file's project metadata (name/version/icon) from its
         // hash *before* downloading — the `.mrpack` manifest only lists
         // hashes, and we want icons available for the progress events too,
         // not just after the fact.
         let hashes: Vec<String> = downloadable.iter().map(|f| f.hashes.sha1.clone()).collect();
-        let versions_by_hash = modrinth::client::get_versions_by_hashes(&self.http_client, &hashes).await.unwrap_or_default();
+        let versions_by_hash = modrinth::client::get_versions_by_hashes(&self.http_client, &hashes)
+            .await
+            .unwrap_or_default();
         let project_ids: Vec<String> = {
-            let mut ids: Vec<String> = versions_by_hash.values().map(|v| v.project_id.clone()).collect();
+            let mut ids: Vec<String> = versions_by_hash
+                .values()
+                .map(|v| v.project_id.clone())
+                .collect();
             ids.sort_unstable();
             ids.dedup();
             ids
@@ -151,17 +188,42 @@ impl ModpackInstallerService {
         let total = downloadable.len() as u64;
         for (i, file) in downloadable.into_iter().enumerate() {
             if self.cancelled.load(Ordering::SeqCst) {
-                rollback_instance(self.instance_repository.as_ref(), &self.app_data_dir, &instance.id);
+                rollback_instance(
+                    self.instance_repository.as_ref(),
+                    &self.app_data_dir,
+                    &instance.id,
+                );
                 anyhow::bail!("Instalação cancelada");
             }
             let version = versions_by_hash.get(&file.hashes.sha1);
-            let icon_url = version.and_then(|v| icons_by_project.get(&v.project_id).cloned().flatten());
-            let name = version.map(|v| v.name.clone()).unwrap_or_else(|| file.path.rsplit('/').next().unwrap_or(&file.path).to_string());
-            on_event(AstroPackEventDTO::Progress { kind: "mod".to_string(), name, icon_url: icon_url.clone(), current: i as u64, total });
+            let icon_url =
+                version.and_then(|v| icons_by_project.get(&v.project_id).cloned().flatten());
+            let name = version.map(|v| v.name.clone()).unwrap_or_else(|| {
+                file.path
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or(&file.path)
+                    .to_string()
+            });
+            on_event(AstroPackEventDTO::Progress {
+                kind: "mod".to_string(),
+                name,
+                icon_url: icon_url.clone(),
+                current: i as u64,
+                total,
+            });
 
-            let Some(url) = file.downloads.first() else { continue };
+            let Some(url) = file.downloads.first() else {
+                continue;
+            };
             let dest = instance_dir.join(&file.path);
-            file_downloader::download_to_file(&self.http_client, url, &dest, Some(&file.hashes.sha1)).await?;
+            file_downloader::download_to_file(
+                &self.http_client,
+                url,
+                &dest,
+                Some(&file.hashes.sha1),
+            )
+            .await?;
 
             if let (Some(kind), Some(version)) = (kind_for_mrpack_path(&file.path), version) {
                 let installed = InstalledMod::new(
@@ -179,7 +241,9 @@ impl ModpackInstallerService {
         }
 
         mrpack::extract_overrides(&bytes, &instance_dir)?;
-        on_event(AstroPackEventDTO::Done { instance_id: instance.id.clone() });
+        on_event(AstroPackEventDTO::Done {
+            instance_id: instance.id.clone(),
+        });
 
         Ok(instance_mapper::to_dto(&instance))
     }
@@ -194,10 +258,16 @@ impl ModpackInstallerService {
         on_event: Arc<dyn Fn(AstroPackEventDTO) + Send + Sync>,
     ) -> anyhow::Result<InstanceDTO> {
         self.cancelled.store(false, Ordering::SeqCst);
-        let _presence = self.discord.guard("Instalando modpack", input.instance_name.clone());
+        let _presence = self
+            .discord
+            .guard("Instalando modpack", input.instance_name.clone());
 
         let api_key = json_settings_repository::resolve_curseforge_api_key(&self.app_data_dir)
-            .ok_or_else(|| anyhow::anyhow!("Configure sua API key do CurseForge em Configurações antes de instalar."))?;
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Configure sua API key do CurseForge em Configurações antes de instalar."
+                )
+            })?;
 
         let bytes = self
             .http_client
@@ -250,10 +320,20 @@ impl ModpackInstallerService {
         let total = manifest.files.len() as u64;
         for (i, file) in manifest.files.iter().enumerate() {
             if self.cancelled.load(Ordering::SeqCst) {
-                rollback_instance(self.instance_repository.as_ref(), &self.app_data_dir, &instance.id);
+                rollback_instance(
+                    self.instance_repository.as_ref(),
+                    &self.app_data_dir,
+                    &instance.id,
+                );
                 anyhow::bail!("Instalação cancelada");
             }
-            let resolved = curseforge::client::get_file(&self.http_client, &api_key, file.project_id, file.file_id).await?;
+            let resolved = curseforge::client::get_file(
+                &self.http_client,
+                &api_key,
+                file.project_id,
+                file.file_id,
+            )
+            .await?;
             let icon_url = icons_by_project.get(&file.project_id).cloned().flatten();
             on_event(AstroPackEventDTO::Progress {
                 kind: "mod".to_string(),
@@ -262,7 +342,9 @@ impl ModpackInstallerService {
                 current: i as u64,
                 total,
             });
-            let Some(url) = resolved.download_url else { continue };
+            let Some(url) = resolved.download_url else {
+                continue;
+            };
             let dest = mods_dir.join(&resolved.file_name);
             file_downloader::download_to_file(&self.http_client, &url, &dest, None).await?;
 
@@ -280,7 +362,9 @@ impl ModpackInstallerService {
         }
 
         curseforge::modpack::extract_overrides(&bytes, &manifest.overrides, &instance_dir)?;
-        on_event(AstroPackEventDTO::Done { instance_id: instance.id.clone() });
+        on_event(AstroPackEventDTO::Done {
+            instance_id: instance.id.clone(),
+        });
 
         Ok(instance_mapper::to_dto(&instance))
     }

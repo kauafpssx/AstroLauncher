@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ModAPI } from '@/features/mods/services/mod.api'
+import { tooltipProps } from '@/lib/tooltip'
 import type { ContentKind, ModSearchResult, ModVersion } from '@/types/mods'
 
 export interface ReviewEntry {
@@ -27,6 +28,10 @@ interface ModReviewPanelProps {
   gameVersion?: string
   loader?: string | null
   kind: ContentKind
+  /** `source:modId` keys already installed in this instance. */
+  installedKeys: Set<string>
+  /** Lowercased jar filenames already installed in this instance. */
+  installedFileNames: Set<string>
   onBack: () => void
   onInstalled: () => void
 }
@@ -37,6 +42,8 @@ export function ModReviewPanel({
   gameVersion,
   loader,
   kind,
+  installedKeys,
+  installedFileNames,
   onBack,
   onInstalled,
 }: ModReviewPanelProps) {
@@ -73,6 +80,9 @@ export function ModReviewPanel({
           for (const depId of entry.version.requiredDependencyProjectIds) {
             const depKey = `modrinth:${depId}`
             if (resolved.has(depKey)) continue
+            // Already installed in this instance (possibly via CurseForge
+            // originally) — don't re-queue it as a dependency to install.
+            if (installedKeys.has(depKey)) continue
             try {
               const [project, versions] = await Promise.all([
                 ModAPI.getProject('modrinth', depId),
@@ -85,6 +95,8 @@ export function ModReviewPanel({
               ])
               const version = versions[0]
               if (!version) continue
+              if (installedFileNames.has(version.fileName.toLowerCase()))
+                continue
               const result: ModSearchResult = {
                 source: 'modrinth',
                 projectId: depId,
@@ -183,16 +195,19 @@ export function ModReviewPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b p-3">
+      <div className="relative flex h-14 shrink-0 items-center gap-2 border-b px-3">
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={onBack}
           disabled={isInstalling}
+          {...tooltipProps('Voltar')}
         >
-          <ArrowLeft /> Voltar
+          <ArrowLeft />
         </Button>
-        <span className="font-medium">Revisar e Instalar</span>
+        <span className="pointer-events-none absolute inset-x-0 text-center text-sm font-medium">
+          Revisar e Instalar
+        </span>
       </div>
 
       <ScrollArea type="always" className="flex-1">

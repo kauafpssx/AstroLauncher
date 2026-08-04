@@ -5,6 +5,8 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
+import { EmptyState } from '@/components/common/EmptyState'
+import { TabHeader } from '@/components/common/TabHeader'
 import {
   Select,
   SelectContent,
@@ -81,10 +83,7 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          Capturas de tela desta instância.
-        </p>
+      <TabHeader description="Capturas de tela desta instância.">
         <Select value={columns} onValueChange={setColumns}>
           <SelectTrigger size="sm" className="w-36">
             <SelectValue />
@@ -97,15 +96,16 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </TabHeader>
 
       {isLoading ? (
         <CenteredSpinner className="h-40" />
       ) : shots.length === 0 ? (
-        <div className="text-muted-foreground flex flex-col items-center gap-2 rounded-lg border border-dashed p-10 text-center">
-          <ImageIcon className="size-8" />
-          <p>Nenhuma screenshot encontrada.</p>
-        </div>
+        <EmptyState
+          icon={ImageIcon}
+          title="Nenhuma screenshot encontrada."
+          className="rounded-lg border border-dashed p-10"
+        />
       ) : (
         <div
           className="grid gap-3"

@@ -7,6 +7,7 @@ import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 import { toast } from 'sonner'
 
+import { EmptyState } from '@/components/common/EmptyState'
 import { SearchInput } from '@/components/common/SearchInput'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,6 +21,7 @@ import { Slider } from '@/components/ui/slider'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MC_BLOCK_ICONS, MC_ITEM_ICONS } from '@/data/mc-icons'
 import { resolveIconSrc } from '@/lib/icon-src'
+import { tooltipProps } from '@/lib/tooltip'
 
 import type { CustomIconDTO } from '../services/custom-icon.api'
 import { CustomIconAPI } from '../services/custom-icon.api'
@@ -104,7 +106,7 @@ function PresetGrid({
           <button
             key={icon.id}
             type="button"
-            title={icon.label}
+            {...tooltipProps(icon.label)}
             onClick={() => onPick(icon.path)}
             className="bg-muted hover:border-primary hover:bg-accent flex aspect-square items-center justify-center rounded-md border border-transparent p-2 transition-colors"
           >
@@ -117,9 +119,10 @@ function PresetGrid({
           </button>
         ))}
         {filtered.length === 0 && (
-          <p className="text-muted-foreground col-span-6 p-4 text-center text-sm">
-            Nenhum ícone encontrado.
-          </p>
+          <EmptyState
+            title="Nenhum ícone encontrado."
+            className="col-span-6 p-4"
+          />
         )}
       </div>
     </ScrollArea>
@@ -290,7 +293,7 @@ export function IconPickerDialog({
               </>
             ) : (
               <ScrollArea className="h-72">
-                <div className="grid grid-cols-6 gap-2 pr-3">
+                <div className="grid grid-cols-6 gap-2 pt-2 pr-3">
                   <button
                     type="button"
                     onClick={handleChooseFile}

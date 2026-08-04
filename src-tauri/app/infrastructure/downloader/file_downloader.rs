@@ -12,7 +12,13 @@ pub async fn download_to_file(
         return Ok(());
     }
 
-    let bytes = client.get(url).send().await?.error_for_status()?.bytes().await?;
+    let bytes = client
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .bytes()
+        .await?;
     if let Some(parent) = dest.parent() {
         tokio::fs::create_dir_all(parent).await?;
     }
@@ -21,7 +27,9 @@ pub async fn download_to_file(
 }
 
 fn matches_sha1(path: &Path, expected_sha1: Option<&str>) -> anyhow::Result<bool> {
-    let Some(expected) = expected_sha1 else { return Ok(true) };
+    let Some(expected) = expected_sha1 else {
+        return Ok(true);
+    };
     let bytes = std::fs::read(path)?;
     let mut hasher = Sha1::new();
     hasher.update(&bytes);
