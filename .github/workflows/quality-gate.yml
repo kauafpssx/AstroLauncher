@@ -1,9 +1,8 @@
-# Quality Gate — roda em todo commit/PR e gera um relatório completo no Actions.
-# Cada job escreve no $GITHUB_STEP_SUMMARY. Job final "report" agrega tudo.
-# A maioria dos checks usa `continue-on-error: true` para que TODOS rodem e
-# apareçam no relatório, sem um erro cedo abortar o resto.
+# CI de testes — roda em todo commit/PR.
+# Mantém apenas os jobs de teste do projeto (frontend + Rust + build do binário).
+# Review de PR é feito pelo CodeRabbit (ver .coderabbit.yaml).
 
-name: Quality Gate
+name: Testes
 
 on:
   # push só na main e tags (evita rodar 2x em PR da própria repo)
@@ -20,8 +19,6 @@ concurrency:
 
 permissions:
   contents: read
-  security-events: write # CodeQL / gitleaks SARIF
-  pull-requests: read
 
 jobs:
   # ────────────────────────────────────────────────────────────────
@@ -42,52 +39,25 @@ jobs:
         run: npm ci
 
       - name: ESLint
-        id: eslint
-        continue-on-error: true
         run: npm run lint
 
       - name: Prettier (format:check)
-        id: prettier
-        continue-on-error: true
         run: npm run format:check
 
       - name: TypeScript (tsc --noEmit)
-        id: tsc
-        continue-on-error: true
         run: npx tsc -b --noEmit || npx tsc --noEmit
 
       - name: Build frontend (vite)
-        id: build
-        continue-on-error: true
         run: npm run build
 
+      # knip: dead-code informativo (não quebra o build).
       - name: Dead code / unused deps (knip)
-        id: knip
-        continue-on-error: true
         run: npx --yes knip --no-exit-code
 
-      # type-coverage: mede % de tipos explícitos, pega `any` implícito.
+      # type-coverage: mede % de tipos explícitos, pega `any` implícito
+      # (informativo — projeto tem `any` legado).
       - name: Type coverage (implicit any)
-        id: typecov
-        continue-on-error: true
-        # informativo (sem gate) — projeto tem `any` legado; reporta o %, não falha
         run: npx --yes type-coverage --ignore-files "src-tauri/**"
-
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## ⚛️ Frontend"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| ESLint | ${{ steps.eslint.outcome }} |"
-            echo "| Prettier | ${{ steps.prettier.outcome }} |"
-            echo "| tsc --noEmit | ${{ steps.tsc.outcome }} |"
-            echo "| Vite build | ${{ steps.build.outcome }} |"
-            echo "| knip (dead code) | ${{ steps.knip.outcome }} |"
-            echo "| type-coverage | ${{ steps.typecov.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
 
   # ────────────────────────────────────────────────────────────────
   # 🦀 RUST — fmt / clippy / check / test / doc
@@ -115,542 +85,61 @@ jobs:
             librsvg2-dev patchelf libgtk-3-dev libasound2-dev libdbus-1-dev
 
       - name: cargo fmt --check
-        id: fmt
-        continue-on-error: true
         working-directory: src-tauri
         run: cargo fmt --all -- --check
 
       - name: cargo check
-        id: check
-        continue-on-error: true
         working-directory: src-tauri
         run: cargo check --all-targets
 
       # -D warnings faz clippy pegar dead_code, unused imports/vars, etc.
       - name: cargo clippy (-D warnings)
-        id: clippy
-        continue-on-error: true
         working-directory: src-tauri
         run: cargo clippy --all-targets -- -D warnings
 
       - name: cargo test
-        id: test
-        continue-on-error: true
         working-directory: src-tauri
         run: cargo test --all
 
       - name: cargo doc --no-deps
-        id: doc
-        continue-on-error: true
         working-directory: src-tauri
         env:
           RUSTDOCFLAGS: '-D warnings'
         run: cargo doc --no-deps
 
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## 🦀 Rust"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| cargo fmt | ${{ steps.fmt.outcome }} |"
-            echo "| cargo check | ${{ steps.check.outcome }} |"
-            echo "| cargo clippy (-D warnings) | ${{ steps.clippy.outcome }} |"
-            echo "| cargo test | ${{ steps.test.outcome }} |"
-            echo "| cargo doc | ${{ steps.doc.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
   # ────────────────────────────────────────────────────────────────
-  # 📦 DEPENDÊNCIAS — vulns / licenças / duplicadas / desatualizadas
-  # ────────────────────────────────────────────────────────────────
-  deps:
-    name: 📦 Dependencies (audit / licenses / outdated)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: npm audit
-        id: npm_audit
-        continue-on-error: true
-        run: npm audit --audit-level=high
-
-      - name: npm outdated
-        id: npm_outdated
-        continue-on-error: true
-        run: npm outdated || true
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      # cargo-audit: vulnerabilidades RustSec
-      - name: cargo audit
-        id: cargo_audit
-        continue-on-error: true
-        run: |
-          cargo install cargo-audit --locked || true
-          cd src-tauri && cargo audit
-
-      # cargo-deny: licenças incompatíveis + deps duplicadas + bans
-      - name: cargo deny (licenses / dupes / bans)
-        id: cargo_deny
-        continue-on-error: true
-        uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          manifest-path: src-tauri/Cargo.toml
-          command: check
-
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## 📦 Dependencies"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| npm audit | ${{ steps.npm_audit.outcome }} |"
-            echo "| npm outdated | ${{ steps.npm_outdated.outcome }} |"
-            echo "| cargo audit | ${{ steps.cargo_audit.outcome }} |"
-            echo "| cargo deny | ${{ steps.cargo_deny.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ────────────────────────────────────────────────────────────────
-  # 🔐 SEGURANÇA — secrets / tokens / chaves / credenciais
-  # ────────────────────────────────────────────────────────────────
-  secrets:
-    name: 🔐 Secret scanning (gitleaks)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      # gitleaks pega: tokens, chaves privadas, .env, AWS/Azure/GCP,
-      # URLs com token, senhas hardcoded, etc.
-      - name: gitleaks
-        id: gitleaks
-        continue-on-error: true
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## 🔐 Security"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| gitleaks | ${{ steps.gitleaks.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ────────────────────────────────────────────────────────────────
-  # 🔍 CODEQL — análise estática de segurança (JS/TS)
-  # ⚠️ Requer DESLIGAR o "Default Setup" em Settings > Code security >
-  #    Code scanning (os dois juntos causam erro).
-  # ────────────────────────────────────────────────────────────────
-  codeql:
-    name: 🔍 CodeQL (javascript-typescript)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: github/codeql-action/init@v4
-        with:
-          languages: javascript-typescript
-      - uses: github/codeql-action/analyze@v4
-        with:
-          category: '/language:javascript-typescript'
-
-  # ────────────────────────────────────────────────────────────────
-  # 📁 ARQUIVOS — arquivos grandes / lixo commitado
-  # ────────────────────────────────────────────────────────────────
-  files:
-    name: 📁 Files (large files / junk)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Large files (> 5 MB)
-        id: large
-        continue-on-error: true
-        run: |
-          big=$(find . -type f -not -path './.git/*' -size +5M -printf '%s\t%p\n' | sort -rn)
-          if [ -n "$big" ]; then
-            {
-              echo "### Arquivos > 5MB (fora de .git):"
-              echo '```'
-              echo "$big"
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          else
-            echo "### Arquivos > 5MB: nenhum." >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Junk files (.DS_Store / Thumbs.db / logs / dirs proibidos)
-        id: junk
-        continue-on-error: true
-        run: |
-          found=$(find . -not -path './.git/*' \( \
-            -name '.DS_Store' -o -name 'Thumbs.db' -o -name '*.log' \
-            -o -path '*/node_modules/*' -o -path '*/target/*' \
-            -o -path '*/dist/*' \) -print)
-          if [ -n "$found" ]; then
-            {
-              echo "### ⚠️ Lixo commitado:"
-              echo '```'
-              echo "$found"
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          else
-            echo "### Lixo commitado: nenhum. ✅" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## 📁 Files"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| Large files | ${{ steps.large.outcome }} |"
-            echo "| Junk files | ${{ steps.junk.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ────────────────────────────────────────────────────────────────
-  # 📄 MARKDOWN & DOCS — lint / links quebrados
-  # ────────────────────────────────────────────────────────────────
-  docs:
-    name: 📄 Markdown & Docs (lint / links)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: markdownlint
-        id: mdlint
-        continue-on-error: true
-        uses: DavidAnson/markdownlint-cli2-action@v19
-        with:
-          globs: '**/*.md'
-
-      - name: Link check (lychee)
-        id: links
-        continue-on-error: true
-        uses: lycheeverse/lychee-action@v2
-        with:
-          args: "--no-progress --exclude-mail './**/*.md'"
-          fail: false
-
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## 📄 Docs"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| markdownlint | ${{ steps.mdlint.outcome }} |"
-            echo "| Link check (lychee) | ${{ steps.links.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ────────────────────────────────────────────────────────────────
-  # 📜 GIT — Conventional Commits + PR title
-  # ────────────────────────────────────────────────────────────────
-  git-checks:
-    name: 📜 Git (conventional commits)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Validate commit messages
-        id: commits
-        continue-on-error: true
-        run: |
-          # valida commits do push/PR contra o padrão Conventional Commits
-          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?!?: .+'
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            range="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
-          else
-            range="${{ github.event.before }}..${{ github.sha }}"
-          fi
-          bad=0
-          while read -r msg; do
-            [ -z "$msg" ] && continue
-            if ! echo "$msg" | grep -qE "$pattern"; then
-              echo "❌ '$msg'" >> "$GITHUB_STEP_SUMMARY"
-              bad=1
-            fi
-          done < <(git log --format=%s "$range" 2>/dev/null || git log -1 --format=%s)
-          if [ "$bad" = "1" ]; then
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "Padrão: \`type(scope): descrição\`" >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-          echo "Commits OK ✅" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## 📜 Git"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| Conventional Commits | ${{ steps.commits.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ────────────────────────────────────────────────────────────────
-  # 🚀 BUILD TAURI COMPLETO (Windows) — gera binário
+  # 🚀 BUILD TAURI (Windows) — garante que o binário compila
   # ────────────────────────────────────────────────────────────────
   tauri-build:
     name: 🚀 Tauri build (Windows binary)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
+
       - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
+
       - uses: dtolnay/rust-toolchain@stable
+
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+
       - name: Install deps
         run: npm ci
+
       - name: Build Tauri (no signing)
-        id: tauri
-        continue-on-error: true
         # tauri.ci.conf.json desliga createUpdaterArtifacts → não exige signing key.
         run: npm run tauri build -- --bundles nsis --config src-tauri/tauri.ci.conf.json
+
       - name: Verify binary exists
-        id: verify
-        continue-on-error: true
         shell: pwsh
         run: |
           $exe = Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe" -EA SilentlyContinue | Select-Object -First 1
           if ($exe) {
             "✅ Binário: $($exe.Name) ($([math]::Round($exe.Length/1MB,1)) MB)" >> $env:GITHUB_STEP_SUMMARY
           } else {
-            "❌ Nenhum binário gerado" >> $env:GITHUB_STEP_SUMMARY
-            exit 1
+            throw "Nenhum binário gerado"
           }
-      - name: Report
-        if: always()
-        shell: bash
-        run: |
-          {
-            echo "## 🚀 Tauri Build"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| tauri build | ${{ steps.tauri.outcome }} |"
-            echo "| binário gerado | ${{ steps.verify.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ────────────────────────────────────────────────────────────────
-  # 🧹 LINT EXTRA — workflows / editorconfig / typos / TOML / deps mortas
-  # ────────────────────────────────────────────────────────────────
-  extra-lint:
-    name: 🧹 Extra lint (actionlint / taplo / machete / outdated / geiger)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: actionlint (lint dos workflows)
-        id: actionlint
-        continue-on-error: true
-        uses: raven-actions/actionlint@v2
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: System deps (tauri, p/ cargo-geiger)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev \
-            librsvg2-dev patchelf libgtk-3-dev libasound2-dev libdbus-1-dev
-
-      - name: taplo (TOML format check)
-        id: taplo
-        continue-on-error: true
-        run: |
-          cargo install taplo-cli --locked || true
-          taplo fmt --check src-tauri/*.toml
-
-      - name: cargo-machete (deps Rust não usadas)
-        id: machete
-        continue-on-error: true
-        uses: bnjbvr/cargo-machete@main
-
-      # cargo-outdated: deps Rust desatualizadas.
-      - name: cargo-outdated
-        id: outdated
-        continue-on-error: true
-        run: |
-          cargo install cargo-outdated --locked || true
-          cd src-tauri && cargo outdated --root-deps-only --exit-code 0
-
-      # cargo-geiger: conta uso de código `unsafe` nas deps.
-      - name: cargo-geiger (unsafe usage)
-        id: geiger
-        continue-on-error: true
-        run: |
-          cargo install cargo-geiger --locked || true
-          cd src-tauri
-          cargo geiger --output-format Ascii || true
-
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## 🧹 Extra Lint"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| actionlint | ${{ steps.actionlint.outcome }} |"
-            echo "| taplo (TOML) | ${{ steps.taplo.outcome }} |"
-            echo "| cargo-machete | ${{ steps.machete.outcome }} |"
-            echo "| cargo-outdated | ${{ steps.outdated.outcome }} |"
-            echo "| cargo-geiger (unsafe) | ${{ steps.geiger.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ────────────────────────────────────────────────────────────────
-  # 🧪 COVERAGE — Rust (cargo-llvm-cov) → Codecov
-  # ────────────────────────────────────────────────────────────────
-  coverage:
-    name: 🧪 Coverage (Rust → Codecov)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: llvm-tools-preview
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri
-      - name: System deps (tauri)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev \
-            librsvg2-dev patchelf libgtk-3-dev libasound2-dev libdbus-1-dev
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Generate lcov
-        id: cov
-        continue-on-error: true
-        working-directory: src-tauri
-        run: cargo llvm-cov --all --lcov --output-path ../lcov.info
-      - name: Upload lcov artifact (p/ o job do Sonar)
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: lcov
-          path: lcov.info
-          if-no-files-found: ignore
-      - name: Upload to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v5
-        with:
-          files: lcov.info
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }} # opcional em repo público
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## 🧪 Coverage"
-            echo ""
-            echo "| Check | Status |"
-            echo "|---|---|"
-            echo "| cargo llvm-cov | ${{ steps.cov.outcome }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ────────────────────────────────────────────────────────────────
-  # ☁️ SONARQUBE CLOUD — qualidade / bugs / smells / duplicação
-  # ────────────────────────────────────────────────────────────────
-  sonar:
-    name: ☁️ SonarQube Cloud
-    runs-on: ubuntu-latest
-    needs: coverage
-    if: ${{ !github.event.pull_request.head.repo.fork }} # forks não têm o secret
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0 # blame/análise precisa do histórico
-      # Baixa o lcov gerado no job de coverage → Sonar reporta cobertura.
-      - name: Download lcov artifact
-        continue-on-error: true
-        uses: actions/download-artifact@v5
-        with:
-          name: lcov
-      - name: SonarQube scan
-        continue-on-error: true
-        uses: SonarSource/sonarqube-scan-action@v6
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
-      - name: Report
-        if: always()
-        run: |
-          {
-            echo "## ☁️ SonarQube Cloud"
-            echo ""
-            echo "Análise enviada ao SonarCloud. Ver dashboard do projeto."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ────────────────────────────────────────────────────────────────
-  # ✅ RELATÓRIO FINAL — agrega status de todos os jobs
-  # ────────────────────────────────────────────────────────────────
-  report:
-    name: ✅ Relatório final
-    runs-on: ubuntu-latest
-    if: always()
-    needs:
-      - frontend
-      - rust
-      - deps
-      - secrets
-      - codeql
-      - files
-      - docs
-      - git-checks
-      - tauri-build
-      - extra-lint
-      - coverage
-      - sonar
-    steps:
-      - name: Aggregate
-        run: |
-          {
-            echo "# 🧾 Quality Gate — Relatório"
-            echo ""
-            echo "Commit: \`${{ github.sha }}\`"
-            echo ""
-            echo "| Área | Resultado |"
-            echo "|---|---|"
-            echo "| ⚛️ Frontend | ${{ needs.frontend.result }} |"
-            echo "| 🦀 Rust | ${{ needs.rust.result }} |"
-            echo "| 📦 Dependencies | ${{ needs.deps.result }} |"
-            echo "| 🔐 Secrets | ${{ needs.secrets.result }} |"
-            echo "| 🔍 CodeQL | ${{ needs.codeql.result }} |"
-            echo "| 📁 Files | ${{ needs.files.result }} |"
-            echo "| 📄 Docs | ${{ needs.docs.result }} |"
-            echo "| 📜 Git | ${{ needs['git-checks'].result }} |"
-            echo "| 🚀 Tauri Build | ${{ needs.tauri-build.result }} |"
-            echo "| 🧹 Extra Lint | ${{ needs['extra-lint'].result }} |"
-            echo "| 🧪 Coverage | ${{ needs.coverage.result }} |"
-            echo "| ☁️ SonarQube | ${{ needs.sonar.result }} |"
-            echo ""
-            echo "> Detalhes de cada área no summary do job correspondente."
-          } >> "$GITHUB_STEP_SUMMARY"
