@@ -29,6 +29,23 @@ pub fn is_supported(loader: &str) -> bool {
     kind_for(loader).is_some()
 }
 
+/// Forge's Maven artifact ids are always `<mc>-<forge>` (`1.20.1-47.4.10`),
+/// but modpack manifests (Modrinth `dependencies.forge`, CurseForge
+/// `forge-47.4.10`) carry only the bare loader version. The launch path
+/// stores whatever the manifest said, so we re-add the Minecraft prefix
+/// before building the installer URL/profile id — otherwise the download
+/// 404s (`forge-47.4.10-installer.jar` doesn't exist, only
+/// `forge-1.20.1-47.4.10-installer.jar`). NeoForge ids are standalone
+/// (`20.4.80`), so it's a Forge-only concern.
+pub fn normalize_loader_version(loader: &str, mc_version: &str, loader_version: &str) -> String {
+    let already_prefixed = loader_version.starts_with(&format!("{mc_version}-"));
+    if loader == "forge" && !already_prefixed {
+        format!("{mc_version}-{loader_version}")
+    } else {
+        loader_version.to_string()
+    }
+}
+
 pub fn resolve_loader_version(loader: &str, mc_version: &str) -> anyhow::Result<String> {
     match kind_for(loader) {
         Some(LoaderKind::Forge) => {
@@ -185,4 +202,35 @@ pub fn build_command(
         args: command.args,
         working_dir: command.working_dir,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_loader_version;
+
+    #[test]
+    fn forge_bare_version_gets_minecraft_prefix() {
+        // Modrinth/CurseForge manifests store `47.4.10`; the Maven artifact
+        // needs `1.20.1-47.4.10`.
+        assert_eq!(
+            normalize_loader_version("forge", "1.20.1", "47.4.10"),
+            "1.20.1-47.4.10"
+        );
+    }
+
+    #[test]
+    fn forge_already_prefixed_version_unchanged() {
+        assert_eq!(
+            normalize_loader_version("forge", "1.20.1", "1.20.1-47.4.10"),
+            "1.20.1-47.4.10"
+        );
+    }
+
+    #[test]
+    fn neoforge_standalone_version_unchanged() {
+        assert_eq!(
+            normalize_loader_version("neoforge", "1.20.1", "20.4.80"),
+            "20.4.80"
+        );
+    }
 }

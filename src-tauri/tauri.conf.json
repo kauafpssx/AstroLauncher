@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "AstroLauncher",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "identifier": "com.astrolauncher.app",
   "build": {
     "frontendDist": "../dist",
@@ -90,8 +90,8 @@
         "adoptium": "https://api.adoptium.net/v3",
         "fabricMeta": "https://meta.fabricmc.net/v2",
         "quiltMeta": "https://meta.quiltmc.org/v3",
-        "liteloaderVersions": "http://dl.liteloader.com/versions/versions.json",
-        "liteloaderRepo": "http://repo.liteloader.com/",
+        "liteloaderVersions": "https://dl.liteloader.com/versions/versions.json",
+        "liteloaderRepo": "https://repo.liteloader.com/",
         "mavenCentral": "https://repo1.maven.org/maven2/"
       },
       "githubRepo": "kauafpssx/AstroLauncher",

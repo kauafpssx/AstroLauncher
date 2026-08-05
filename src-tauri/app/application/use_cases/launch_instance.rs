@@ -474,6 +474,11 @@ impl LaunchInstanceUseCase {
                     Some(v) => v,
                     None => forge_like::resolve_loader_version(&loader, &mc_version)?,
                 };
+                // Modpack manifests store Forge versions without the Minecraft
+                // prefix (`47.4.10`); the Maven artifact requires the full
+                // `<mc>-<forge>` id or the installer download 404s.
+                let loader_version =
+                    forge_like::normalize_loader_version(&loader, &mc_version, &loader_version);
 
                 forge_like::ensure_vanilla_json_on_disk(&app_data_dir, &mc_version)?;
 
