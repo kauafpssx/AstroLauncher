@@ -34,8 +34,8 @@ impl Default for ApiConfig {
             adoptium: "https://api.adoptium.net/v3".into(),
             fabric_meta: "https://meta.fabricmc.net/v2".into(),
             quilt_meta: "https://meta.quiltmc.org/v3".into(),
-            liteloader_versions: "http://dl.liteloader.com/versions/versions.json".into(),
-            liteloader_repo: "http://repo.liteloader.com/".into(),
+            liteloader_versions: "https://dl.liteloader.com/versions/versions.json".into(),
+            liteloader_repo: "https://repo.liteloader.com/".into(),
             maven_central: "https://repo1.maven.org/maven2/".into(),
         }
     }
