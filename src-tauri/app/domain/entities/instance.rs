@@ -36,3 +36,7 @@ impl Instance {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "tests/instance_tests.rs"]
+mod tests;

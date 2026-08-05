@@ -18,33 +18,8 @@ import {
 import type { ContentKind, InstalledMod } from '@/types/mods'
 
 import { ModAPI } from '../services/mod.api'
+import { LABELS, SOURCE_LOGO } from './installed-content-tab.constants'
 import { ModBrowserDialog } from './ModBrowserDialog'
-
-const SOURCE_LOGO: Record<string, string> = {
-  modrinth: '/providers/modrinth.svg',
-  curseforge: '/providers/curseforge.png',
-}
-
-const LABELS: Record<
-  ContentKind,
-  { title: string; addLabel: string; emptyLabel: string }
-> = {
-  mod: {
-    title: 'Mods instalados nesta instância.',
-    addLabel: 'Adicionar Mod',
-    emptyLabel: 'Nenhum mod instalado.',
-  },
-  resourcepack: {
-    title: 'Resource packs instalados nesta instância.',
-    addLabel: 'Adicionar Resource Pack',
-    emptyLabel: 'Nenhum resource pack instalado.',
-  },
-  shader: {
-    title: 'Shader packs instalados nesta instância.',
-    addLabel: 'Adicionar Shader Pack',
-    emptyLabel: 'Nenhum shader pack instalado.',
-  },
-}
 
 interface InstalledContentTabProps {
   instanceId: string

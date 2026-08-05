@@ -1,6 +1,4 @@
-import { open as openFileDialog } from '@tauri-apps/plugin-dialog'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { toast } from 'sonner'
 
 import { CONTENT_KIND_LABELS } from '@/lib/content-kind'
 import type {
@@ -9,19 +7,18 @@ import type {
   ModSearchResult,
   ModSortBy,
   ModSource,
-  ModVersion,
 } from '@/types/mods'
 
 import { ModAPI } from '../services/mod.api'
+import {
+  createDeleteInstalled,
+  createToggleSelection,
+  createUploadCustom,
+} from './mod-browser-actions'
+import { selectionKey, type SelectionMap } from './selection-utils'
 
-export type SelectionMap = Record<
-  string,
-  { result: ModSearchResult; version: ModVersion }
->
-
-export function selectionKey(source: ModSource, projectId: string) {
-  return `${source}:${projectId}`
-}
+export { selectionKey } from './selection-utils'
+export type { SelectionMap } from './selection-utils'
 
 interface UseModBrowserArgs {
   open: boolean
@@ -137,117 +134,36 @@ export function useModBrowser({
     return () => clearTimeout(handle)
   }, [open, source, query, kind, gameVersion, effectiveLoader, sortBy])
 
-  const toggleSelection = async (
-    result: ModSearchResult,
-    version?: ModVersion,
-  ) => {
-    const key = selectionKey(result.source, result.projectId)
-    if (selection[key]) {
-      setSelection((prev) => {
-        const next = { ...prev }
-        delete next[key]
-        return next
-      })
-      return
-    }
-
-    if (pendingKeys.has(key)) {
-      // Second click while the version fetch is still in flight: cancel it,
-      // the checkbox flips back off instantly.
-      setPendingKeys((prev) => {
-        const next = new Set(prev)
-        next.delete(key)
-        return next
-      })
-      return
-    }
-
-    if (installedKeys.has(key)) return
-
-    if (version) {
-      if (installedFileNames.has(version.fileName.toLowerCase())) {
-        toast.error('Este mod já está instalado (mesmo arquivo).')
-        return
-      }
-      setSelection((prev) => ({ ...prev, [key]: { result, version } }))
-      return
-    }
-
-    setPendingKeys((prev) => new Set(prev).add(key))
-    try {
-      const versions = await ModAPI.getVersions({
-        source: result.source,
-        projectId: result.projectId,
-        gameVersion,
-        loader: effectiveLoader,
-      })
-
-      let wasCancelled = false
-      setPendingKeys((prev) => {
-        if (!prev.has(key)) {
-          wasCancelled = true
-          return prev
-        }
-        const next = new Set(prev)
-        next.delete(key)
-        return next
-      })
-      if (wasCancelled || !versions[0]) return
-
-      if (installedFileNames.has(versions[0].fileName.toLowerCase())) {
-        toast.error('Este mod já está instalado (mesmo arquivo).')
-        return
-      }
-      setSelection((prev) => ({
-        ...prev,
-        [key]: { result, version: versions[0] },
-      }))
-    } catch (err) {
-      setPendingKeys((prev) => {
-        const next = new Set(prev)
-        next.delete(key)
-        return next
-      })
-      setError(String(err))
-    }
-  }
+  const toggleSelection = createToggleSelection({
+    selection,
+    setSelection,
+    pendingKeys,
+    setPendingKeys,
+    installedKeys,
+    installedFileNames,
+    gameVersion,
+    effectiveLoader,
+    setError,
+  })
 
   const selectedCount = Object.keys(selection).length
 
-  const handleDeleteInstalled = async (result: ModSearchResult) => {
-    const key = selectionKey(result.source, result.projectId)
-    const installed = installedMods.find(
-      (m) => selectionKey(m.source as ModSource, m.modId) === key,
-    )
-    if (!installed) return
+  const handleDeleteInstalled = createDeleteInstalled({
+    instanceId,
+    installedMods,
+    setInstalledMods,
+    onInstalled,
+  })
 
-    try {
-      await ModAPI.deleteInstalled(instanceId, installed.id)
-      setInstalledMods((prev) => prev.filter((m) => m.id !== installed.id))
-      onInstalled()
-    } catch (err) {
-      toast.error(`Falha ao remover: ${String(err)}`)
-    }
-  }
-
-  const handleUploadCustom = async () => {
-    const filePath = await openFileDialog({
-      multiple: false,
-      filters: [{ name: kindLabel, extensions: [fileFilter] }],
-    })
-    if (!filePath || Array.isArray(filePath)) return
-
-    setIsUploading(true)
-    try {
-      await ModAPI.installCustom({ instanceId, filePath, kind })
-      onInstalled()
-      onOpenChange(false)
-    } catch (err) {
-      toast.error(`Falha ao adicionar: ${String(err)}`)
-    } finally {
-      setIsUploading(false)
-    }
-  }
+  const handleUploadCustom = createUploadCustom({
+    instanceId,
+    kind,
+    kindLabel,
+    fileFilter,
+    setIsUploading,
+    onOpenChange,
+    onInstalled,
+  })
 
   return {
     source,

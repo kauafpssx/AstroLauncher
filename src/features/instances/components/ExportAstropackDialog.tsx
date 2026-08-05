@@ -16,10 +16,11 @@ import {
 import { resolveIconSrc } from '@/lib/icon-src'
 import type { InstanceDTO } from '@/types/instance'
 
+import { AstroPackCategoryList } from './AstroPackCategoryList'
 import {
-  AstroPackCategoryList,
-  type AstroPackCategoryItem,
-} from './AstroPackCategoryList'
+  buildExportCategoryItems,
+  iconToDataUri,
+} from './export-astropack-helpers'
 import {
   ALL_SELECTED,
   AstroPackAPI,
@@ -27,21 +28,6 @@ import {
   type ExportSelection,
   type ExportSummary,
 } from '../services/astropack.api'
-
-async function iconToDataUri(src: string): Promise<string | null> {
-  try {
-    const response = await fetch(src)
-    const blob = await response.blob()
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = () => reject(new Error('Falha ao ler ícone'))
-      reader.readAsDataURL(blob)
-    })
-  } catch {
-    return null
-  }
-}
 
 interface ExportAstropackDialogProps {
   open: boolean
@@ -101,58 +87,7 @@ export function ExportAstropackDialog({
       .catch((err) => toast.error(`Falha ao carregar resumo: ${String(err)}`))
   }, [open, instance.id])
 
-  const items: AstroPackCategoryItem[] = summary
-    ? [
-        {
-          key: 'settings',
-          label: 'Configurações do jogo (options.txt)',
-          count: summary.hasSettings,
-          checked: selection.settings,
-        },
-        {
-          key: 'worlds',
-          label: 'Mundos',
-          count: summary.worlds,
-          checked: selection.worlds,
-        },
-        {
-          key: 'notes',
-          label: 'Notas',
-          count: summary.hasNotes,
-          checked: selection.notes,
-        },
-        {
-          key: 'mods',
-          label: 'Mods',
-          count: summary.mods,
-          checked: selection.mods,
-        },
-        {
-          key: 'resourcepacks',
-          label: 'Resource Packs',
-          count: summary.resourcepacks,
-          checked: selection.resourcepacks,
-        },
-        {
-          key: 'shaders',
-          label: 'Shader Packs',
-          count: summary.shaders,
-          checked: selection.shaders,
-        },
-        {
-          key: 'servers',
-          label: 'Servidores salvos',
-          count: summary.servers,
-          checked: selection.servers,
-        },
-        {
-          key: 'screenshots',
-          label: 'Screenshots',
-          count: summary.screenshots,
-          checked: selection.screenshots,
-        },
-      ]
-    : []
+  const items = buildExportCategoryItems(summary, selection)
 
   const handleToggle = (key: string, checked: boolean) =>
     setSelection((prev) => ({ ...prev, [key]: checked }))

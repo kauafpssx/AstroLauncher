@@ -18,3 +18,7 @@ impl Folder {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "tests/folder_tests.rs"]
+mod tests;

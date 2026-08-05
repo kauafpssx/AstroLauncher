@@ -1,18 +1,11 @@
 import {
   DndContext,
   PointerSensor,
-  closestCenter,
-  pointerWithin,
   useSensor,
   useSensors,
-  type CollisionDetection,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Download, FolderPlus, Plus, RefreshCw } from 'lucide-react'
 
 import {
@@ -26,17 +19,14 @@ import { useContextMenuStore } from '@/stores/context-menu.store'
 import type { FolderDTO } from '@/types/folder'
 import type { InstanceDTO } from '@/types/instance'
 
-const GRID_BACKGROUND_MENU_ID = 'instance-grid-background'
-
 import { EmptyInstances } from './EmptyInstances'
 import { FolderSection } from './FolderSection'
 import { GroupSection } from './GroupSection'
-
-const collisionDetection: CollisionDetection = (args) => {
-  const pointerCollisions = pointerWithin(args)
-  if (pointerCollisions.length > 0) return pointerCollisions
-  return closestCenter(args)
-}
+import {
+  collisionDetection,
+  GRID_BACKGROUND_MENU_ID,
+  handleInstanceDragEnd,
+} from './instance-grid-dnd'
 
 interface InstanceGridProps {
   instances: InstanceDTO[]
@@ -109,68 +99,14 @@ export function InstanceGrid({
   const folderInstances = (folderId: string) =>
     instances.filter((i) => i.folderId === folderId)
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over) return
-    const activeId = String(active.id)
-    const overId = String(over.id)
-    const type = active.data.current?.type
-
-    if (type === 'folder') {
-      if (activeId === overId) return
-      let overFolderId = overId.startsWith('folder:')
-        ? overId.slice('folder:'.length)
-        : overId
-      if (folders.every((f) => f.id !== overFolderId)) {
-        const overInstance = instances.find((i) => i.id === overId)
-        if (!overInstance?.folderId) return
-        overFolderId = overInstance.folderId
-      }
-      if (activeId === overFolderId) return
-      const ids = folders.map((f) => f.id)
-      const fromIndex = ids.indexOf(activeId)
-      const toIndex = ids.indexOf(overFolderId)
-      if (fromIndex === -1 || toIndex === -1) return
-      onReorderFolders(arrayMove(ids, fromIndex, toIndex))
-      return
-    }
-
-    if (type !== 'instance') return
-    const instance = instances.find((i) => i.id === activeId)
-    if (!instance) return
-
-    if (overId.startsWith('folder:')) {
-      const folderId = overId.slice('folder:'.length)
-      if (instance.folderId !== folderId) onMoveToFolder(activeId, folderId)
-      return
-    }
-
-    if (overId === 'root') {
-      if (instance.folderId !== null) onMoveToFolder(activeId, null)
-      return
-    }
-
-    if (folders.some((f) => f.id === overId)) {
-      const folder = folders.find((f) => f.id === overId)!
-      if (instance.folderId !== folder.id) onMoveToFolder(activeId, folder.id)
-      return
-    }
-
-    const overInstance = instances.find((i) => i.id === overId)
-    if (!overInstance) return
-
-    if (overInstance.folderId === instance.folderId) {
-      const ids = instances
-        .filter((i) => i.folderId === instance.folderId)
-        .map((i) => i.id)
-      const fromIndex = ids.indexOf(activeId)
-      const toIndex = ids.indexOf(overId)
-      if (fromIndex !== -1 && toIndex !== -1)
-        onReorderInstances(arrayMove(ids, fromIndex, toIndex))
-    } else {
-      onMoveToFolder(activeId, overInstance.folderId)
-    }
-  }
+  const handleDragEnd = (event: DragEndEvent) =>
+    handleInstanceDragEnd(event, {
+      folders,
+      instances,
+      onMoveToFolder,
+      onReorderFolders,
+      onReorderInstances,
+    })
 
   return (
     <DndContext

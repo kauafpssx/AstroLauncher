@@ -24,3 +24,7 @@ impl Account {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "tests/account_tests.rs"]
+mod tests;

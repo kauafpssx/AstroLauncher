@@ -1,11 +1,4 @@
-import {
-  BookOpen,
-  Check,
-  Code2,
-  ExternalLink,
-  MessageCircle,
-  Plus,
-} from 'lucide-react'
+import { Check, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -23,6 +16,8 @@ import {
 import { ModAPI } from '@/features/mods/services/mod.api'
 import { useLinkPreviewStore } from '@/stores/link-preview.store'
 import type { ModProject, ModSearchResult, ModVersion } from '@/types/mods'
+
+import { ModDetailLinks } from './ModDetailLinks'
 
 interface ModDetailPanelProps {
   result: ModSearchResult
@@ -123,62 +118,7 @@ export function ModDetailPanel({
           {project?.description ?? result.description}
         </p>
 
-        {project &&
-          (project.sourceUrl ||
-            project.issuesUrl ||
-            project.wikiUrl ||
-            project.discordUrl) && (
-            <div className="flex flex-col gap-1.5 border-t pt-3 text-sm">
-              {project.sourceUrl && (
-                <a
-                  href={project.sourceUrl}
-                  onClick={(e) => (
-                    e.preventDefault(),
-                    openLink(project.sourceUrl!)
-                  )}
-                  className="flex items-center gap-2 hover:underline"
-                >
-                  <Code2 className="size-4" /> Repositório
-                </a>
-              )}
-              {project.wikiUrl && (
-                <a
-                  href={project.wikiUrl}
-                  onClick={(e) => (
-                    e.preventDefault(),
-                    openLink(project.wikiUrl!)
-                  )}
-                  className="flex items-center gap-2 hover:underline"
-                >
-                  <BookOpen className="size-4" /> Wiki / Documentação
-                </a>
-              )}
-              {project.issuesUrl && (
-                <a
-                  href={project.issuesUrl}
-                  onClick={(e) => (
-                    e.preventDefault(),
-                    openLink(project.issuesUrl!)
-                  )}
-                  className="flex items-center gap-2 hover:underline"
-                >
-                  <ExternalLink className="size-4" /> Issues
-                </a>
-              )}
-              {project.discordUrl && (
-                <a
-                  href={project.discordUrl}
-                  onClick={(e) => (
-                    e.preventDefault(),
-                    openLink(project.discordUrl!)
-                  )}
-                  className="flex items-center gap-2 hover:underline"
-                >
-                  <MessageCircle className="size-4" /> Discord
-                </a>
-              )}
-            </div>
-          )}
+        {project && <ModDetailLinks project={project} openLink={openLink} />}
 
         {project?.body && (
           <MarkdownBody className="prose prose-sm dark:prose-invert max-w-none border-t pt-3 break-words">

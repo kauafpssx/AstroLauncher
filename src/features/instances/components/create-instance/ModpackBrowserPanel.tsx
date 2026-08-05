@@ -25,37 +25,13 @@ import { useModpackInstallStore } from '@/stores/modpack-install.store'
 import type { ModSearchResult, ModSortBy, ModSource } from '@/types/mods'
 
 import { ModpackDetailPanel } from './ModpackDetailPanel'
-
-const SOURCE_LABEL: Record<ModSource, string> = {
-  modrinth: 'Modrinth',
-  curseforge: 'CurseForge',
-}
-
-const SOURCE_LOGO: Record<ModSource, string> = {
-  modrinth: '/providers/modrinth.svg',
-  curseforge: '/providers/curseforge.png',
-}
-
-const LOADER_ICON: Record<string, string> = {
-  fabric: '/providers/fabricmc.svg',
-  quilt: '/providers/quiltmc.svg',
-  forge: '/providers/forge.png',
-  neoforge: '/providers/neoforged.svg',
-}
-
-const LOADER_LABEL: Record<string, string> = {
-  fabric: 'Fabric',
-  quilt: 'Quilt',
-  forge: 'Forge',
-  neoforge: 'NeoForge',
-}
-
-const SORT_OPTIONS: { value: ModSortBy; label: string }[] = [
-  { value: 'relevance', label: 'Relevância' },
-  { value: 'downloads', label: 'Downloads' },
-  { value: 'newest', label: 'Mais recentes' },
-  { value: 'updated', label: 'Atualizados' },
-]
+import {
+  LOADER_ICON,
+  LOADER_LABEL,
+  SORT_OPTIONS,
+  SOURCE_LABEL,
+  SOURCE_LOGO,
+} from './modpack-browser-constants'
 
 interface ModpackBrowserPanelProps {
   source: ModSource

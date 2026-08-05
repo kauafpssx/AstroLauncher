@@ -1,7 +1,7 @@
 import { apiInvoke } from '@/lib/api/client'
 import type { InstanceDTO } from '@/types/instance'
 
-export interface AstroPackContentEntry {
+interface AstroPackContentEntry {
   kind: string
   source: string
   projectId: string
@@ -12,12 +12,12 @@ export interface AstroPackContentEntry {
   iconUrl: string | null
 }
 
-export interface AstroPackServerEntry {
+interface AstroPackServerEntry {
   name: string
   ip: string
 }
 
-export interface AstroPackNoteEntry {
+interface AstroPackNoteEntry {
   title: string
   content: string
 }

@@ -1,6 +1,6 @@
 import type { Area } from 'react-easy-crop'
 
-export const OUTPUT_SIZE = 128
+const OUTPUT_SIZE = 128
 
 export function mimeFor(path: string): string {
   const ext = path.split('.').pop()?.toLowerCase()

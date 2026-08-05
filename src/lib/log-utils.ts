@@ -57,10 +57,6 @@ const LOG_LINE_RE =
   /^(\[[\d:]+\] )(\[[\w #.-]+\/)(INFO|WARN|ERROR|FATAL)(\]: )(.*)$/
 const STACK_RE = /^\s+(at |\.\.\. \d+ more)/
 
-export interface ParsedLine {
-  segments: LogSegment[]
-}
-
 function defaultStyle() {
   return {
     bracket: '#94a3b8',
@@ -73,7 +69,7 @@ function defaultStyle() {
   }
 }
 
-export function parseLogLine(line: string): LogSegment[] {
+function parseLogLine(line: string): LogSegment[] {
   const m = line.match(LOG_LINE_RE)
   if (m) {
     const [, tsBlock, threadBlock, level, divider, message] = m
