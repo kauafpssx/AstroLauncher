@@ -6,6 +6,7 @@ use crate::application::mappers::instance_mapper;
 use crate::domain::entities::{InstalledMod, Instance};
 use crate::infrastructure::downloader::file_downloader;
 use crate::infrastructure::filesystem::paths;
+use crate::infrastructure::filesystem::safe_path::safe_join;
 use crate::infrastructure::modrinth::{self, mrpack};
 
 use super::{rollback_instance, ModpackInstallerService};
@@ -148,7 +149,11 @@ impl ModpackInstallerService {
             let Some(url) = file.downloads.first() else {
                 continue;
             };
-            let dest = instance_dir.join(&file.path);
+            // `file.path` comes from the untrusted `.mrpack` index — reject
+            // any `..`/absolute path that would escape the instance dir.
+            let Some(dest) = safe_join(&instance_dir, &file.path) else {
+                continue;
+            };
             file_downloader::download_to_file(
                 &self.http_client,
                 url,

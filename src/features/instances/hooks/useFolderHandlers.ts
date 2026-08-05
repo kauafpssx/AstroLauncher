@@ -54,10 +54,16 @@ export function useFolderHandlers({
   const handleRenameFolder = async (name: string) => {
     if (!folderDialog) return
     if (folderDialog.isRoot) {
+      // Sem settings carregado, `?? null` sobrescreveria as chaves de API
+      // persistidas com null e apagaria as credenciais do usuário.
+      if (!settings) {
+        toast.error('Configurações ainda carregando, tente novamente')
+        return
+      }
       try {
         const updated = await SettingsAPI.update({
-          curseforgeApiKey: settings?.curseforgeApiKey ?? null,
-          mcstatApiKey: settings?.mcstatApiKey ?? null,
+          curseforgeApiKey: settings.curseforgeApiKey,
+          mcstatApiKey: settings.mcstatApiKey,
           rootGroupName: name,
         })
         setSettings(updated)
