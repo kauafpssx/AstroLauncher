@@ -109,7 +109,6 @@ export function ConfigFilesTab({ instanceId }: ConfigFilesTabProps) {
     try {
       await InstanceWorkspaceAPI.writeConfigFile(instanceId, selected, content)
       setOriginalContent(content)
-      toast.success('Arquivo salvo')
     } catch (err) {
       toast.error(`Falha ao salvar: ${String(err)}`)
     } finally {

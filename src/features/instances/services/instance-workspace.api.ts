@@ -39,6 +39,21 @@ export const InstanceWorkspaceAPI = {
   openFolder(id: string): Promise<void> {
     return apiInvoke<void>('open_instance_folder', { id })
   },
+  listShortcuts(): Promise<string[]> {
+    return apiInvoke<string[]>('list_instance_shortcuts')
+  },
+  toggleShortcut(id: string, iconPngBase64: string | null): Promise<boolean> {
+    return apiInvoke<boolean>('toggle_instance_shortcut', {
+      id,
+      iconPngBase64,
+    })
+  },
+  refreshShortcutIcon(id: string, iconPngBase64: string | null): Promise<void> {
+    return apiInvoke<void>('refresh_instance_shortcut_icon', {
+      id,
+      iconPngBase64,
+    })
+  },
   listWorlds(id: string): Promise<WorldDTO[]> {
     return apiInvoke<WorldDTO[]>('list_instance_worlds', { id })
   },

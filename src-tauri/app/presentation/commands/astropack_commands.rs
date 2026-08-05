@@ -19,6 +19,14 @@ pub async fn preview_astropack(
         .map_err(|e| e.to_string())
 }
 
+/// Returns and clears the `.astropack` path the app was opened with via its
+/// file association (`bundle.fileAssociations`) — consumed once by the
+/// frontend right after startup.
+#[tauri::command]
+pub fn take_pending_astropack_path() -> Option<String> {
+    crate::infrastructure::cli::take_pending_astropack_path()
+}
+
 #[tauri::command]
 pub async fn get_astropack_export_summary(
     state: State<'_, AppState>,
@@ -32,15 +40,25 @@ pub async fn get_astropack_export_summary(
 
 #[tauri::command]
 pub async fn export_instance(
+    app: AppHandle,
     state: State<'_, AppState>,
     instance_id: String,
     dest_path: String,
     selection: ExportSelection,
     icon_data_uri: Option<String>,
 ) -> Result<ExportResultDTO, String> {
+    let app_clone = app.clone();
     state
         .astropack
-        .export_instance(&instance_id, &dest_path, selection, icon_data_uri)
+        .export_instance(
+            &instance_id,
+            &dest_path,
+            selection,
+            icon_data_uri,
+            Arc::new(move |event| {
+                let _ = app_clone.emit("astropack://event", event);
+            }),
+        )
         .await
         .map_err(|e| e.to_string())
 }

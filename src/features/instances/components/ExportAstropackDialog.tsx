@@ -1,9 +1,11 @@
+import { listen } from '@tauri-apps/api/event'
 import { save } from '@tauri-apps/plugin-dialog'
 import { Loader2, PackageCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
+import { ProgressGroup } from '@/components/common/ProgressGroup'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -21,6 +23,7 @@ import {
 import {
   ALL_SELECTED,
   AstroPackAPI,
+  type AstroPackEvent,
   type ExportSelection,
   type ExportSummary,
 } from '../services/astropack.api'
@@ -54,6 +57,9 @@ export function ExportAstropackDialog({
   const [isExporting, setIsExporting] = useState(false)
   const [summary, setSummary] = useState<ExportSummary | null>(null)
   const [selection, setSelection] = useState<ExportSelection>(ALL_SELECTED)
+  const [exportCurrent, setExportCurrent] = useState(0)
+  const [exportTotal, setExportTotal] = useState(0)
+  const [exportItemName, setExportItemName] = useState('')
 
   // Clear the previous summary during render when the dialog reopens (the
   // effect below only performs the fetch).
@@ -62,6 +68,19 @@ export function ExportAstropackDialog({
     setPrevOpen(open)
     if (open) setSummary(null)
   }
+
+  useEffect(() => {
+    if (!isExporting) return
+    const unlisten = listen<AstroPackEvent>('astropack://event', (event) => {
+      if (event.payload.type !== 'progress') return
+      setExportCurrent(event.payload.current + 1)
+      setExportTotal(event.payload.total)
+      setExportItemName(event.payload.name)
+    })
+    return () => {
+      unlisten.then((fn) => fn())
+    }
+  }, [isExporting])
 
   useEffect(() => {
     if (!open) return
@@ -146,16 +165,18 @@ export function ExportAstropackDialog({
     if (!destPath || Array.isArray(destPath)) return
 
     setIsExporting(true)
+    setExportCurrent(0)
+    setExportTotal(0)
+    setExportItemName('')
     try {
       const iconSrc = resolveIconSrc(instance.iconPath)
       const iconDataUri = iconSrc ? await iconToDataUri(iconSrc) : null
-      const result = await AstroPackAPI.exportInstance(
+      await AstroPackAPI.exportInstance(
         instance.id,
         destPath,
         selection,
         iconDataUri,
       )
-      toast.success(`Instância exportada para ${result.filePath}`)
       onOpenChange(false)
     } catch (err) {
       toast.error(`Falha ao exportar: ${String(err)}`)
@@ -178,7 +199,15 @@ export function ExportAstropackDialog({
           Escolha o que vai junto no .astropack.
         </p>
 
-        {summary ? (
+        {isExporting ? (
+          <ProgressGroup
+            label={exportItemName || 'Preparando...'}
+            value={exportTotal > 0 ? (exportCurrent / exportTotal) * 100 : 0}
+            rightLabel={
+              exportTotal > 0 ? `${exportCurrent}/${exportTotal}` : undefined
+            }
+          />
+        ) : summary ? (
           <AstroPackCategoryList items={items} onToggle={handleToggle} />
         ) : (
           <CenteredSpinner className="h-32" />

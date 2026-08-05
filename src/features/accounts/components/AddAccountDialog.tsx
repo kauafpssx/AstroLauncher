@@ -28,7 +28,6 @@ export function AddAccountDialog({
       onSubmit={async (username) => {
         try {
           await createAccount({ username })
-          toast.success('Conta adicionada')
         } catch (err) {
           toast.error(`Falha ao adicionar conta: ${String(err)}`)
           throw err

@@ -39,7 +39,10 @@ export function CreateInstancePage() {
   const [iconPath, setIconPath] = useState<string | null>(randomIconPath)
   const [search, setSearch] = useState('')
   const [typeFilters, setTypeFilters] = useState<VersionType[]>(['release'])
-  const [version, setVersion] = useState<VersionDTO | null>(null)
+  const [version, setVersion] = useState<VersionDTO | null>(() => {
+    if (versions.length === 0) return null
+    return versions.find((v) => v.type === 'release') ?? versions[0]
+  })
   const [loader, setLoader] = useState<LoaderId | null>('vanilla')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [astropackPath, setAstropackPath] = useState<string | null>(null)
@@ -85,7 +88,6 @@ export function CreateInstancePage() {
         folderId: group,
         iconPath,
       })
-      toast.success('Instância criada')
       navigate('/')
     } catch (err) {
       toast.error(`Falha ao criar instância: ${String(err)}`)
@@ -145,7 +147,7 @@ export function CreateInstancePage() {
             ) : (
               <SourcePlaceholder
                 platform={platform}
-                onAction={() => toast.info('Ainda não implementado')}
+                onAction={() => {}}
                 onImportAstropack={handleImportAstropack}
               />
             )}

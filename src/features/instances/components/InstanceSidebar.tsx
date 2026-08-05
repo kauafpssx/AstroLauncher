@@ -2,6 +2,7 @@ import { Clock } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { formatDateTime, formatDuration, parseLauncherDate } from '@/lib/format'
+import { useInstanceStore } from '@/stores/instance.store'
 import type { InstanceDTO } from '@/types/instance'
 
 import { useInstanceIcon } from '../hooks/useInstanceIcon'
@@ -17,6 +18,7 @@ interface InstanceSidebarProps {
   onEdit: (id: string) => void
   onDelete: (id: string) => void
   onExport: (id: string) => void
+  onDuplicate: (id: string) => void
 }
 
 export function InstanceSidebar({
@@ -27,14 +29,20 @@ export function InstanceSidebar({
   onEdit,
   onDelete,
   onExport,
+  onDuplicate,
 }: InstanceSidebarProps) {
   const { handleIconSelect } = useInstanceIcon(instance)
   const { summary } = usePlaytimeSummary(instance, isRunning)
-  const { actions } = getInstanceActions(
-    instance,
-    { onLaunch, onStop, onEdit, onDelete, onExport },
-    isRunning,
+  const hasShortcut = useInstanceStore((s) =>
+    s.shortcutIds.includes(instance.id),
   )
+  const actions = getInstanceActions(
+    instance,
+    { onLaunch, onStop, onEdit, onDelete, onExport, onDuplicate },
+    isRunning,
+    [],
+    hasShortcut,
+  ).filter((a) => 'onSelect' in a)
   const [primaryAction, ...rest] = actions
   const deleteAction = rest.find((a) => a.key === 'delete')!
   const secondaryActions = rest.filter((a) => a.key !== 'delete')

@@ -19,6 +19,7 @@ interface InstanceCardGridProps {
   onEdit: (id: string) => void
   onDelete: (id: string) => void
   onExport: (id: string) => void
+  onDuplicate: (id: string) => void
   onMoveToFolder: (id: string, folderId: string | null) => void
 }
 
@@ -35,6 +36,7 @@ export function InstanceCardGrid({
   onEdit,
   onDelete,
   onExport,
+  onDuplicate,
   onMoveToFolder,
 }: InstanceCardGridProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -70,6 +72,7 @@ export function InstanceCardGrid({
             onEdit={onEdit}
             onDelete={onDelete}
             onExport={onExport}
+            onDuplicate={onDuplicate}
             onMoveToFolder={onMoveToFolder}
           />
         ))}

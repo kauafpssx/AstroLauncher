@@ -51,6 +51,9 @@ pub struct SearchModsInput {
     pub project_type: String,
     pub game_version: Option<String>,
     pub loader: Option<String>,
+    /// `"relevance"`, `"downloads"`, `"newest"` or `"updated"` — mapped to
+    /// each provider's own sort parameter in `ModBrowserService::search`.
+    pub sort: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

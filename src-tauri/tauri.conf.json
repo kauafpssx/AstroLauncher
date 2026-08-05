@@ -56,6 +56,14 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "fileAssociations": [
+      {
+        "ext": ["astropack"],
+        "name": "AstroPack",
+        "description": "Pacote de instância AstroLauncher",
+        "mimeType": "application/x-astropack"
+      }
+    ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
     },

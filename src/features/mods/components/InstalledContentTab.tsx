@@ -20,27 +20,29 @@ import type { ContentKind, InstalledMod } from '@/types/mods'
 import { ModAPI } from '../services/mod.api'
 import { ModBrowserDialog } from './ModBrowserDialog'
 
+const SOURCE_LOGO: Record<string, string> = {
+  modrinth: '/providers/modrinth.svg',
+  curseforge: '/providers/curseforge.png',
+}
+
 const LABELS: Record<
   ContentKind,
-  { title: string; addLabel: string; emptyLabel: string; singular: string }
+  { title: string; addLabel: string; emptyLabel: string }
 > = {
   mod: {
     title: 'Mods instalados nesta instância.',
     addLabel: 'Adicionar Mod',
     emptyLabel: 'Nenhum mod instalado.',
-    singular: 'Mod',
   },
   resourcepack: {
     title: 'Resource packs instalados nesta instância.',
     addLabel: 'Adicionar Resource Pack',
     emptyLabel: 'Nenhum resource pack instalado.',
-    singular: 'Resource pack',
   },
   shader: {
     title: 'Shader packs instalados nesta instância.',
     addLabel: 'Adicionar Shader Pack',
     emptyLabel: 'Nenhum shader pack instalado.',
-    singular: 'Shader pack',
   },
 }
 
@@ -103,7 +105,6 @@ export function InstalledContentTab({
     try {
       await ModAPI.deleteInstalled(instanceId, item.id)
       setItems((prev) => prev.filter((m) => m.id !== item.id))
-      toast.success(`${labels.singular} removido`)
     } catch (err) {
       toast.error(`Falha ao remover: ${String(err)}`)
     }
@@ -155,6 +156,13 @@ export function InstalledContentTab({
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline" className="capitalize">
+                    {SOURCE_LOGO[item.source] && (
+                      <img
+                        src={SOURCE_LOGO[item.source]}
+                        alt=""
+                        className="size-3"
+                      />
+                    )}
                     {item.source}
                   </Badge>
                 </TableCell>

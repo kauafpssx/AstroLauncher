@@ -201,6 +201,18 @@ fn mod_loader_type(loader: &str) -> Option<u32> {
     }
 }
 
+/// Maps our unified sort key to CurseForge Core API's `sortField` enum
+/// (Popularity=2, TotalDownloads=6, ReleasedDate=11, LastUpdated=3) — chosen
+/// to mirror Modrinth's `relevance`/`downloads`/`newest`/`updated`.
+fn sort_field(sort: Option<&str>) -> &'static str {
+    match sort {
+        Some("downloads") => "6",
+        Some("newest") => "11",
+        Some("updated") => "3",
+        _ => "2",
+    }
+}
+
 pub async fn search(
     client: &reqwest::Client,
     api_key: &str,
@@ -208,6 +220,7 @@ pub async fn search(
     class_id: u32,
     game_version: Option<&str>,
     loader: Option<&str>,
+    sort: Option<&str>,
 ) -> anyhow::Result<Vec<ModEntry>> {
     let mut url = reqwest::Url::parse(&format!("{}/mods/search", base_url()))?;
     {
@@ -217,7 +230,7 @@ pub async fn search(
             .append_pair("classId", &class_id.to_string())
             .append_pair("searchFilter", query)
             .append_pair("pageSize", "30")
-            .append_pair("sortField", "6") // TotalDownloads
+            .append_pair("sortField", sort_field(sort))
             .append_pair("sortOrder", "desc");
         if let Some(gv) = game_version {
             pairs.append_pair("gameVersion", gv);

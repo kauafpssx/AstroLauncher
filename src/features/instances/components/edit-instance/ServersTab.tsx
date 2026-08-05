@@ -98,7 +98,6 @@ export function ServersTab({ instanceId }: ServersTabProps) {
     if (!deleteTarget) return
     try {
       await InstanceWorkspaceAPI.deleteServer(instanceId, deleteTarget.index)
-      toast.success('Servidor removido')
       await load()
     } catch (err) {
       toast.error(`Falha ao remover: ${String(err)}`)

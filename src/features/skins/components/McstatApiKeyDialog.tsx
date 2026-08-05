@@ -53,7 +53,6 @@ export function McstatApiKeyDialog({
             curseforgeApiKey: settings.curseforgeApiKey,
             mcstatApiKey: key,
           })
-          toast.success('Chave do MCStat salva')
           onSaved(key)
         } catch (err) {
           toast.error(`Falha ao salvar chave: ${String(err)}`)

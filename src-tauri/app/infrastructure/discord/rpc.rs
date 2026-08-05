@@ -2,12 +2,16 @@ use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
 use std::thread;
 use std::time::Duration;
 
-use discord_rich_presence::activity::{Activity, Assets, Timestamps};
+use discord_rich_presence::activity::{Activity, Assets, Button, Timestamps};
 use discord_rich_presence::{DiscordIpc, DiscordIpcClient};
 
 /// How often the background thread retries connecting to the local Discord
 /// client when it isn't running yet (or the pipe dropped).
 const RETRY_INTERVAL: Duration = Duration::from_secs(15);
+
+/// Shown as a Rich Presence button on every state — Discord only renders
+/// buttons for other people viewing the activity, not the local user.
+const REPO_URL: &str = "https://github.com/kauafpssx/AstroLauncher";
 
 enum PresenceState {
     /// Fallback shown only before the frontend has reported a screen, and
@@ -153,7 +157,8 @@ fn apply(
     let mut activity = Activity::new()
         .details(&details)
         .state(&state_text)
-        .assets(assets);
+        .assets(assets)
+        .buttons(vec![Button::new("Ver repositório", REPO_URL)]);
     if let Some(timestamps) = timestamps {
         activity = activity.timestamps(timestamps);
     }

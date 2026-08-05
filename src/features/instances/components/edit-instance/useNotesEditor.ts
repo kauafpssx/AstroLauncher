@@ -170,7 +170,6 @@ export function useNotesEditor(instanceId: string) {
       if (activeId === deleteTarget.id) {
         setActiveId(remaining[0]?.id ?? null)
       }
-      toast.success('Nota removida')
     } catch (err) {
       toast.error(`Falha ao remover nota: ${String(err)}`)
     } finally {

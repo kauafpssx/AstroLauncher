@@ -15,6 +15,7 @@ interface FiltersCardProps {
 
 export function FiltersCard({ typeFilters, onChange }: FiltersCardProps) {
   const toggle = (value: VersionType, checked: boolean) => {
+    if (!checked && typeFilters.length === 1) return
     onChange(
       checked
         ? [...typeFilters, value]

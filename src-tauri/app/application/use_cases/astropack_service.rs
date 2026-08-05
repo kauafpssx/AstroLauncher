@@ -45,6 +45,22 @@ fn target_folder(kind: &str) -> &'static str {
     }
 }
 
+/// Reverses `target_folder` (plus the `worlds`/`screenshots` entries added
+/// separately) from a zip entry's path, for progress events during export.
+fn kind_for_export_entry(entry_name: &str) -> &'static str {
+    if entry_name.starts_with("content/resourcepacks/") {
+        "resourcepack"
+    } else if entry_name.starts_with("content/shaderpacks/") {
+        "shader"
+    } else if entry_name.starts_with("content/worlds/") {
+        "world"
+    } else if entry_name.starts_with("content/screenshots/") {
+        "screenshot"
+    } else {
+        "mod"
+    }
+}
+
 fn read_manifest_json<R: std::io::Read + std::io::Seek>(
     archive: &mut zip::ZipArchive<R>,
 ) -> anyhow::Result<String> {
@@ -210,6 +226,7 @@ impl AstroPackService {
         dest_path: &str,
         selection: ExportSelection,
         icon_data_uri: Option<String>,
+        on_event: Arc<dyn Fn(AstroPackEventDTO) + Send + Sync>,
     ) -> anyhow::Result<ExportResultDTO> {
         let instance = self.instance_repository.find_by_id(instance_id)?;
         let instance_dir = paths::instance_dir(&self.app_data_dir, instance_id);
@@ -374,10 +391,24 @@ impl AstroPackService {
         zip.start_file("astropack.json", options)?;
         zip.write_all(manifest_json.as_bytes())?;
 
-        for (entry_name, source_path) in &embed_files {
+        let total = embed_files.len() as u64;
+        for (index, (entry_name, source_path)) in embed_files.iter().enumerate() {
             if !source_path.exists() {
                 continue;
             }
+            let name = source_path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or(entry_name)
+                .to_string();
+            on_event(AstroPackEventDTO::Progress {
+                kind: kind_for_export_entry(entry_name).to_string(),
+                name,
+                icon_url: None,
+                current: index as u64,
+                total,
+            });
+
             zip.start_file(entry_name, options)?;
             let bytes = std::fs::read(source_path)?;
             zip.write_all(&bytes)?;

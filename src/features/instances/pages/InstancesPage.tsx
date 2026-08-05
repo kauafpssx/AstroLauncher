@@ -32,6 +32,7 @@ export function InstancesPage() {
     setDeleteFolderTarget,
     refreshAll,
     handleEdit,
+    handleDuplicate,
     handleImport,
     handlePickRootIcon,
     handleToggleCollapsed,
@@ -67,6 +68,7 @@ export function InstancesPage() {
               onEdit={handleEdit}
               onDelete={setDeleteTargetId}
               onExport={setExportTargetId}
+              onDuplicate={handleDuplicate}
               onImport={handleImport}
               onCreate={() => navigate('/instances/new')}
               onCreateFolder={() => setFolderDialog({ mode: 'create' })}
@@ -112,6 +114,7 @@ export function InstancesPage() {
                 onEdit={handleEdit}
                 onDelete={setDeleteTargetId}
                 onExport={setExportTargetId}
+                onDuplicate={handleDuplicate}
               />
             </ResizablePanel>
           </>

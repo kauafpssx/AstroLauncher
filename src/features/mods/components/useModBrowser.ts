@@ -7,13 +7,13 @@ import type {
   ContentKind,
   InstalledMod,
   ModSearchResult,
+  ModSortBy,
   ModSource,
   ModVersion,
 } from '@/types/mods'
 
 import { ModAPI } from '../services/mod.api'
 
-export type SortBy = 'relevance' | 'downloads'
 export type SelectionMap = Record<
   string,
   { result: ModSearchResult; version: ModVersion }
@@ -46,7 +46,7 @@ export function useModBrowser({
 }: UseModBrowserArgs) {
   const [source, setSource] = useState<ModSource>('modrinth')
   const [query, setQuery] = useState('')
-  const [sortBy, setSortBy] = useState<SortBy>('relevance')
+  const [sortBy, setSortBy] = useState<ModSortBy>('relevance')
   const [results, setResults] = useState<ModSearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -118,6 +118,7 @@ export function useModBrowser({
         projectType: kind,
         gameVersion: gameVersion ?? null,
         loader: effectiveLoader,
+        sort: sortBy,
       })
         .then((data) => {
           if (requestIdRef.current !== requestId) return
@@ -134,11 +135,7 @@ export function useModBrowser({
     }, 200)
 
     return () => clearTimeout(handle)
-  }, [open, source, query, kind, gameVersion, effectiveLoader])
-
-  const sortedResults = [...results].sort((a, b) =>
-    sortBy === 'downloads' ? b.downloads - a.downloads : 0,
-  )
+  }, [open, source, query, kind, gameVersion, effectiveLoader, sortBy])
 
   const toggleSelection = async (
     result: ModSearchResult,
@@ -217,6 +214,22 @@ export function useModBrowser({
 
   const selectedCount = Object.keys(selection).length
 
+  const handleDeleteInstalled = async (result: ModSearchResult) => {
+    const key = selectionKey(result.source, result.projectId)
+    const installed = installedMods.find(
+      (m) => selectionKey(m.source as ModSource, m.modId) === key,
+    )
+    if (!installed) return
+
+    try {
+      await ModAPI.deleteInstalled(instanceId, installed.id)
+      setInstalledMods((prev) => prev.filter((m) => m.id !== installed.id))
+      onInstalled()
+    } catch (err) {
+      toast.error(`Falha ao remover: ${String(err)}`)
+    }
+  }
+
   const handleUploadCustom = async () => {
     const filePath = await openFileDialog({
       multiple: false,
@@ -227,7 +240,6 @@ export function useModBrowser({
     setIsUploading(true)
     try {
       await ModAPI.installCustom({ instanceId, filePath, kind })
-      toast.success('Adicionado com sucesso')
       onInstalled()
       onOpenChange(false)
     } catch (err) {
@@ -244,7 +256,7 @@ export function useModBrowser({
     setQuery,
     sortBy,
     setSortBy,
-    sortedResults,
+    results,
     isSearching,
     error,
     viewing,
@@ -261,5 +273,6 @@ export function useModBrowser({
     kindLabel,
     toggleSelection,
     handleUploadCustom,
+    handleDeleteInstalled,
   }
 }

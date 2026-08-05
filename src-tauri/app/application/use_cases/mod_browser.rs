@@ -44,6 +44,7 @@ impl ModBrowserService {
                     &input.project_type,
                     input.game_version.as_deref(),
                     input.loader.as_deref(),
+                    input.sort.as_deref(),
                 )
                 .await?;
                 Ok(hits
@@ -71,6 +72,7 @@ impl ModBrowserService {
                     class_id,
                     input.game_version.as_deref(),
                     input.loader.as_deref(),
+                    input.sort.as_deref(),
                 )
                 .await?;
                 Ok(entries

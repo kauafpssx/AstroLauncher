@@ -138,6 +138,13 @@
   input[type='radio'] {
     cursor: pointer;
   }
+  /* Sem isso o WebView2 inicia o drag-ghost nativo do navegador ao
+     clicar-e-arrastar em cima de qualquer <img> (ícones, avatares,
+     screenshots), competindo com drag and drop da UI (dnd-kit). */
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
 }
 
 *[data-tauri-drag-region] {

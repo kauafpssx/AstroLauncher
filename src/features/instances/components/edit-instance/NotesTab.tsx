@@ -1,6 +1,5 @@
 import { EditorContent } from '@tiptap/react'
 import { ImagePlus, MapPin } from 'lucide-react'
-import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
@@ -53,11 +52,7 @@ export function NotesTab({ instanceId }: NotesTabProps) {
           >
             <ImagePlus /> Inserir Imagem
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => toast.info('Coordenadas: em breve')}
-          >
+          <Button variant="outline" size="sm" disabled>
             <MapPin /> Coordenadas
           </Button>
         </div>

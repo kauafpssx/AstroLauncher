@@ -1,5 +1,11 @@
-import { EmptyState } from '@/components/common/EmptyState'
+import { Hourglass } from 'lucide-react'
+
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
 import type { ContentKind } from '@/types/mods'
 
 import { ModBrowserList } from './ModBrowserList'
@@ -56,7 +62,13 @@ export function ModBrowserDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="flex h-[85vh] max-h-[720px] flex-col gap-0 p-0 sm:max-w-5xl"
+        className="flex h-[90vh] max-h-[820px] flex-col gap-0 p-0 sm:max-w-6xl"
+        // Interacting with the resize handle sometimes gets misread by
+        // Radix's dismissable layer as an outside interaction, closing the
+        // dialog. Disable dismiss-on-outside-interaction here — Escape and
+        // the close button still work.
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogTitle className="sr-only">Buscar {kindLabel}</DialogTitle>
 
@@ -76,10 +88,17 @@ export function ModBrowserDialog({
             }}
           />
         ) : (
-          <div className="flex min-h-0 flex-1">
-            <ModBrowserList browser={browser} />
+          <ResizablePanelGroup
+            orientation="horizontal"
+            className="min-h-0 flex-1"
+          >
+            <ResizablePanel minSize="480px">
+              <ModBrowserList browser={browser} />
+            </ResizablePanel>
 
-            <div className="w-96 shrink-0">
+            <ResizableHandle />
+
+            <ResizablePanel defaultSize="384px" minSize="320px" maxSize="50%">
               {viewing && viewingKey ? (
                 <ModDetailPanel
                   result={viewing}
@@ -95,13 +114,12 @@ export function ModBrowserDialog({
                   }
                 />
               ) : (
-                <EmptyState
-                  title="Selecione um item na lista para ver detalhes."
-                  className="h-full p-6"
-                />
+                <div className="flex h-full items-center justify-center p-6">
+                  <Hourglass className="text-muted-foreground size-8" />
+                </div>
               )}
-            </div>
-          </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         )}
       </DialogContent>
     </Dialog>

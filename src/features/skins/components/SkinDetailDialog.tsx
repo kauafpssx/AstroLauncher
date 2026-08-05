@@ -105,7 +105,6 @@ export function SkinDetailDialog({
     setIsDownloading(true)
     try {
       await SkinAPI.downloadSkin(detail.skinUrl, destPath)
-      toast.success('Skin baixada')
     } catch (err) {
       toast.error(`Falha ao baixar skin: ${String(err)}`)
     } finally {

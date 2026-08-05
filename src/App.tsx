@@ -1,4 +1,5 @@
-import { HashRouter, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom'
 
 import { CreateInstancePage } from '@/features/instances/pages/CreateInstancePage'
 import { EditInstancePage } from '@/features/instances/pages/EditInstancePage'
@@ -7,8 +8,29 @@ import { SkinsPage } from '@/features/skins/pages/SkinsPage'
 import { CursorTooltip } from '@/components/common/CursorTooltip'
 import { LaunchProgressDialog } from '@/components/layout/LaunchProgressDialog'
 import { Toaster } from '@/components/ui/sonner'
+import { useBlockBrowserNavigation } from '@/hooks/useBlockBrowserNavigation'
+import { useBlockNativeContextMenu } from '@/hooks/useBlockNativeContextMenu'
+import { useImportAstropackStore } from '@/stores/import-astropack.store'
+
+/** Jumps to the instances page (where the import dialog lives) when a
+ * `.astropack` is opened via its file association while the user is on a
+ * different screen — InstancesPage itself picks up the pending path once
+ * mounted. */
+function AstropackFileAssociationBridge() {
+  const navigate = useNavigate()
+  const pendingPath = useImportAstropackStore((s) => s.pendingPath)
+
+  useEffect(() => {
+    if (pendingPath) navigate('/')
+  }, [pendingPath, navigate])
+
+  return null
+}
 
 function App() {
+  useBlockBrowserNavigation()
+  useBlockNativeContextMenu()
+
   return (
     <HashRouter>
       <Routes>
@@ -20,6 +42,7 @@ function App() {
       <Toaster />
       <LaunchProgressDialog />
       <CursorTooltip />
+      <AstropackFileAssociationBridge />
     </HashRouter>
   )
 }

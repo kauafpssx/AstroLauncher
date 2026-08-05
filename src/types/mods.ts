@@ -50,12 +50,15 @@ export interface InstalledMod {
   enabled: boolean
 }
 
+export type ModSortBy = 'relevance' | 'downloads' | 'newest' | 'updated'
+
 export interface SearchModsInput {
   source: ModSource
   query: string
   projectType: ProjectType
   gameVersion?: string | null
   loader?: string | null
+  sort?: ModSortBy | null
 }
 
 export interface GetModVersionsInput {

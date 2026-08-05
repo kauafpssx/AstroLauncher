@@ -1,4 +1,4 @@
-import { Download, Plus, RefreshCw, Shirt } from 'lucide-react'
+import { Download, Plus, Shirt } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { AccountDropdown } from '@/components/layout/AccountDropdown'
@@ -19,7 +19,10 @@ export function TopBar({ onCreateInstance, onImportInstance }: TopBarProps) {
       <Button onClick={onCreateInstance}>
         <Plus /> Nova Instância
       </Button>
-      <Separator orientation="vertical" className="mx-1 !h-6 !self-auto" />
+      {/* Ghost icon buttons have ~8px of invisible padding before the glyph
+          (size-8 box, size-4 icon centered) that the solid button doesn't —
+          skip the right margin so the visible gap looks even on both sides. */}
+      <Separator orientation="vertical" className="ml-2 !h-6 !self-auto" />
       {onImportInstance && (
         <Button
           variant="ghost"
@@ -40,9 +43,6 @@ export function TopBar({ onCreateInstance, onImportInstance }: TopBarProps) {
       </Button>
       <div className="ml-auto flex items-center gap-1">
         <AccountDropdown />
-        <Button variant="ghost" size="icon" {...tooltipProps('Atualizações')}>
-          <RefreshCw />
-        </Button>
       </div>
     </header>
   )

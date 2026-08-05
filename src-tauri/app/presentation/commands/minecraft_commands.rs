@@ -50,6 +50,13 @@ pub fn cancel_launch(state: State<AppState>) {
     state.launch_instance.cancel();
 }
 
+/// Returns and clears the instance id a desktop shortcut asked us to launch
+/// via `--launch-instance <id>`. `None` when the app was opened normally.
+#[tauri::command]
+pub fn take_pending_launch() -> Option<String> {
+    crate::infrastructure::cli::take_pending_launch()
+}
+
 #[tauri::command]
 pub fn get_total_system_memory_mb() -> u64 {
     let mut system = sysinfo::System::new();

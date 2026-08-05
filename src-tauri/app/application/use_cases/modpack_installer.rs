@@ -98,8 +98,30 @@ impl ModpackInstallerService {
         let dir = paths::custom_icons_dir(&self.app_data_dir);
         std::fs::create_dir_all(&dir).ok()?;
         let path = dir.join(format!("{}.png", uuid::Uuid::new_v4()));
-        std::fs::write(&path, &bytes).ok()?;
+
+        // Modrinth/CurseForge often serve project icons as WebP regardless
+        // of the `.png` we save under — decode-and-re-encode so the file on
+        // disk is a *real* PNG like every other icon in the app (manual
+        // uploads go through the same crop-to-PNG step on the frontend),
+        // square-cropped the same way. Falls back to the raw bytes if
+        // decoding fails so a weird icon never blocks the whole install.
+        let encoded = Self::normalize_icon_png(&bytes);
+        std::fs::write(&path, encoded.as_deref().unwrap_or(&bytes)).ok()?;
         Some(path.to_string_lossy().to_string())
+    }
+
+    fn normalize_icon_png(bytes: &[u8]) -> Option<Vec<u8>> {
+        use image::GenericImageView;
+
+        let img = image::load_from_memory(bytes).ok()?;
+        let (width, height) = img.dimensions();
+        let side = width.min(height);
+        let square = img.crop_imm((width - side) / 2, (height - side) / 2, side, side);
+        let resized = square.resize_exact(128, 128, image::imageops::FilterType::Lanczos3);
+
+        let mut out = std::io::Cursor::new(Vec::new());
+        resized.write_to(&mut out, image::ImageFormat::Png).ok()?;
+        Some(out.into_inner())
     }
 
     /// Downloads a Modrinth `.mrpack`, derives the Minecraft version/loader
@@ -177,13 +199,17 @@ impl ModpackInstallerService {
             ids.dedup();
             ids
         };
-        let icons_by_project: std::collections::HashMap<String, Option<String>> =
-            modrinth::client::get_projects_by_ids(&self.http_client, &project_ids)
-                .await
-                .unwrap_or_default()
-                .into_iter()
-                .map(|p| (p.id, p.icon_url))
-                .collect();
+        let mut icons_by_project: std::collections::HashMap<String, Option<String>> =
+            std::collections::HashMap::new();
+        let mut titles_by_project: std::collections::HashMap<String, String> =
+            std::collections::HashMap::new();
+        for project in modrinth::client::get_projects_by_ids(&self.http_client, &project_ids)
+            .await
+            .unwrap_or_default()
+        {
+            icons_by_project.insert(project.id.clone(), project.icon_url);
+            titles_by_project.insert(project.id, project.title);
+        }
 
         let total = downloadable.len() as u64;
         for (i, file) in downloadable.into_iter().enumerate() {
@@ -198,13 +224,17 @@ impl ModpackInstallerService {
             let version = versions_by_hash.get(&file.hashes.sha1);
             let icon_url =
                 version.and_then(|v| icons_by_project.get(&v.project_id).cloned().flatten());
-            let name = version.map(|v| v.name.clone()).unwrap_or_else(|| {
-                file.path
-                    .rsplit('/')
-                    .next()
-                    .unwrap_or(&file.path)
-                    .to_string()
-            });
+            let name = version
+                .and_then(|v| titles_by_project.get(&v.project_id))
+                .cloned()
+                .or_else(|| version.map(|v| v.name.clone()))
+                .unwrap_or_else(|| {
+                    file.path
+                        .rsplit('/')
+                        .next()
+                        .unwrap_or(&file.path)
+                        .to_string()
+                });
             on_event(AstroPackEventDTO::Progress {
                 kind: "mod".to_string(),
                 name,
@@ -226,11 +256,15 @@ impl ModpackInstallerService {
             .await?;
 
             if let (Some(kind), Some(version)) = (kind_for_mrpack_path(&file.path), version) {
+                let mod_name = titles_by_project
+                    .get(&version.project_id)
+                    .cloned()
+                    .unwrap_or_else(|| version.name.clone());
                 let installed = InstalledMod::new(
                     instance.id.clone(),
                     version.project_id.clone(),
                     "modrinth".to_string(),
-                    version.name.clone(),
+                    mod_name,
                     version.version_number.clone(),
                     dest.display().to_string(),
                     icon_url,
@@ -309,13 +343,17 @@ impl ModpackInstallerService {
             ids.dedup();
             ids
         };
-        let icons_by_project: std::collections::HashMap<u32, Option<String>> =
-            curseforge::client::get_mods_by_ids(&self.http_client, &api_key, &project_ids)
-                .await
-                .unwrap_or_default()
-                .into_iter()
-                .map(|entry| (entry.id, entry.logo.map(|l| l.url)))
-                .collect();
+        let mut icons_by_project: std::collections::HashMap<u32, Option<String>> =
+            std::collections::HashMap::new();
+        let mut names_by_project: std::collections::HashMap<u32, String> =
+            std::collections::HashMap::new();
+        for entry in curseforge::client::get_mods_by_ids(&self.http_client, &api_key, &project_ids)
+            .await
+            .unwrap_or_default()
+        {
+            icons_by_project.insert(entry.id, entry.logo.map(|l| l.url));
+            names_by_project.insert(entry.id, entry.name);
+        }
 
         let total = manifest.files.len() as u64;
         for (i, file) in manifest.files.iter().enumerate() {
@@ -335,9 +373,13 @@ impl ModpackInstallerService {
             )
             .await?;
             let icon_url = icons_by_project.get(&file.project_id).cloned().flatten();
+            let mod_name = names_by_project
+                .get(&file.project_id)
+                .cloned()
+                .unwrap_or_else(|| resolved.display_name.clone());
             on_event(AstroPackEventDTO::Progress {
                 kind: "mod".to_string(),
-                name: resolved.display_name.clone(),
+                name: mod_name.clone(),
                 icon_url: icon_url.clone(),
                 current: i as u64,
                 total,
@@ -352,8 +394,8 @@ impl ModpackInstallerService {
                 instance.id.clone(),
                 file.project_id.to_string(),
                 "curseforge".to_string(),
+                mod_name,
                 resolved.display_name.clone(),
-                resolved.file_name.clone(),
                 dest.display().to_string(),
                 icon_url,
                 "mod".to_string(),

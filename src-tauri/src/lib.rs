@@ -14,11 +14,29 @@ use presentation::commands::{
     instance_commands, instance_workspace_commands, minecraft_commands, mod_commands,
     playtime_commands, settings_commands, skin_commands, splash_commands,
 };
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Must be the first plugin registered. A second launch (e.g. via a
+        // desktop shortcut's `--launch-instance <id>`, or double-clicking a
+        // `.astropack` file, while the app is already running) forwards its
+        // argv here instead of spawning a second process — this is also
+        // what enforces the single-instance limit, since Tauri exits that
+        // second process right after this callback runs.
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            if let Some(id) = infrastructure::cli::parse_launch_instance_arg(&argv) {
+                let _ = app.emit("shortcut://launch-instance", id);
+            } else if let Some(path) = infrastructure::cli::parse_astropack_path_arg(&argv) {
+                let _ = app.emit("shortcut://import-astropack", path);
+            }
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_shell::init())
@@ -36,6 +54,7 @@ pub fn run() {
 
             let app_data_dir = app.path().app_data_dir()?;
             infrastructure::config::init(app.config());
+            infrastructure::cli::init();
             let discord_config = app
                 .config()
                 .plugins
@@ -60,6 +79,18 @@ pub fn run() {
             );
             app.manage(state);
 
+            // Windows can pick up a launching shortcut's own icon for the
+            // taskbar button instead of the exe's (relevant now that
+            // per-instance desktop shortcuts carry their own icon) — force
+            // the window icon back to the app's own regardless of how the
+            // process was started.
+            if let Some(icon) = app.default_window_icon() {
+                let icon = icon.clone();
+                if let Some(main) = app.get_webview_window("main") {
+                    let _ = main.set_icon(icon);
+                }
+            }
+
             if cfg!(debug_assertions) && std::env::var("ASTRO_DEV_NO_SPLASH").is_ok() {
                 if let Some(splash) = app.get_webview_window("splash") {
                     splash.close()?;
@@ -77,6 +108,7 @@ pub fn run() {
             instance_commands::create_instance,
             instance_commands::update_instance,
             instance_commands::delete_instance,
+            instance_commands::duplicate_instance,
             instance_commands::move_instance_to_folder,
             instance_commands::reorder_instances,
             folder_commands::list_folders,
@@ -106,10 +138,14 @@ pub fn run() {
             instance_workspace_commands::delete_instance_screenshot,
             instance_workspace_commands::save_instance_screenshot_as,
             instance_workspace_commands::rename_instance_screenshot,
+            instance_workspace_commands::list_instance_shortcuts,
+            instance_workspace_commands::toggle_instance_shortcut,
+            instance_workspace_commands::refresh_instance_shortcut_icon,
             minecraft_commands::list_minecraft_versions,
             minecraft_commands::launch_instance,
             minecraft_commands::stop_instance,
             minecraft_commands::cancel_launch,
+            minecraft_commands::take_pending_launch,
             discord_commands::discord_set_presence,
             minecraft_commands::get_total_system_memory_mb,
             minecraft_commands::list_audio_output_devices,
@@ -141,6 +177,7 @@ pub fn run() {
             astropack_commands::get_astropack_export_summary,
             astropack_commands::export_instance,
             astropack_commands::import_astropack,
+            astropack_commands::take_pending_astropack_path,
             custom_icon_commands::list_custom_icons,
             custom_icon_commands::save_custom_icon,
             custom_icon_commands::delete_custom_icon,

@@ -14,16 +14,14 @@ import { toast } from 'sonner'
 
 import type {
   ContextMenuAction,
-  ContextMenuSubmenu,
+  ContextMenuItem,
 } from '@/components/common/EntityContextMenu'
+import { resolvePickerIconPngBase64 } from '@/lib/icon-src'
+import { useInstanceStore } from '@/stores/instance.store'
 import type { FolderDTO } from '@/types/folder'
 import type { InstanceDTO } from '@/types/instance'
 
 import { InstanceWorkspaceAPI } from '../services/instance-workspace.api'
-
-function notImplemented() {
-  // placeholder for future actions
-}
 
 interface InstanceActionHandlers {
   onLaunch: (id: string) => void
@@ -31,6 +29,7 @@ interface InstanceActionHandlers {
   onEdit: (id: string) => void
   onDelete: (id: string) => void
   onExport: (id: string) => void
+  onDuplicate?: (id: string) => void
   onMoveToFolder?: (id: string, folderId: string | null) => void
 }
 
@@ -42,6 +41,27 @@ async function openFolder(id: string) {
   }
 }
 
+async function toggleShortcut(
+  id: string,
+  hasShortcut: boolean,
+  iconPath: string | null,
+) {
+  try {
+    // Resolved unconditionally: the backend — not `hasShortcut` (zustand
+    // state that can lag behind a `.lnk` deleted/created outside the app) —
+    // is what actually decides whether this call creates or removes the
+    // shortcut, based on the real filesystem. Sending `null` here whenever
+    // the frontend *assumed* it was a removal risks a shortcut getting
+    // created with no icon.
+    const iconPngBase64 = await resolvePickerIconPngBase64(iconPath)
+    await useInstanceStore.getState().toggleShortcut(id, iconPngBase64)
+  } catch (err) {
+    toast.error(
+      `Falha ao ${hasShortcut ? 'remover' : 'criar'} atalho: ${String(err)}`,
+    )
+  }
+}
+
 export function getInstanceActions(
   instance: InstanceDTO,
   {
@@ -50,11 +70,13 @@ export function getInstanceActions(
     onEdit,
     onDelete,
     onExport,
+    onDuplicate,
     onMoveToFolder,
   }: InstanceActionHandlers,
   isRunning = false,
   folders: FolderDTO[] = [],
-): { actions: ContextMenuAction[]; submenus: ContextMenuSubmenu[] } {
+  hasShortcut = false,
+): ContextMenuItem[] {
   const moveItems: ContextMenuAction[] = [
     ...folders.map((folder) => ({
       key: `move-${folder.id}`,
@@ -71,16 +93,7 @@ export function getInstanceActions(
     },
   ]
 
-  const submenus: ContextMenuSubmenu[] = [
-    {
-      key: 'move-to-folder',
-      icon: Folder,
-      label: 'Mover para Pasta',
-      items: moveItems,
-    },
-  ]
-
-  const actions: ContextMenuAction[] = [
+  const items: ContextMenuItem[] = [
     isRunning
       ? {
           key: 'stop',
@@ -102,6 +115,12 @@ export function getInstanceActions(
       separatorBefore: true,
     },
     {
+      key: 'move-to-folder',
+      icon: Folder,
+      label: 'Mover para Pasta',
+      items: moveItems,
+    },
+    {
       key: 'open-folder',
       icon: FolderOpen,
       label: 'Abrir Pasta',
@@ -117,13 +136,14 @@ export function getInstanceActions(
       key: 'duplicate',
       icon: Copy,
       label: 'Duplicar',
-      onSelect: notImplemented,
+      onSelect: () => onDuplicate?.(instance.id),
     },
     {
       key: 'shortcut',
       icon: Link2,
-      label: 'Criar Atalho',
-      onSelect: notImplemented,
+      label: hasShortcut ? 'Remover Atalho' : 'Criar Atalho',
+      onSelect: () =>
+        toggleShortcut(instance.id, hasShortcut, instance.iconPath),
     },
     {
       key: 'delete',
@@ -135,5 +155,5 @@ export function getInstanceActions(
     },
   ]
 
-  return { actions, submenus }
+  return items
 }

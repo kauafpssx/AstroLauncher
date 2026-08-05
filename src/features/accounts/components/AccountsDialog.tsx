@@ -17,7 +17,6 @@ import {
 } from '@dnd-kit/sortable'
 import { Plus, UserCircle2 } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/common/EmptyState'
 import { TabHeader } from '@/components/common/TabHeader'
@@ -75,16 +74,13 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
   const handleSubmit = async (username: string) => {
     if (editingAccount) {
       await updateAccount({ id: editingAccount.id, username })
-      toast.success('Conta atualizada')
     } else {
       await createAccount({ username })
-      toast.success('Conta adicionada')
     }
   }
 
   const handleDelete = async (id: string) => {
     await deleteAccount(id)
-    toast.success('Conta removida')
   }
 
   const handleDragEnd = (event: DragEndEvent) => {

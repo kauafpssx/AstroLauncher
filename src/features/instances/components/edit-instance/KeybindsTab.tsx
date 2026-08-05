@@ -93,7 +93,6 @@ export function KeybindsTab({ instanceId }: KeybindsTabProps) {
       setRawOptions(updated)
       setBinds(parseKeybinds(updated))
       setOverrides({})
-      toast.success('Keybinds salvos')
     } catch (err) {
       toast.error(`Falha ao salvar: ${String(err)}`)
     } finally {
