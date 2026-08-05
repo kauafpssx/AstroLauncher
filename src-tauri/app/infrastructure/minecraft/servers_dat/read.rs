@@ -34,9 +34,66 @@ fn read_string(r: &mut impl Read) -> io::Result<String> {
     Ok(String::from_utf8_lossy(&buf).into_owned())
 }
 
+/// Guards against a corrupt/hostile `servers.dat` (e.g. from an imported pack):
+/// caps NBT nesting so deep trees can't overflow the stack.
+const MAX_DEPTH: u32 = 512;
+
+/// Caps list/array element counts. A real `servers.dat` holds a handful of
+/// servers; a malformed file could claim `i32::MAX` elements and spin the
+/// loop for billions of no-op iterations (DoS).
+const MAX_LIST_LEN: u64 = 100_000;
+
+/// Validates a `TAG_LIST` header before iterating: a non-empty list whose
+/// element type is `TAG_END` reads zero bytes per element, so a huge length
+/// would loop forever making no progress; an over-long list is also rejected.
+fn validate_list(elem_type: u8, len: u64) -> io::Result<()> {
+    if elem_type == TAG_END && len > 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "non-empty TAG_END list",
+        ));
+    }
+    if len > MAX_LIST_LEN {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "NBT list too long",
+        ));
+    }
+    Ok(())
+}
+
+/// Rejects negative NBT lengths (a `-1` would become a multi-exabyte `usize`)
+/// and returns the count as `u64` for streaming skips without pre-allocating.
+fn checked_len(r: &mut impl Read) -> io::Result<u64> {
+    let len = read_i32(r)?;
+    if len < 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "negative NBT length",
+        ));
+    }
+    Ok(len as u64)
+}
+
+/// Discards `n` bytes without allocating a buffer sized by untrusted input;
+/// a truncated file surfaces as an `UnexpectedEof` error, never an abort.
+fn skip_bytes(r: &mut impl Read, n: u64) -> io::Result<()> {
+    let copied = io::copy(&mut r.by_ref().take(n), &mut io::sink())?;
+    if copied < n {
+        return Err(io::ErrorKind::UnexpectedEof.into());
+    }
+    Ok(())
+}
+
 /// Reads and discards the payload of a tag whose type we don't care about
 /// (icon, acceptTextures, or anything else Minecraft may have written).
-fn skip_payload(r: &mut impl Read, tag: u8) -> io::Result<()> {
+fn skip_payload(r: &mut impl Read, tag: u8, depth: u32) -> io::Result<()> {
+    if depth > MAX_DEPTH {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "NBT nesting too deep",
+        ));
+    }
     match tag {
         TAG_END => {}
         TAG_BYTE => {
@@ -52,18 +109,18 @@ fn skip_payload(r: &mut impl Read, tag: u8) -> io::Result<()> {
             read_i64(r)?;
         }
         TAG_BYTE_ARRAY => {
-            let len = read_i32(r)? as usize;
-            let mut buf = vec![0u8; len];
-            r.read_exact(&mut buf)?;
+            let len = checked_len(r)?;
+            skip_bytes(r, len)?;
         }
         TAG_STRING => {
             read_string(r)?;
         }
         TAG_LIST => {
             let elem_type = read_u8(r)?;
-            let len = read_i32(r)?;
+            let len = checked_len(r)?;
+            validate_list(elem_type, len)?;
             for _ in 0..len {
-                skip_payload(r, elem_type)?;
+                skip_payload(r, elem_type, depth + 1)?;
             }
         }
         TAG_COMPOUND => loop {
@@ -72,19 +129,15 @@ fn skip_payload(r: &mut impl Read, tag: u8) -> io::Result<()> {
                 break;
             }
             read_string(r)?;
-            skip_payload(r, t)?;
+            skip_payload(r, t, depth + 1)?;
         },
         TAG_INT_ARRAY => {
-            let len = read_i32(r)? as usize;
-            for _ in 0..len {
-                read_i32(r)?;
-            }
+            let len = checked_len(r)?;
+            skip_bytes(r, len.saturating_mul(4))?;
         }
         TAG_LONG_ARRAY => {
-            let len = read_i32(r)? as usize;
-            for _ in 0..len {
-                read_i64(r)?;
-            }
+            let len = checked_len(r)?;
+            skip_bytes(r, len.saturating_mul(8))?;
         }
         _ => {}
     }
@@ -102,7 +155,7 @@ fn read_server_compound(r: &mut impl Read) -> io::Result<ServerEntry> {
         match (t, name.as_str()) {
             (TAG_STRING, "name") => entry.name = read_string(r)?,
             (TAG_STRING, "ip") => entry.ip = read_string(r)?,
-            _ => skip_payload(r, t)?,
+            _ => skip_payload(r, t, 1)?,
         }
     }
     Ok(entry)
@@ -133,17 +186,22 @@ pub fn read_servers(path: &Path) -> io::Result<Vec<ServerEntry>> {
         let name = read_string(&mut cursor)?;
         if t == TAG_LIST && name == "servers" {
             let elem_type = read_u8(&mut cursor)?;
-            let len = read_i32(&mut cursor)?;
+            let len = checked_len(&mut cursor)?;
+            validate_list(elem_type, len)?;
             for _ in 0..len {
                 if elem_type == TAG_COMPOUND {
                     servers.push(read_server_compound(&mut cursor)?);
                 } else {
-                    skip_payload(&mut cursor, elem_type)?;
+                    skip_payload(&mut cursor, elem_type, 1)?;
                 }
             }
         } else {
-            skip_payload(&mut cursor, t)?;
+            skip_payload(&mut cursor, t, 1)?;
         }
     }
     Ok(servers)
 }
+
+#[cfg(test)]
+#[path = "tests/read_tests.rs"]
+mod tests;

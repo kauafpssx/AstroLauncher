@@ -5,6 +5,7 @@ use anyhow::Context;
 
 use crate::application::dto::{AstroPackContentEntry, AstroPackEventDTO};
 use crate::domain::entities::InstalledMod;
+use crate::infrastructure::filesystem::safe_path::safe_join;
 use crate::infrastructure::persistence::config::json_settings_repository;
 use crate::infrastructure::{curseforge, modrinth};
 
@@ -136,7 +137,13 @@ impl AstroPackService {
                 });
                 continue;
             }
-            let dest = target_dir.join(&entry.file_name);
+            // `file_name` comes from the pack manifest — reject `..`/absolute.
+            let Some(dest) = safe_join(&target_dir, &entry.file_name) else {
+                on_event(AstroPackEventDTO::Error {
+                    message: format!("Caminho inválido no pacote: {}", entry.file_name),
+                });
+                continue;
+            };
 
             let write_result = if let Some(url) = &entry.download_url {
                 crate::infrastructure::downloader::file_downloader::download_to_file(

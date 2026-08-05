@@ -2,20 +2,17 @@ use std::path::PathBuf;
 
 use crate::application::dto::ConfigFileDTO;
 use crate::domain::errors::InstanceError;
+use crate::infrastructure::filesystem::safe_path::safe_join;
 
 use super::InstanceWorkspaceService;
 
 impl InstanceWorkspaceService {
     /// Resolves a `/`-separated relative path against the instance directory,
-    /// rejecting anything that would escape it (`..`, absolute paths).
+    /// rejecting anything that would escape it (`..`, absolute/drive paths).
     fn config_file_path(&self, id: &str, relative_path: &str) -> Result<PathBuf, InstanceError> {
-        if relative_path
-            .split(['/', '\\'])
-            .any(|part| part.is_empty() || part == "..")
-        {
-            return Err(InstanceError::InvalidName(relative_path.to_string()));
-        }
-        Ok(self.instance_dir(id)?.join(relative_path))
+        let dir = self.instance_dir(id)?;
+        safe_join(&dir, relative_path)
+            .ok_or_else(|| InstanceError::InvalidName(relative_path.to_string()))
     }
 
     /// `options.txt`/`optionsof.txt` (Minecraft's own settings) plus every

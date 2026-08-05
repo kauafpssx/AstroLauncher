@@ -6,6 +6,7 @@ use crate::application::dto::{AstroPackEventDTO, AstroPackManifest, ExportSelect
 use crate::application::mappers::instance_mapper;
 use crate::domain::entities::Instance;
 use crate::infrastructure::filesystem::paths;
+use crate::infrastructure::filesystem::safe_path::safe_join;
 use crate::infrastructure::minecraft::servers_dat::{self, ServerEntry};
 
 use super::helpers::read_manifest_json;
@@ -112,7 +113,12 @@ impl AstroPackService {
 
                 for entry_name in entry_names {
                     let relative = &entry_name[prefix.len()..];
-                    let dest = saves_dir.join(world_name).join(relative);
+                    // `world_name` and `relative` come from untrusted zip entry
+                    // names — reject any `..`/absolute that would escape saves/.
+                    let Some(dest) = safe_join(&saves_dir, &format!("{world_name}/{relative}"))
+                    else {
+                        continue;
+                    };
                     if let Some(parent) = dest.parent() {
                         let _ = std::fs::create_dir_all(parent);
                     }
@@ -151,8 +157,11 @@ impl AstroPackService {
                 current += 1;
 
                 let zip_entry_name = format!("content/screenshots/{name}");
+                let Some(dest) = safe_join(&shots_dir, name) else {
+                    continue;
+                };
                 if let Ok(mut zip_entry) = archive.by_name(&zip_entry_name) {
-                    if let Ok(mut out) = std::fs::File::create(shots_dir.join(name)) {
+                    if let Ok(mut out) = std::fs::File::create(&dest) {
                         let _ = std::io::copy(&mut zip_entry, &mut out);
                     }
                 }

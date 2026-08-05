@@ -81,13 +81,17 @@ impl InstanceWorkspaceService {
     /// Finds a `<base> N.md`-style name that doesn't collide with an
     /// existing note — shared by note creation and renaming.
     fn unique_note_title(&self, dir: &Path, base: &str) -> String {
-        let base = if base.trim().is_empty() {
+        let trimmed = base.trim();
+        let base = if trimmed.is_empty() {
             "Nova Nota"
         } else {
-            base.trim()
+            trimmed
         };
+        // The title doubles as the note's file name; strip path separators so
+        // a crafted title can't escape notes/ (same as AstroPack import).
+        let base = base.replace(['/', '\\'], "-");
         if !dir.join(format!("{base}.md")).exists() {
-            return base.to_string();
+            return base.clone();
         }
         let mut n = 2;
         loop {
