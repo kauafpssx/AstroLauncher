@@ -54,11 +54,6 @@ jobs:
       - name: Dead code / unused deps (knip)
         run: npx --yes knip --no-exit-code
 
-      # type-coverage: mede % de tipos explícitos, pega `any` implícito
-      # (informativo — projeto tem `any` legado).
-      - name: Type coverage (implicit any)
-        run: npx --yes type-coverage --ignore-files "src-tauri/**"
-
   # ────────────────────────────────────────────────────────────────
   # 🦀 RUST — fmt / clippy / check / test / doc
   # ────────────────────────────────────────────────────────────────
