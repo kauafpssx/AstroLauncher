@@ -1,7 +1,15 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 use anyhow::Context;
+
+/// Impede que a janela do console (PowerShell) pisque na tela do usuário ao
+/// spawnar o processo — todo `Command` no Windows roda oculto.
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 /// Flag used in the shortcut's Arguments so we can later map a `.lnk` back to
 /// the instance it launches (`--launch-instance <id>`).
@@ -39,10 +47,11 @@ fn ps_single(value: &str) -> String {
 }
 
 fn run_powershell(script: &str) -> anyhow::Result<String> {
-    let output = Command::new("powershell")
-        .args(["-NoProfile", "-NonInteractive", "-Command", script])
-        .output()
-        .context("failed to run powershell")?;
+    let mut cmd = Command::new("powershell");
+    cmd.args(["-NoProfile", "-NonInteractive", "-Command", script]);
+    #[cfg(target_os = "windows")]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    let output = cmd.output().context("failed to run powershell")?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         anyhow::bail!("powershell exited with {}: {stderr}", output.status);

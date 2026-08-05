@@ -597,6 +597,7 @@ Bug report: título `bug:`, label `bug` — versão do launcher, SO, loader, ver
 - ❌ Editar migração já aplicada (v1–v6) — criar `v{n+1}`.
 - ❌ Seguir `presentation/ipc/instance.rs` — layout legado paralelo, não usar.
 - ❌ Adicionar `theme`/`minecraft_dir`/etc. ao settings.json — schema mínimo é lei.
+- ❌ **[MUST] Deixar janela de console (cmd/PowerShell/terminal) vazar, piscar ou aparecer na tela do usuário.** Todo processo externo (Java/Minecraft, comandos de sistema, qualquer `std::process::Command` no Windows) SEMPRE roda de forma interna/suprimida — janela oculta, nunca visível. No Windows: aplicar `CREATE_NO_WINDOW` (`0x08000000`) via `.creation_flags(...)` (`std::os::windows::process::CommandExt`) em TODO `Command` que spawna processo. Nenhuma exceção — nem em launch, download, java, nem em helpers.
 
 ## 15. Gotchas conhecidos
 
@@ -610,6 +611,7 @@ Bug report: título `bug:`, label `bug` — versão do launcher, SO, loader, ver
 - `npm run tauri build` local exige chave de assinatura do updater (artifacts) — sem chave, usar `--config src-tauri/tauri.ci.conf.json` (desliga signing, igual ao CI).
 - Assets estáticos ficam em `public/` (logos); obsoletos vão para `public/_unused/` em vez de serem deletados.
 - Forge/NeoForge launch usa `mc_launcher_core::command::builder::build_launch_command`, não `process/launcher.rs`.
+- **Janela de console nunca vaza** (ver §14): todo `Command` no Windows leva `CREATE_NO_WINDOW` (`0x08000000`) via `.creation_flags()`. Sem isso, cmd/PowerShell pisca na tela ao spawnar processo. Novo ponto de spawn = replicar o flag.
 - AppState concentra use cases + services (quantidade atual confira no código); contagens citadas em docs antigos (29 campos, 74 comandos) estão defasadas — a verdade vive no código.
 - `launch.store.ts` chama `apiInvoke` direto (sem `launch.api.ts`) — exceção aceita ao padrão de services.
 - `npm run dev` (Vite puro) NÃO tem backend Tauri — chamadas `apiInvoke` e plugins falham; desenvolvimento real = `dev:tauri`/`dev:tauri:fast`.
