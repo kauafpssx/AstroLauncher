@@ -42,3 +42,7 @@ impl InstalledMod {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "tests/installed_mod_tests.rs"]
+mod tests;

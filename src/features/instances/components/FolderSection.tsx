@@ -1,20 +1,10 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import {
-  ChevronDown,
-  Folder,
-  FolderPlus,
-  Image,
-  Pencil,
-  Trash2,
-} from 'lucide-react'
+import { ChevronDown, Folder } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import {
-  EntityContextMenu,
-  type ContextMenuAction,
-} from '@/components/common/EntityContextMenu'
+import { EntityContextMenu } from '@/components/common/EntityContextMenu'
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
 import { resolveIconSrc } from '@/lib/icon-src'
 import { cn } from '@/lib/utils'
@@ -22,6 +12,7 @@ import { useFolderStore } from '@/stores/folder.store'
 import type { FolderDTO } from '@/types/folder'
 import type { InstanceDTO } from '@/types/instance'
 
+import { buildFolderHeaderActions } from './folder-section-actions'
 import { IconPickerDialog } from './IconPickerDialog'
 import { InstanceCardGrid } from './InstanceCardGrid'
 
@@ -94,29 +85,12 @@ export function FolderSection({
     onToggleCollapsed(!collapsed)
   }
 
-  const headerActions: ContextMenuAction[] = [
-    {
-      key: 'new-folder',
-      icon: FolderPlus,
-      label: 'Nova Pasta',
-      onSelect: onCreateFolder,
-    },
-    { key: 'rename', icon: Pencil, label: 'Renomear', onSelect: onRename },
-    {
-      key: 'icon',
-      icon: Image,
-      label: 'Escolher Ícone',
-      onSelect: () => setIconPickerOpen(true),
-    },
-    {
-      key: 'delete',
-      icon: Trash2,
-      label: 'Excluir Pasta',
-      onSelect: onDelete,
-      variant: 'destructive',
-      separatorBefore: true,
-    },
-  ]
+  const headerActions = buildFolderHeaderActions({
+    onCreateFolder,
+    onRename,
+    onPickIcon: () => setIconPickerOpen(true),
+    onDelete,
+  })
 
   const handleIconSelect = async (iconPath: string) => {
     try {

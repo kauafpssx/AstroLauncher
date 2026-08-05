@@ -18,3 +18,7 @@ impl PlaytimeSession {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "tests/playtime_session_tests.rs"]
+mod tests;

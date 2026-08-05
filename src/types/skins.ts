@@ -4,7 +4,7 @@ export type McstatSortBy = 'recent' | 'popular' | 'trending'
 export type SkinSortBy = PlayerMcSortBy | McstatSortBy
 export type SkinModel = 'classic' | 'slim'
 
-export interface SkinPlayer {
+interface SkinPlayer {
   uuid: string
   username: string
 }

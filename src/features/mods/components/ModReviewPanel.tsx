@@ -1,11 +1,9 @@
-import { ArrowLeft, Check, Loader2, Puzzle, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ArrowLeft, Loader2, Puzzle } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/common/EmptyState'
-import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { ProgressGroup } from '@/components/common/ProgressGroup'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -13,14 +11,9 @@ import { ModAPI } from '@/features/mods/services/mod.api'
 import { tooltipProps } from '@/lib/tooltip'
 import type { ContentKind, ModSearchResult, ModVersion } from '@/types/mods'
 
-export interface ReviewEntry {
-  key: string
-  result: ModSearchResult
-  version: ModVersion
-  isDependency: boolean
-}
-
-type EntryStatus = 'pending' | 'installing' | 'done' | 'failed'
+import type { EntryStatus } from './mod-review.types'
+import { ModReviewRow } from './ModReviewRow'
+import { useReviewEntries } from './useReviewEntries'
 
 interface ModReviewPanelProps {
   instanceId: string
@@ -47,94 +40,17 @@ export function ModReviewPanel({
   onBack,
   onInstalled,
 }: ModReviewPanelProps) {
-  const [entries, setEntries] = useState<ReviewEntry[]>([])
-  const [isResolving, setIsResolving] = useState(true)
+  const { entries, setEntries, isResolving } = useReviewEntries({
+    selection,
+    gameVersion,
+    loader,
+    installedKeys,
+    installedFileNames,
+  })
   const [isInstalling, setIsInstalling] = useState(false)
   const [statuses, setStatuses] = useState<Record<string, EntryStatus>>({})
   const [installedCount, setInstalledCount] = useState(0)
   const [currentName, setCurrentName] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function resolve() {
-      const resolved = new Map<string, ReviewEntry>()
-      for (const [key, entry] of Object.entries(selection)) {
-        resolved.set(key, {
-          key,
-          result: entry.result,
-          version: entry.version,
-          isDependency: false,
-        })
-      }
-
-      // Only Modrinth versions carry dependency info from the backend today.
-      let queue = Object.values(selection).filter(
-        (e) => e.result.source === 'modrinth',
-      )
-      let guard = 0
-      while (queue.length > 0 && guard < 5) {
-        guard += 1
-        const nextQueue: typeof queue = []
-        for (const entry of queue) {
-          for (const depId of entry.version.requiredDependencyProjectIds) {
-            const depKey = `modrinth:${depId}`
-            if (resolved.has(depKey)) continue
-            // Already installed in this instance (possibly via CurseForge
-            // originally) — don't re-queue it as a dependency to install.
-            if (installedKeys.has(depKey)) continue
-            try {
-              const [project, versions] = await Promise.all([
-                ModAPI.getProject('modrinth', depId),
-                ModAPI.getVersions({
-                  source: 'modrinth',
-                  projectId: depId,
-                  gameVersion,
-                  loader,
-                }),
-              ])
-              const version = versions[0]
-              if (!version) continue
-              if (installedFileNames.has(version.fileName.toLowerCase()))
-                continue
-              const result: ModSearchResult = {
-                source: 'modrinth',
-                projectId: depId,
-                name: project.name,
-                description: project.description,
-                iconUrl: project.iconUrl,
-                downloads: project.downloads,
-                author: '',
-                loader: loader ?? null,
-                gameVersion: gameVersion ?? null,
-              }
-              resolved.set(depKey, {
-                key: depKey,
-                result,
-                version,
-                isDependency: true,
-              })
-              nextQueue.push({ result, version })
-            } catch {
-              // dependency lookup failing shouldn't block the rest of the install
-            }
-          }
-        }
-        queue = nextQueue
-      }
-
-      if (!cancelled) {
-        setEntries([...resolved.values()])
-        setIsResolving(false)
-      }
-    }
-
-    resolve()
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const removeEntry = (key: string) =>
     setEntries((prev) => prev.filter((e) => e.key !== key))
@@ -219,53 +135,15 @@ export function ModReviewPanel({
           {!isResolving && entries.length === 0 && (
             <EmptyState icon={Puzzle} title="Nenhum mod selecionado." />
           )}
-          {entries.map((entry) => {
-            const status = statuses[entry.key]
-            return (
-              <div
-                key={entry.key}
-                className="hover:bg-accent flex items-center gap-3 rounded-lg p-2"
-              >
-                <EntityAvatar
-                  name={entry.result.name}
-                  iconUrl={entry.result.iconUrl}
-                  className="size-9"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate font-medium">{entry.result.name}</p>
-                    {entry.isDependency && (
-                      <Badge variant="outline" className="shrink-0 text-xs">
-                        dependência
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground truncate text-xs">
-                    {entry.version.name}
-                  </p>
-                </div>
-                {status === 'installing' && (
-                  <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" />
-                )}
-                {status === 'done' && (
-                  <Check className="text-primary size-4 shrink-0" />
-                )}
-                {status === 'failed' && (
-                  <X className="text-destructive size-4 shrink-0" />
-                )}
-                {!status && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => removeEntry(entry.key)}
-                    disabled={isInstalling}
-                  >
-                    <X />
-                  </Button>
-                )}
-              </div>
-            )
-          })}
+          {entries.map((entry) => (
+            <ModReviewRow
+              key={entry.key}
+              entry={entry}
+              status={statuses[entry.key]}
+              isInstalling={isInstalling}
+              onRemove={removeEntry}
+            />
+          ))}
         </div>
       </ScrollArea>
 

@@ -23,7 +23,7 @@ export interface ContextMenuAction {
   separatorBefore?: boolean
 }
 
-export interface ContextMenuSubmenu {
+interface ContextMenuSubmenu {
   key: string
   icon: LucideIcon
   label: string

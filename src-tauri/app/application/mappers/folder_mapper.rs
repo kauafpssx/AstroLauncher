@@ -10,3 +10,7 @@ pub fn to_dto(folder: &Folder) -> FolderDTO {
         icon_path: folder.icon_path.clone(),
     }
 }
+
+#[cfg(test)]
+#[path = "tests/folder_mapper_tests.rs"]
+mod tests;

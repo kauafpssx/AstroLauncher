@@ -6,15 +6,6 @@ import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
 import { TabHeader } from '@/components/common/TabHeader'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
   Table,
   TableBody,
   TableCell,
@@ -25,14 +16,11 @@ import {
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 import type { ServerEntryDTO } from '@/types/server'
 
+import { ServerEditDialog } from './ServerEditDialog'
+import type { EditingState } from './server-editing'
+
 interface ServersTabProps {
   instanceId: string
-}
-
-interface EditingState {
-  index: number | null
-  name: string
-  ip: string
 }
 
 export function ServersTab({ instanceId }: ServersTabProps) {
@@ -174,61 +162,12 @@ export function ServersTab({ instanceId }: ServersTabProps) {
         </Table>
       </div>
 
-      <Dialog
-        open={!!editing}
-        onOpenChange={(open) => !open && setEditing(null)}
-      >
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>
-              {editing?.index === null
-                ? 'Adicionar Servidor'
-                : 'Editar Servidor'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="server-name">Nome</Label>
-              <Input
-                id="server-name"
-                value={editing?.name ?? ''}
-                onChange={(e) =>
-                  setEditing((prev) =>
-                    prev ? { ...prev, name: e.target.value } : prev,
-                  )
-                }
-                autoFocus
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="server-ip">Endereço (IP:porta)</Label>
-              <Input
-                id="server-ip"
-                placeholder="play.exemplo.com"
-                value={editing?.ip ?? ''}
-                onChange={(e) =>
-                  setEditing((prev) =>
-                    prev ? { ...prev, ip: e.target.value } : prev,
-                  )
-                }
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)}>
-              Cancelar
-            </Button>
-            <Button
-              disabled={
-                !editing?.name.trim() || !editing?.ip.trim() || isSaving
-              }
-              onClick={handleSave}
-            >
-              Salvar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ServerEditDialog
+        editing={editing}
+        isSaving={isSaving}
+        onEditingChange={setEditing}
+        onSave={handleSave}
+      />
 
       <ConfirmDeleteDialog
         open={!!deleteTarget}

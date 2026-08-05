@@ -1,24 +1,10 @@
-import {
-  AlertTriangle,
-  Download,
-  Loader2,
-  Plus,
-  Trash2,
-  Upload,
-} from 'lucide-react'
+import { AlertTriangle, Loader2, Upload } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
-import { EntityAvatar } from '@/components/common/EntityAvatar'
-import {
-  EntityContextMenu,
-  type ContextMenuAction,
-} from '@/components/common/EntityContextMenu'
 import { SearchInput } from '@/components/common/SearchInput'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
@@ -29,23 +15,12 @@ import {
 } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { tooltipProps } from '@/lib/tooltip'
-import { cn } from '@/lib/utils'
 import type { ModSortBy, ModSource } from '@/types/mods'
 
+import { SORT_OPTIONS, SOURCES } from './mod-browser-list.constants'
+import { ModBrowserListItem } from './ModBrowserListItem'
 import type { useModBrowser } from './useModBrowser'
 import { selectionKey } from './useModBrowser'
-
-const SOURCES: { id: ModSource; label: string; logo: string }[] = [
-  { id: 'modrinth', label: 'Modrinth', logo: '/providers/modrinth.svg' },
-  { id: 'curseforge', label: 'CurseForge', logo: '/providers/curseforge.png' },
-]
-
-const SORT_OPTIONS: { value: ModSortBy; label: string }[] = [
-  { value: 'relevance', label: 'Relevância' },
-  { value: 'downloads', label: 'Downloads' },
-  { value: 'newest', label: 'Mais recentes' },
-  { value: 'updated', label: 'Atualizados' },
-]
 
 interface ModBrowserListProps {
   browser: ReturnType<typeof useModBrowser>
@@ -120,74 +95,19 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
               const isSelected = !!selection[key] || pendingKeys.has(key)
               const isInstalled = installedKeys.has(key)
               const isViewing =
-                viewing &&
+                !!viewing &&
                 selectionKey(viewing.source, viewing.projectId) === key
-              const actions: ContextMenuAction[] = isInstalled
-                ? [
-                    {
-                      key: 'delete',
-                      icon: Trash2,
-                      label: 'Remover',
-                      variant: 'destructive',
-                      onSelect: () => handleDeleteInstalled(result),
-                    },
-                  ]
-                : [
-                    {
-                      key: 'select-latest',
-                      icon: Plus,
-                      label: 'Selecionar última versão',
-                      onSelect: () => toggleSelection(result),
-                    },
-                  ]
               return (
-                <EntityContextMenu key={key} items={actions}>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setViewing(result)}
-                    onKeyDown={(e) => {
-                      if (e.key !== 'Enter' && e.key !== ' ') return
-                      e.preventDefault()
-                      setViewing(result)
-                    }}
-                    className={cn(
-                      'hover:bg-accent focus-visible:ring-ring/50 flex items-center gap-3 rounded-lg p-2 text-left transition-colors outline-none focus-visible:ring-2',
-                      isViewing && 'bg-primary/10',
-                      isInstalled && 'opacity-50',
-                    )}
-                  >
-                    <span onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        checked={isSelected}
-                        disabled={isInstalled}
-                        onCheckedChange={() => toggleSelection(result)}
-                      />
-                    </span>
-                    <EntityAvatar
-                      name={result.name}
-                      iconUrl={result.iconUrl}
-                      className="size-9"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate font-medium">{result.name}</p>
-                        {isInstalled && (
-                          <Badge variant="secondary" className="shrink-0">
-                            Instalado
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground truncate text-xs">
-                        {result.description}
-                      </p>
-                    </div>
-                    <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
-                      <Download className="size-3" />
-                      {result.downloads.toLocaleString()}
-                    </span>
-                  </div>
-                </EntityContextMenu>
+                <ModBrowserListItem
+                  key={key}
+                  result={result}
+                  isSelected={isSelected}
+                  isInstalled={isInstalled}
+                  isViewing={isViewing}
+                  onView={setViewing}
+                  onToggleSelection={toggleSelection}
+                  onDeleteInstalled={handleDeleteInstalled}
+                />
               )
             })}
           </div>

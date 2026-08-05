@@ -2,7 +2,13 @@ import { listen } from '@tauri-apps/api/event'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-import type { AstroPackCategoryItem } from './AstroPackCategoryList'
+import {
+  buildImportCategoryItems,
+  computeImportEntries,
+  type EntryProgress,
+  type EntryStatus,
+  type Step,
+} from './astropack-import-helpers'
 import {
   ALL_SELECTED,
   AstroPackAPI,
@@ -11,16 +17,7 @@ import {
   type ExportSelection,
 } from '../services/astropack.api'
 
-export type EntryStatus = 'pending' | 'downloading' | 'done' | 'failed'
-
-export interface EntryProgress {
-  kind: string
-  name: string
-  iconUrl: string | null
-  status: EntryStatus
-}
-
-export type Step = 'loading' | 'preview' | 'importing' | 'failed-preview'
+export type { EntryProgress, Step }
 
 interface UseAstropackImportArgs {
   open: boolean
@@ -65,25 +62,11 @@ export function useAstropackImport({
   if (prevImportPhaseKey !== importPhaseKey) {
     setPrevImportPhaseKey(importPhaseKey)
     if (step === 'importing' && manifest) {
-      const selectedContents = manifest.contents.filter((entry) => {
-        if (entry.kind === 'resourcepack') return selection.resourcepacks
-        if (entry.kind === 'shader') return selection.shaders
-        return selection.mods
-      })
-      setEntries(
-        selectedContents.map((entry) => ({
-          kind: entry.kind,
-          name: entry.name,
-          iconUrl: entry.iconUrl,
-          status: 'pending' as EntryStatus,
-        })),
-      )
+      const { entries: initialEntries, total: initialTotal } =
+        computeImportEntries(manifest, selection)
+      setEntries(initialEntries)
       setCurrent(0)
-      setTotal(
-        selectedContents.length +
-          (selection.worlds ? manifest.worlds.length : 0) +
-          (selection.screenshots ? manifest.screenshots.length : 0),
-      )
+      setTotal(initialTotal)
       setImportError(null)
       setIsDone(false)
     }
@@ -195,61 +178,7 @@ export function useAstropackImport({
   const overallPercent = total > 0 ? (current / total) * 100 : 0
   const isImporting = step === 'importing' && !isDone && !importError
   const canClose = step !== 'importing' || isDone || !!importError
-
-  const categoryItems: AstroPackCategoryItem[] = manifest
-    ? [
-        {
-          key: 'settings',
-          label: 'Configurações do jogo (options.txt)',
-          count: !!manifest.settings,
-          checked: selection.settings,
-        },
-        {
-          key: 'worlds',
-          label: 'Mundos',
-          count: manifest.worlds.length,
-          checked: selection.worlds,
-        },
-        {
-          key: 'notes',
-          label: 'Notas',
-          count: manifest.notes.length,
-          checked: selection.notes,
-        },
-        {
-          key: 'mods',
-          label: 'Mods',
-          count: manifest.contents.filter((e) => e.kind === 'mod').length,
-          checked: selection.mods,
-        },
-        {
-          key: 'resourcepacks',
-          label: 'Resource Packs',
-          count: manifest.contents.filter((e) => e.kind === 'resourcepack')
-            .length,
-          checked: selection.resourcepacks,
-        },
-        {
-          key: 'shaders',
-          label: 'Shader Packs',
-          count: manifest.contents.filter((e) => e.kind === 'shader').length,
-          checked: selection.shaders,
-        },
-        {
-          key: 'servers',
-          label: 'Servidores salvos',
-          count: manifest.servers.length,
-          checked: selection.servers,
-        },
-        {
-          key: 'screenshots',
-          label: 'Screenshots',
-          count: manifest.screenshots.length,
-          checked: selection.screenshots,
-        },
-      ]
-    : []
-
+  const categoryItems = buildImportCategoryItems(manifest, selection)
   const handleToggle = (key: string, checked: boolean) =>
     setSelection((prev) => ({ ...prev, [key]: checked }))
 

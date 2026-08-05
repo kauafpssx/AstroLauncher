@@ -1,10 +1,6 @@
 import type { ContentKind } from '@/types/mods'
 
-export const CONTENT_KIND_ORDER: ContentKind[] = [
-  'mod',
-  'resourcepack',
-  'shader',
-]
+const CONTENT_KIND_ORDER: ContentKind[] = ['mod', 'resourcepack', 'shader']
 
 export const CONTENT_KIND_LABELS: Record<
   ContentKind,

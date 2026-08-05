@@ -2,30 +2,26 @@ import { Lock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-import { NumberStepperInput } from '@/components/common/NumberStepperInput'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Slider } from '@/components/ui/slider'
 import { Textarea } from '@/components/ui/textarea'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { InstanceDTO } from '@/types/instance'
 
 import { IconPickerButton } from '../IconPickerButton'
 import { LoaderSelectionCard } from '../create-instance/LoaderSelectionCard'
-import type { LoaderId } from '../create-instance/LoaderSelectionCard'
 import { InstanceAPI } from '../../services/instance.api'
+import { MemorySettingsSection } from './MemorySettingsSection'
+import {
+  FALLBACK_TOTAL_MEMORY_MB,
+  MIN_MEMORY_MB,
+  toLoaderId,
+} from './settings-tab-utils'
 
 interface SettingsTabProps {
   instance: InstanceDTO
 }
-
-function toLoaderId(loader: string | null): LoaderId {
-  return (loader as LoaderId | null) ?? 'vanilla'
-}
-
-const MIN_MEMORY_MB = 1024
-const FALLBACK_TOTAL_MEMORY_MB = 16384
 
 export function SettingsTab({ instance }: SettingsTabProps) {
   const updateInstance = useInstanceStore((s) => s.updateInstance)
@@ -131,58 +127,13 @@ export function SettingsTab({ instance }: SettingsTabProps) {
 
       <LoaderSelectionCard selected={loader} onSelect={() => {}} disabled />
 
-      <div className="flex flex-col gap-6 border-t pt-4">
-        <div>
-          <h3 className="text-sm font-medium">Memória</h3>
-          <p className="text-muted-foreground text-xs">
-            Quantidade de RAM alocada para a JVM ao iniciar esta instância.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between text-sm">
-            <Label>Mínima</Label>
-            <div className="flex items-center gap-1.5">
-              <NumberStepperInput
-                value={minMemory}
-                min={MIN_MEMORY_MB}
-                max={totalMemoryMb}
-                step={256}
-                onChange={updateMinMemory}
-              />
-              <span className="text-muted-foreground">MB</span>
-            </div>
-          </div>
-          <Slider
-            value={[minMemory]}
-            min={MIN_MEMORY_MB}
-            max={totalMemoryMb}
-            step={256}
-            onValueChange={([v]) => updateMinMemory(v)}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between text-sm">
-            <Label>Máxima</Label>
-            <div className="flex items-center gap-1.5">
-              <NumberStepperInput
-                value={maxMemory}
-                min={MIN_MEMORY_MB}
-                max={totalMemoryMb}
-                step={256}
-                onChange={updateMaxMemory}
-              />
-              <span className="text-muted-foreground">MB</span>
-            </div>
-          </div>
-          <Slider
-            value={[maxMemory]}
-            min={MIN_MEMORY_MB}
-            max={totalMemoryMb}
-            step={256}
-            onValueChange={([v]) => updateMaxMemory(v)}
-          />
-        </div>
-      </div>
+      <MemorySettingsSection
+        minMemory={minMemory}
+        maxMemory={maxMemory}
+        totalMemoryMb={totalMemoryMb}
+        onMinChange={updateMinMemory}
+        onMaxChange={updateMaxMemory}
+      />
 
       <div className="flex flex-col gap-2 border-t pt-4">
         <div>

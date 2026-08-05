@@ -1,5 +1,5 @@
 export type ModSource = 'modrinth' | 'curseforge'
-export type ProjectType = 'mod' | 'modpack' | 'resourcepack' | 'shader'
+type ProjectType = 'mod' | 'modpack' | 'resourcepack' | 'shader'
 /** Installable content kinds — excludes 'modpack', which creates a whole new instance instead. */
 export type ContentKind = 'mod' | 'resourcepack' | 'shader'
 

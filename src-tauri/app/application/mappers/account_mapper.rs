@@ -13,3 +13,7 @@ pub fn to_dto(account: &Account) -> AccountDTO {
         created_at: account.created_at.clone(),
     }
 }
+
+#[cfg(test)]
+#[path = "tests/account_mapper_tests.rs"]
+mod tests;

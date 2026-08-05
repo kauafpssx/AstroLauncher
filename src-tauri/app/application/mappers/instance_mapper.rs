@@ -18,3 +18,7 @@ pub fn to_dto(instance: &Instance) -> InstanceDTO {
         playtime_seconds: instance.playtime_seconds,
     }
 }
+
+#[cfg(test)]
+#[path = "tests/instance_mapper_tests.rs"]
+mod tests;
