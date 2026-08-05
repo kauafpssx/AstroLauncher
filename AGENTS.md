@@ -430,6 +430,8 @@ Passou disso → quebre em peças menores (lego!). Exceção conhecida: `launch_
 
 Rust: unidade para regras de domínio, use cases com repos mockados (`mockall`), integração para infra. Domínio nunca toca I/O. Benchmarks: criterion. Frontend: sem suíte de testes configurada (não adicionar test runner sem necessidade real — gate não exige).
 
+**Localização dos unit tests:** o corpo dos testes de unidade fica em arquivo separado numa subpasta `tests/` ao lado do fonte; o arquivo-fonte só declara `#[cfg(test)] #[path = "tests/<nome>_tests.rs"] mod tests;` (o test file usa `use super::*;`, acessa internals normalmente). Mantém o arquivo de lógica limpo. Padrão aplicado em `domain/entities/`, `application/mappers/`, `infrastructure/modloader/forge_like`. Novo unit test → siga esse layout, não deixe `mod tests { ... }` inline.
+
 ## 11. Persistência e armazenamento
 
 - **SQLite** (rusqlite bundled): `<app_data_dir>/data/launcher.db` (via resolver do Tauri, não crate `dirs`). Sem ORM, SQL raw, repos síncronos.
@@ -514,29 +516,19 @@ v2–v6 = ALTER TABLE: `accounts` + `position`/`is_default`; `instance_mods` + `
 
 ## 12. CI/CD (Quality Gate)
 
-`.github/workflows/quality-gate.yml` — roda em push para `main`, tags `v*`, e todo PR. 12 jobs (lista detalhada no workflow); **apenas CodeQL bloqueia merge** (sem `continue-on-error`); todos os demais passam com `continue-on-error: true` e reportam no job `report` final. Mesmo assim: mantenha tudo verde — o report é o critério de qualidade do projeto.
+`.github/workflows/quality-gate.yml` (name: **Testes**) — roda em push para `main`, tags `v*`, todo PR e `workflow_dispatch`. 3 jobs paralelos; nenhum bloqueia merge por gate formal (revisão de PR fica no CodeRabbit). Mantenha tudo verde. Review de PR = CodeRabbit (`.coderabbit.yaml`), não há mais Sonar/Codecov/CodeQL/coverage no CI.
 
-| Job           | O que roda                                                                                                                                                                              |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `frontend`    | ESLint, Prettier check, `tsc -b --noEmit`, `npm run build`, knip (`--no-exit-code`), type-coverage (informativo, ignora `src-tauri/**`)                                                 |
-| `rust`        | fmt check, `cargo check --all-targets`, clippy `-D warnings`, `cargo test --all`, doc com RUSTDOCFLAGS `-D warnings` (deps de sistema tauri no ubuntu)                                  |
-| `deps`        | `npm audit --audit-level=high`, npm outdated, cargo audit (RustSec), cargo deny (licenças/dupes via `deny.toml`; allowlist MIT/Apache-2.0/BSD/ISC/Unicode/Zlib/MPL-2.0/CC0-1.0/GPL-3.0) |
-| `secrets`     | gitleaks (tokens, chaves, .env, hardcoded passwords)                                                                                                                                    |
-| `codeql`      | CodeQL javascript-typescript (único bloqueante; requer "Default Setup" desligado nas settings do repo)                                                                                  |
-| `files`       | arquivos >5MB e junk (`.DS_Store`, `Thumbs.db`, `*.log`, node_modules/target/dist commitados) → exit 1                                                                                  |
-| `docs`        | markdownlint-cli2 (`**/*.md`) + lychee (link check, `fail: false`)                                                                                                                      |
-| `git-checks`  | valida Conventional Commits no range do PR/push (regex `^(feat\|fix\|docs\|style\|refactor\|perf\|test\|build\|ci\|chore\|revert)(\(.+\))?!?: .+`)                                      |
-| `tauri-build` | Windows: `npm run tauri build -- --bundles nsis --config src-tauri/tauri.ci.conf.json` (sem updater artifacts → sem chave de assinatura) + verifica `.exe` gerado                       |
-| `extra-lint`  | actionlint, taplo fmt check (`src-tauri/*.toml`), cargo-machete (deps não usadas), cargo-outdated, cargo-geiger                                                                         |
-| `coverage`    | `cargo llvm-cov --all --lcov` → artifact + Codecov (`CODECOV_TOKEN`)                                                                                                                    |
-| `sonar`       | SonarQube Cloud (`SONAR_TOKEN`, `kauafpssx_AstroLauncher`), depende do job coverage, pula forks                                                                                         |
-| `report`      | agrega resultado de todos os jobs no step summary                                                                                                                                       |
+| Job           | O que roda                                                                                                                                                        |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend`    | ESLint, Prettier check, `tsc -b --noEmit` (fallback `tsc --noEmit`), `npm run build`, knip (`--no-exit-code`, dead-code informativo)                              |
+| `rust`        | fmt check, `cargo check --all-targets`, clippy `-D warnings` (pega dead_code/unused), `cargo test --all`, doc com RUSTDOCFLAGS `-D warnings`                      |
+| `tauri-build` | Windows: `npm run tauri build -- --bundles nsis --config src-tauri/tauri.ci.conf.json` (sem updater artifacts → sem chave de assinatura) + verifica `.exe` gerado |
 
 ### Release build (`.github/workflows/build.yml`)
 
 Manual (`workflow_dispatch`), Windows: instala WebView2, valida `TAURI_PRIVATE_KEY_FILE` (base64, deve começar com `untrusted comment: rsign encrypted secret key`), builda com assinatura (secret `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` + `CURSEFORGE_API_KEY`), lê versão do `tauri.conf.json`, release notes de `.github/releases/<tag>.md` (fallback `_template.md`), gera manifest do updater (`latest.json`), cria tag `v<versão>` e publica GitHub Release com NSIS exe + manifest.
 
-**Secrets usados no CI:** `GITHUB_TOKEN`, `CODECOV_TOKEN`, `SONAR_TOKEN`, `TAURI_PRIVATE_KEY_FILE`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, `CURSEFORGE_API_KEY`.
+**Secrets usados no CI:** `GITHUB_TOKEN`, `TAURI_PRIVATE_KEY_FILE`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, `CURSEFORGE_API_KEY` (todos no `build.yml`; o workflow de testes não usa secrets).
 
 **CodeRabbit** (`.coderabbit.yaml`): language pt-BR, profile assertive, exclui locks/node_modules/target/dist; markdownlint, gitleaks, eslint, clippy habilitados; ruff desligado.
 
