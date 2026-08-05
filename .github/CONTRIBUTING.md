@@ -149,20 +149,15 @@ Abra um Pull Request no GitHub contra a branch `main`, preenchendo o [template d
 
 ## 🤖 Verificações automáticas (CI)
 
-Todo push e Pull Request dispara o workflow **Quality Gate** (`.github/workflows/quality-gate.yml`), com jobs paralelos por área e um relatório agregado no summary do Actions:
+Todo push e Pull Request dispara o workflow **Testes** (`.github/workflows/quality-gate.yml`), com jobs paralelos por área:
 
-| Área            | O que roda                                                                     |
-| --------------- | ------------------------------------------------------------------------------ |
-| ⚛️ Frontend     | ESLint, Prettier, `tsc`, build Vite, knip (dead code), type-coverage           |
-| 🦀 Rust         | `cargo fmt`, `check`, `clippy -D warnings`, `test`, `doc`                      |
-| 📦 Dependências | `npm audit`, `cargo audit`, `cargo deny` (licenças/duplicadas via `deny.toml`) |
-| 🔐 Segurança    | gitleaks (secrets) + CodeQL                                                    |
-| 🧹 Lint extra   | actionlint, taplo (TOML), cargo-machete/outdated/geiger                        |
-| 📄 Docs         | markdownlint (config em `.markdownlint.jsonc`) + verificação de links          |
-| 🚀 Build        | build Tauri completo no Windows + verificação do binário NSIS                  |
-| 🧪 Cobertura    | `cargo-llvm-cov` → Codecov + SonarQube Cloud                                   |
+| Área        | O que roda                                                    |
+| ----------- | ------------------------------------------------------------- |
+| ⚛️ Frontend | ESLint, Prettier, `tsc`, build Vite, knip (dead code)         |
+| 🦀 Rust     | `cargo fmt`, `check`, `clippy -D warnings`, `test`, `doc`     |
+| 🚀 Build    | build Tauri completo no Windows + verificação do binário NSIS |
 
-Revisão por IA (**CodeRabbit**) e análise do **SonarCloud** comentam direto no PR. O build de release fica separado em `.github/workflows/build.yml`.
+Revisão de PR é feita pelo **CodeRabbit** (`.coderabbit.yaml`), que comenta direto no PR. O build de release fica separado em `.github/workflows/build.yml`.
 
 > [!TIP]
 > A maioria dos checks é informativa (não bloqueia merge), mas o objetivo é manter tudo verde. Rode `npm run lint`, `npm run format` e `cargo clippy` localmente antes de abrir o PR para evitar surpresas.
