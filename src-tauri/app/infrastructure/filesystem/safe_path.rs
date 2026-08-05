@@ -1,4 +1,4 @@
-use std::path::{Component, Path, PathBuf};
+use std::path::{Path, PathBuf};
 
 /// Joins an untrusted `/`- or `\`-separated relative path onto `base`, keeping
 /// the result inside `base`. Returns `None` for anything that could escape:
@@ -7,20 +7,38 @@ use std::path::{Component, Path, PathBuf};
 /// Untrusted input reaches here from imported packs (AstroPack/modpack ZIP
 /// entry names, world/screenshot names) and the config editor — a `..` or an
 /// absolute path would otherwise let `Path::join` write outside the instance.
+///
+/// Validation is done on the raw string (not `Path::components`, which is
+/// OS-dependent) so `\` and `C:` are rejected on Linux/macOS too — the app
+/// ships on Windows but the CI/tests run on Linux.
 pub fn safe_join(base: &Path, relative: &str) -> Option<PathBuf> {
-    let mut out = base.to_path_buf();
-    for component in Path::new(relative).components() {
-        match component {
-            Component::Normal(part) => out.push(part),
-            // RootDir/Prefix = absolute; ParentDir = `..`; CurDir = `.`
-            _ => return None,
-        }
-    }
-    // Reject an empty relative that would resolve back to `base` itself.
-    if out == base {
+    if relative.is_empty() {
         return None;
     }
-    Some(out)
+    // Absolute: unix root or a leading (back)slash.
+    if relative.starts_with('/') || relative.starts_with('\\') {
+        return None;
+    }
+    let mut out = base.to_path_buf();
+    let mut pushed = false;
+    for part in relative.split(['/', '\\']) {
+        match part {
+            // Collapse doubled separators (`a//b`) and no-op `.` segments.
+            "" | "." => continue,
+            ".." => return None,
+            // Windows drive letter / alternate data stream (`C:`, `x:foo`).
+            p if p.contains(':') => return None,
+            p => {
+                out.push(p);
+                pushed = true;
+            }
+        }
+    }
+    if pushed {
+        Some(out)
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]

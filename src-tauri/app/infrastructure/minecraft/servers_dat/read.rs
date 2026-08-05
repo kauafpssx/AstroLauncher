@@ -38,6 +38,30 @@ fn read_string(r: &mut impl Read) -> io::Result<String> {
 /// caps NBT nesting so deep trees can't overflow the stack.
 const MAX_DEPTH: u32 = 512;
 
+/// Caps list/array element counts. A real `servers.dat` holds a handful of
+/// servers; a malformed file could claim `i32::MAX` elements and spin the
+/// loop for billions of no-op iterations (DoS).
+const MAX_LIST_LEN: u64 = 100_000;
+
+/// Validates a `TAG_LIST` header before iterating: a non-empty list whose
+/// element type is `TAG_END` reads zero bytes per element, so a huge length
+/// would loop forever making no progress; an over-long list is also rejected.
+fn validate_list(elem_type: u8, len: u64) -> io::Result<()> {
+    if elem_type == TAG_END && len > 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "non-empty TAG_END list",
+        ));
+    }
+    if len > MAX_LIST_LEN {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "NBT list too long",
+        ));
+    }
+    Ok(())
+}
+
 /// Rejects negative NBT lengths (a `-1` would become a multi-exabyte `usize`)
 /// and returns the count as `u64` for streaming skips without pre-allocating.
 fn checked_len(r: &mut impl Read) -> io::Result<u64> {
@@ -94,6 +118,7 @@ fn skip_payload(r: &mut impl Read, tag: u8, depth: u32) -> io::Result<()> {
         TAG_LIST => {
             let elem_type = read_u8(r)?;
             let len = checked_len(r)?;
+            validate_list(elem_type, len)?;
             for _ in 0..len {
                 skip_payload(r, elem_type, depth + 1)?;
             }
@@ -162,6 +187,7 @@ pub fn read_servers(path: &Path) -> io::Result<Vec<ServerEntry>> {
         if t == TAG_LIST && name == "servers" {
             let elem_type = read_u8(&mut cursor)?;
             let len = checked_len(&mut cursor)?;
+            validate_list(elem_type, len)?;
             for _ in 0..len {
                 if elem_type == TAG_COMPOUND {
                     servers.push(read_server_compound(&mut cursor)?);
@@ -175,3 +201,7 @@ pub fn read_servers(path: &Path) -> io::Result<Vec<ServerEntry>> {
     }
     Ok(servers)
 }
+
+#[cfg(test)]
+#[path = "tests/read_tests.rs"]
+mod tests;
