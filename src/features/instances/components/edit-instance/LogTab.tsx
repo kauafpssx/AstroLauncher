@@ -72,7 +72,6 @@ export function LogTab({ instanceId }: LogTabProps) {
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content)
-    toast.success('Log copiado')
   }
 
   const handleScroll = () => {

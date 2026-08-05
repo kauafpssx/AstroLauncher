@@ -180,10 +180,8 @@ export function ModReviewPanel({
     setCurrentName(null)
     setIsInstalling(false)
 
-    if (failures === 0) {
-      toast.success(`${entries.length} mod(s) instalado(s)`)
-    } else {
-      toast.warning(
+    if (failures > 0) {
+      toast.error(
         `${entries.length - failures} instalado(s), ${failures} falharam`,
       )
     }

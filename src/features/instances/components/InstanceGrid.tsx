@@ -51,6 +51,7 @@ interface InstanceGridProps {
   onEdit: (id: string) => void
   onDelete: (id: string) => void
   onExport: (id: string) => void
+  onDuplicate: (id: string) => void
   onImport: () => void
   onCreate: () => void
   onCreateFolder: () => void
@@ -78,6 +79,7 @@ export function InstanceGrid({
   onEdit,
   onDelete,
   onExport,
+  onDuplicate,
   onImport,
   onCreate,
   onCreateFolder,
@@ -207,6 +209,7 @@ export function InstanceGrid({
                   onEdit={onEdit}
                   onDeleteInstance={onDelete}
                   onExport={onExport}
+                  onDuplicate={onDuplicate}
                   onMoveToFolder={onMoveToFolder}
                   onCreateFolder={onCreateFolder}
                 />
@@ -225,6 +228,7 @@ export function InstanceGrid({
               onEdit={onEdit}
               onDelete={onDelete}
               onExport={onExport}
+              onDuplicate={onDuplicate}
               onMoveToFolder={onMoveToFolder}
               onRename={onRenameRoot}
               onPickIconPath={onPickRootIcon}

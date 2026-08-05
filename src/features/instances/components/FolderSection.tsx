@@ -40,6 +40,7 @@ interface FolderSectionProps {
   onEdit: (id: string) => void
   onDeleteInstance: (id: string) => void
   onExport: (id: string) => void
+  onDuplicate: (id: string) => void
   onMoveToFolder: (id: string, folderId: string | null) => void
   onCreateFolder: () => void
 }
@@ -59,6 +60,7 @@ export function FolderSection({
   onEdit,
   onDeleteInstance,
   onExport,
+  onDuplicate,
   onMoveToFolder,
   onCreateFolder,
 }: FolderSectionProps) {
@@ -143,7 +145,7 @@ export function FolderSection({
           open={!collapsed}
           onOpenChange={(open) => onToggleCollapsed(!open)}
         >
-          <EntityContextMenu actions={headerActions} stopPropagation>
+          <EntityContextMenu items={headerActions} stopPropagation>
             <button
               type="button"
               {...attributes}
@@ -186,6 +188,7 @@ export function FolderSection({
               onEdit={onEdit}
               onDelete={onDeleteInstance}
               onExport={onExport}
+              onDuplicate={onDuplicate}
               onMoveToFolder={onMoveToFolder}
             />
           </CollapsibleContent>

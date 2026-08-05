@@ -15,6 +15,7 @@ lerna-debug.log*
 node_modules
 .pnp
 .pnp.js
+bun.lock
 
 # ── Build e produção ────────────────────────────────────────────────
 dist

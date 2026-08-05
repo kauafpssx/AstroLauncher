@@ -4,10 +4,10 @@ use std::sync::Arc;
 use crate::application::use_cases::{
     AstroPackService, CreateAccountUseCase, CreateFolderUseCase, CreateInstanceUseCase,
     CustomIconService, DeleteAccountUseCase, DeleteFolderUseCase, DeleteInstanceUseCase,
-    FetchVersionManifestUseCase, InstanceWorkspaceService, LaunchInstanceUseCase,
-    ListAccountsUseCase, ListFoldersUseCase, ListInstancesUseCase, ModBrowserService,
-    ModManagerService, ModpackInstallerService, MoveInstanceToFolderUseCase, PlaytimeService,
-    ReorderAccountsUseCase, ReorderFoldersUseCase, ReorderInstancesUseCase,
+    DuplicateInstanceUseCase, FetchVersionManifestUseCase, InstanceWorkspaceService,
+    LaunchInstanceUseCase, ListAccountsUseCase, ListFoldersUseCase, ListInstancesUseCase,
+    ModBrowserService, ModManagerService, ModpackInstallerService, MoveInstanceToFolderUseCase,
+    PlaytimeService, ReorderAccountsUseCase, ReorderFoldersUseCase, ReorderInstancesUseCase,
     SetDefaultAccountUseCase, SettingsService, SkinBrowserService, StopInstanceUseCase,
     UpdateAccountUseCase, UpdateFolderUseCase, UpdateInstanceUseCase,
 };
@@ -22,6 +22,7 @@ pub struct AppState {
     pub create_instance: CreateInstanceUseCase,
     pub update_instance: UpdateInstanceUseCase,
     pub delete_instance: DeleteInstanceUseCase,
+    pub duplicate_instance: DuplicateInstanceUseCase,
     pub move_instance_to_folder: MoveInstanceToFolderUseCase,
     pub reorder_instances: ReorderInstancesUseCase,
     pub instance_workspace: InstanceWorkspaceService,
@@ -78,6 +79,12 @@ impl AppState {
             update_instance: UpdateInstanceUseCase::new(instance_repository.clone()),
             delete_instance: DeleteInstanceUseCase::new(
                 instance_repository.clone(),
+                process_manager.clone(),
+                app_data_dir.clone(),
+            ),
+            duplicate_instance: DuplicateInstanceUseCase::new(
+                instance_repository.clone(),
+                mod_repository.clone(),
                 process_manager.clone(),
                 app_data_dir.clone(),
             ),

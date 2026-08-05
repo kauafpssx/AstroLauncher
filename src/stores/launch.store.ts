@@ -71,7 +71,6 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
       set((state) =>
         state.error ? state : { isOpen: false, runningInstanceId: id },
       )
-      if (!useLaunchStore.getState().error) toast.success('Jogo iniciado')
     } catch (err) {
       set((state) => ({ error: state.error ?? String(err) }))
     } finally {
@@ -111,4 +110,16 @@ listen<string>('instance://stopped', (event) => {
       ? { runningInstanceId: null }
       : state,
   )
+})
+
+// Cold start: the app may have been opened by a desktop shortcut carrying
+// `--launch-instance <id>` — consume it once and start that instance.
+apiInvoke<string | null>('take_pending_launch').then((id) => {
+  if (id) useLaunchStore.getState().launch(id)
+})
+
+// Already running: the single-instance plugin forwards the same flag from a
+// second launch attempt as this event instead of spawning a new process.
+listen<string>('shortcut://launch-instance', (event) => {
+  useLaunchStore.getState().launch(event.payload)
 })

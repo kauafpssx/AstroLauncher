@@ -18,6 +18,9 @@ export const InstanceAPI = {
   delete(id: string): Promise<void> {
     return apiInvoke<void>('delete_instance', { id })
   },
+  duplicate(id: string): Promise<InstanceDTO> {
+    return apiInvoke<InstanceDTO>('duplicate_instance', { id })
+  },
   moveToFolder(id: string, folderId: string | null): Promise<InstanceDTO> {
     return apiInvoke<InstanceDTO>('move_instance_to_folder', { id, folderId })
   },

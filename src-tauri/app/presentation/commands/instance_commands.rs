@@ -39,6 +39,14 @@ pub fn delete_instance(state: State<AppState>, id: String) -> Result<(), String>
 }
 
 #[tauri::command]
+pub fn duplicate_instance(state: State<AppState>, id: String) -> Result<InstanceDTO, String> {
+    state
+        .duplicate_instance
+        .execute(&id)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn move_instance_to_folder(
     state: State<AppState>,
     id: String,

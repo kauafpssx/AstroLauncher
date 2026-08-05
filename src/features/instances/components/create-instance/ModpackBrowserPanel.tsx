@@ -12,16 +12,28 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ModAPI } from '@/features/mods/services/mod.api'
 import { cn } from '@/lib/utils'
 import { useModpackInstallStore } from '@/stores/modpack-install.store'
-import type { ModSearchResult, ModSource } from '@/types/mods'
+import type { ModSearchResult, ModSortBy, ModSource } from '@/types/mods'
 
 import { ModpackDetailPanel } from './ModpackDetailPanel'
 
 const SOURCE_LABEL: Record<ModSource, string> = {
   modrinth: 'Modrinth',
   curseforge: 'CurseForge',
+}
+
+const SOURCE_LOGO: Record<ModSource, string> = {
+  modrinth: '/providers/modrinth.svg',
+  curseforge: '/providers/curseforge.png',
 }
 
 const LOADER_ICON: Record<string, string> = {
@@ -38,12 +50,20 @@ const LOADER_LABEL: Record<string, string> = {
   neoforge: 'NeoForge',
 }
 
+const SORT_OPTIONS: { value: ModSortBy; label: string }[] = [
+  { value: 'relevance', label: 'Relevância' },
+  { value: 'downloads', label: 'Downloads' },
+  { value: 'newest', label: 'Mais recentes' },
+  { value: 'updated', label: 'Atualizados' },
+]
+
 interface ModpackBrowserPanelProps {
   source: ModSource
 }
 
 export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
   const [query, setQuery] = useState('')
+  const [sortBy, setSortBy] = useState<ModSortBy>('relevance')
   const [results, setResults] = useState<ModSearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [selected, setSelected] = useState<ModSearchResult | null>(null)
@@ -63,7 +83,7 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
     const requestId = ++requestIdRef.current
     const handle = setTimeout(() => {
       setIsSearching(true)
-      ModAPI.search({ source, query, projectType: 'modpack' })
+      ModAPI.search({ source, query, projectType: 'modpack', sort: sortBy })
         .then((data) => requestIdRef.current === requestId && setResults(data))
         .catch(
           (err) =>
@@ -75,7 +95,7 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
         )
     }, 200)
     return () => clearTimeout(handle)
-  }, [query, source])
+  }, [query, source, sortBy])
 
   return (
     <div className="flex h-full min-w-0 flex-row overflow-hidden rounded-lg border">
@@ -83,14 +103,33 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
         <ResizablePanel minSize="400px">
           <div className="flex h-full min-w-0 flex-col border-r">
             <div className="p-3">
-              <p className="mb-2 font-medium">
+              <p className="mb-2 flex items-center gap-1.5 font-medium">
+                <img src={SOURCE_LOGO[source]} alt="" className="size-4" />
                 Modpacks do {SOURCE_LABEL[source]}
               </p>
-              <SearchInput
-                placeholder="Pesquisar modpacks..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
+              <div className="flex items-center gap-2">
+                <SearchInput
+                  containerClassName="flex-1"
+                  placeholder="Pesquisar modpacks..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+                <Select
+                  value={sortBy}
+                  onValueChange={(v) => setSortBy(v as ModSortBy)}
+                >
+                  <SelectTrigger size="sm" className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SORT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             {isSearching ? (
               <CenteredSpinner />

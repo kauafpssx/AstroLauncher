@@ -165,7 +165,7 @@ export function useAstropackImport({
       })
 
       try {
-        const result = await AstroPackAPI.importAstropack({
+        await AstroPackAPI.importAstropack({
           filePath,
           selection,
         })
@@ -175,7 +175,6 @@ export function useAstropackImport({
           prev.map((e) => ({ ...e, status: 'done' as EntryStatus })),
         )
         setCurrent((c) => (total > 0 ? total : c))
-        toast.success(`Instância "${result.name}" importada com sucesso`)
         onImported()
       } catch (err) {
         if (cancelled) return

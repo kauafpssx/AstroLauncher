@@ -1,9 +1,20 @@
-import { AlertTriangle, Loader2, Upload } from 'lucide-react'
+import {
+  AlertTriangle,
+  Download,
+  Loader2,
+  Plus,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
 import { EntityAvatar } from '@/components/common/EntityAvatar'
+import {
+  EntityContextMenu,
+  type ContextMenuAction,
+} from '@/components/common/EntityContextMenu'
 import { SearchInput } from '@/components/common/SearchInput'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -19,14 +30,21 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
-import type { ModSource } from '@/types/mods'
+import type { ModSortBy, ModSource } from '@/types/mods'
 
-import type { SortBy, useModBrowser } from './useModBrowser'
+import type { useModBrowser } from './useModBrowser'
 import { selectionKey } from './useModBrowser'
 
 const SOURCES: { id: ModSource; label: string; logo: string }[] = [
   { id: 'modrinth', label: 'Modrinth', logo: '/providers/modrinth.svg' },
   { id: 'curseforge', label: 'CurseForge', logo: '/providers/curseforge.png' },
+]
+
+const SORT_OPTIONS: { value: ModSortBy; label: string }[] = [
+  { value: 'relevance', label: 'Relevância' },
+  { value: 'downloads', label: 'Downloads' },
+  { value: 'newest', label: 'Mais recentes' },
+  { value: 'updated', label: 'Atualizados' },
 ]
 
 interface ModBrowserListProps {
@@ -41,7 +59,7 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
     setQuery,
     sortBy,
     setSortBy,
-    sortedResults,
+    results,
     isSearching,
     error,
     viewing,
@@ -55,10 +73,11 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
     kindLabel,
     toggleSelection,
     handleUploadCustom,
+    handleDeleteInstalled,
   } = browser
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col border-r">
+    <div className="flex h-full min-w-0 flex-col border-r">
       <div className="flex items-center gap-2 border-b p-3">
         <SearchInput
           containerClassName="flex-1"
@@ -78,15 +97,6 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        <Button
-          variant="outline"
-          size="icon"
-          {...tooltipProps(`Enviar ${kindLabel.toLowerCase()} customizado`)}
-          disabled={isUploading}
-          onClick={handleUploadCustom}
-        >
-          {isUploading ? <Loader2 className="animate-spin" /> : <Upload />}
-        </Button>
       </div>
 
       {error && (
@@ -102,53 +112,82 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
       ) : (
         <ScrollArea type="always" className="min-h-0 flex-1">
           <div className="flex flex-col gap-0.5 p-2">
-            {!error && sortedResults.length === 0 && (
+            {!error && results.length === 0 && (
               <EmptyState title="Nenhum resultado." className="p-4" />
             )}
-            {sortedResults.map((result) => {
+            {results.map((result) => {
               const key = selectionKey(result.source, result.projectId)
               const isSelected = !!selection[key] || pendingKeys.has(key)
               const isInstalled = installedKeys.has(key)
               const isViewing =
                 viewing &&
                 selectionKey(viewing.source, viewing.projectId) === key
+              const actions: ContextMenuAction[] = isInstalled
+                ? [
+                    {
+                      key: 'delete',
+                      icon: Trash2,
+                      label: 'Remover',
+                      variant: 'destructive',
+                      onSelect: () => handleDeleteInstalled(result),
+                    },
+                  ]
+                : [
+                    {
+                      key: 'select-latest',
+                      icon: Plus,
+                      label: 'Selecionar última versão',
+                      onSelect: () => toggleSelection(result),
+                    },
+                  ]
               return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setViewing(result)}
-                  className={cn(
-                    'hover:bg-accent flex items-center gap-3 rounded-lg p-2 text-left transition-colors',
-                    isViewing && 'bg-primary/10',
-                    isInstalled && 'opacity-50',
-                  )}
-                >
-                  <span onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={isSelected}
-                      disabled={isInstalled}
-                      onCheckedChange={() => toggleSelection(result)}
+                <EntityContextMenu key={key} items={actions}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setViewing(result)}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter' && e.key !== ' ') return
+                      e.preventDefault()
+                      setViewing(result)
+                    }}
+                    className={cn(
+                      'hover:bg-accent focus-visible:ring-ring/50 flex items-center gap-3 rounded-lg p-2 text-left transition-colors outline-none focus-visible:ring-2',
+                      isViewing && 'bg-primary/10',
+                      isInstalled && 'opacity-50',
+                    )}
+                  >
+                    <span onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        disabled={isInstalled}
+                        onCheckedChange={() => toggleSelection(result)}
+                      />
+                    </span>
+                    <EntityAvatar
+                      name={result.name}
+                      iconUrl={result.iconUrl}
+                      className="size-9"
                     />
-                  </span>
-                  <EntityAvatar
-                    name={result.name}
-                    iconUrl={result.iconUrl}
-                    className="size-9"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate font-medium">{result.name}</p>
-                      {isInstalled && (
-                        <Badge variant="secondary" className="shrink-0">
-                          Instalado
-                        </Badge>
-                      )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate font-medium">{result.name}</p>
+                        {isInstalled && (
+                          <Badge variant="secondary" className="shrink-0">
+                            Instalado
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground truncate text-xs">
+                        {result.description}
+                      </p>
                     </div>
-                    <p className="text-muted-foreground truncate text-xs">
-                      {result.description}
-                    </p>
+                    <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
+                      <Download className="size-3" />
+                      {result.downloads.toLocaleString()}
+                    </span>
                   </div>
-                </button>
+                </EntityContextMenu>
               )
             })}
           </div>
@@ -156,22 +195,36 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
       )}
 
       <div className="flex items-center justify-between gap-2 border-t p-3">
-        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as ModSortBy)}>
           <SelectTrigger size="sm" className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="relevance">Relevância</SelectItem>
-            <SelectItem value="downloads">Downloads</SelectItem>
+            {SORT_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-        <Button
-          size="sm"
-          disabled={selectedCount === 0}
-          onClick={() => setView('review')}
-        >
-          Revisar e Instalar {selectedCount > 0 && `(${selectedCount})`}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            disabled={selectedCount === 0}
+            onClick={() => setView('review')}
+          >
+            Revisar e Instalar {selectedCount > 0 && `(${selectedCount})`}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            {...tooltipProps(`Enviar ${kindLabel.toLowerCase()} customizado`)}
+            disabled={isUploading}
+            onClick={handleUploadCustom}
+          >
+            {isUploading ? <Loader2 className="animate-spin" /> : <Upload />}
+          </Button>
+        </div>
       </div>
     </div>
   )

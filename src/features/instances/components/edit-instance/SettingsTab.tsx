@@ -80,7 +80,6 @@ export function SettingsTab({ instance }: SettingsTabProps) {
         maxMemory,
         iconPath,
       })
-      toast.success('Instância atualizada')
     } catch (err) {
       toast.error(`Falha ao salvar: ${String(err)}`)
     } finally {

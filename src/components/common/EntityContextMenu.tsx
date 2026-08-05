@@ -31,9 +31,10 @@ export interface ContextMenuSubmenu {
   separatorBefore?: boolean
 }
 
+export type ContextMenuItem = ContextMenuAction | ContextMenuSubmenu
+
 interface EntityContextMenuProps {
-  actions: ContextMenuAction[]
-  submenus?: ContextMenuSubmenu[]
+  items: ContextMenuItem[]
   children: ReactNode
   stopPropagation?: boolean
 }
@@ -85,9 +86,12 @@ function renderSubmenu({
   )
 }
 
+function renderItem(item: ContextMenuItem) {
+  return 'items' in item ? renderSubmenu(item) : renderAction(item)
+}
+
 export function EntityContextMenu({
-  actions,
-  submenus = [],
+  items,
   children,
   stopPropagation = false,
 }: EntityContextMenuProps) {
@@ -106,10 +110,7 @@ export function EntityContextMenu({
       >
         {children}
       </ContextMenuTrigger>
-      <ContextMenuContent>
-        {submenus.map(renderSubmenu)}
-        {actions.map(renderAction)}
-      </ContextMenuContent>
+      <ContextMenuContent>{items.map(renderItem)}</ContextMenuContent>
     </ContextMenu>
   )
 }

@@ -51,7 +51,6 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
         shot.info.name,
         destPath,
       )
-      toast.success('Screenshot salva')
     } catch (err) {
       toast.error(`Falha ao salvar: ${String(err)}`)
     }
@@ -60,7 +59,6 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
   const handleCopy = async (shot: LoadedScreenshot) => {
     try {
       await writeImage(dataUriToBytes(shot.dataUri))
-      toast.success('Copiado para a área de transferência')
     } catch (err) {
       toast.error(`Falha ao copiar: ${String(err)}`)
     }

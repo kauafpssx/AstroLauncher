@@ -7,12 +7,14 @@ export function useInstances() {
   const isLoading = useInstanceStore((s) => s.isLoading)
   const error = useInstanceStore((s) => s.error)
   const fetchInstances = useInstanceStore((s) => s.fetchInstances)
+  const fetchShortcuts = useInstanceStore((s) => s.fetchShortcuts)
   const createInstance = useInstanceStore((s) => s.createInstance)
   const deleteInstance = useInstanceStore((s) => s.deleteInstance)
 
   useEffect(() => {
     fetchInstances()
-  }, [fetchInstances])
+    fetchShortcuts()
+  }, [fetchInstances, fetchShortcuts])
 
   return {
     instances,
@@ -20,6 +22,9 @@ export function useInstances() {
     error,
     createInstance,
     deleteInstance,
-    refresh: fetchInstances,
+    refresh: () => {
+      fetchInstances()
+      fetchShortcuts()
+    },
   }
 }

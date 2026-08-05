@@ -4,6 +4,7 @@ import { Play } from 'lucide-react'
 
 import { EntityContextMenu } from '@/components/common/EntityContextMenu'
 import { cn } from '@/lib/utils'
+import { useInstanceStore } from '@/stores/instance.store'
 import type { FolderDTO } from '@/types/folder'
 import type { InstanceDTO } from '@/types/instance'
 
@@ -22,6 +23,7 @@ interface InstanceCardProps {
   onEdit: (id: string) => void
   onDelete: (id: string) => void
   onExport: (id: string) => void
+  onDuplicate: (id: string) => void
   onMoveToFolder: (id: string, folderId: string | null) => void
 }
 
@@ -36,9 +38,13 @@ export function InstanceCard({
   onEdit,
   onDelete,
   onExport,
+  onDuplicate,
   onMoveToFolder,
 }: InstanceCardProps) {
   const { handleIconSelect } = useInstanceIcon(instance)
+  const hasShortcut = useInstanceStore((s) =>
+    s.shortcutIds.includes(instance.id),
+  )
   const {
     setNodeRef,
     attributes,
@@ -51,7 +57,7 @@ export function InstanceCard({
     data: { type: 'instance', folderId: instance.folderId },
   })
 
-  const { actions, submenus } = getInstanceActions(
+  const items = getInstanceActions(
     instance,
     {
       onLaunch,
@@ -59,15 +65,17 @@ export function InstanceCard({
       onEdit,
       onDelete,
       onExport,
+      onDuplicate,
       onMoveToFolder,
     },
     isRunning,
     folders,
+    hasShortcut,
   )
 
   return (
     <>
-      <EntityContextMenu actions={actions} submenus={submenus} stopPropagation>
+      <EntityContextMenu items={items} stopPropagation>
         <div
           ref={setNodeRef}
           style={{ transform: CSS.Transform.toString(transform), transition }}

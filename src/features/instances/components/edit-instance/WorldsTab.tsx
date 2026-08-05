@@ -55,7 +55,6 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
     try {
       await InstanceWorkspaceAPI.deleteWorld(instanceId, deleteTarget)
       setWorlds((prev) => prev.filter((w) => w.name !== deleteTarget))
-      toast.success('Mundo excluído')
     } catch (err) {
       toast.error(`Falha ao excluir: ${String(err)}`)
     } finally {

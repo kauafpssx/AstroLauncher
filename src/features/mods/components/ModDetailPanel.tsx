@@ -201,12 +201,6 @@ export function ModDetailPanel({
           </SelectContent>
         </Select>
 
-        {isBlocked && !isSelected && (
-          <p className="text-muted-foreground text-center text-xs">
-            Já instalado nesta instância.
-          </p>
-        )}
-
         <Button
           variant={isSelected ? 'outline' : 'default'}
           disabled={isSelected ? false : !selectedVersion || isBlocked}

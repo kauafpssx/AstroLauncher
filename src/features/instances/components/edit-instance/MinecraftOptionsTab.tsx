@@ -95,7 +95,6 @@ export function MinecraftOptionsTab({ instanceId }: MinecraftOptionsTabProps) {
       setRawOptions(updated)
       setOptions(parseMinecraftOptions(updated))
       setOverrides({})
-      toast.success('Configurações salvas')
     } catch (err) {
       toast.error(`Falha ao salvar: ${String(err)}`)
     } finally {

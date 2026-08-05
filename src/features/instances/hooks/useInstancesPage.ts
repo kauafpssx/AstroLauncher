@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { SettingsAPI } from '@/features/settings/services/settings.api'
 import { useDiscordPresence } from '@/hooks/useDiscordPresence'
 import { useFolderStore } from '@/stores/folder.store'
+import { useImportAstropackStore } from '@/stores/import-astropack.store'
 import { useInstanceStore, useSelectedInstance } from '@/stores/instance.store'
 import type { FolderDTO } from '@/types/folder'
 import type { SettingsDTO } from '@/types/settings'
@@ -26,6 +27,7 @@ export interface FolderDialogState {
 export function useInstancesPage() {
   const navigate = useNavigate()
   const { instances, deleteInstance, refresh } = useInstances()
+  const duplicateInstance = useInstanceStore((s) => s.duplicateInstance)
   const { folders, refresh: refreshFolders } = useFolders()
   const selectedInstance = useSelectedInstance()
   const selectInstance = useInstanceStore((s) => s.selectInstance)
@@ -46,6 +48,8 @@ export function useInstancesPage() {
   const [deleteFolderTarget, setDeleteFolderTarget] =
     useState<FolderDTO | null>(null)
   const [settings, setSettings] = useState<SettingsDTO | null>(null)
+  const pendingImportPath = useImportAstropackStore((s) => s.pendingPath)
+  const clearPendingImportPath = useImportAstropackStore((s) => s.clearPending)
 
   useDiscordPresence('AstroLauncher', `${instances.length} instâncias`)
 
@@ -55,6 +59,19 @@ export function useInstancesPage() {
       .catch(() => {})
   }, [])
 
+  // Opened via the `.astropack` file association (cold start or a second
+  // launch attempt forwarded while already running) — adjusted during
+  // render rather than in an effect, same as the reset patterns elsewhere.
+  const [prevPendingImportPath, setPrevPendingImportPath] =
+    useState(pendingImportPath)
+  if (prevPendingImportPath !== pendingImportPath) {
+    setPrevPendingImportPath(pendingImportPath)
+    if (pendingImportPath) {
+      setImportFilePath(pendingImportPath)
+      clearPendingImportPath()
+    }
+  }
+
   const rootGroupName = settings?.rootGroupName?.trim() || 'Todas as Instâncias'
   const rootGroupIcon = settings?.rootGroupIcon ?? null
 
@@ -63,11 +80,19 @@ export function useInstancesPage() {
 
   const handleEdit = (id: string) => navigate(`/instances/${id}/edit`)
 
+  const handleDuplicate = async (id: string) => {
+    try {
+      await duplicateInstance(id)
+      toast.success('Instância duplicada')
+    } catch (err) {
+      toast.error(`Falha ao duplicar: ${String(err)}`)
+    }
+  }
+
   const confirmDelete = async () => {
     if (!deleteTargetId) return
     try {
       await deleteInstance(deleteTargetId)
-      toast.success('Instância excluída')
     } catch (err) {
       toast.error(`Falha ao excluir: ${String(err)}`)
     } finally {
@@ -87,7 +112,6 @@ export function useInstancesPage() {
   const handleCreateFolder = async (name: string) => {
     try {
       await createFolder({ name })
-      toast.success('Pasta criada')
     } catch (err) {
       toast.error(`Falha ao criar pasta: ${String(err)}`)
       throw err
@@ -118,7 +142,6 @@ export function useInstancesPage() {
           rootGroupName: name,
         })
         setSettings(updated)
-        toast.success('Grupo renomeado')
       } catch (err) {
         toast.error(`Falha ao renomear grupo: ${String(err)}`)
         throw err
@@ -132,7 +155,6 @@ export function useInstancesPage() {
         name,
         collapsed: folder?.collapsed ?? false,
       })
-      toast.success('Pasta renomeada')
     } catch (err) {
       toast.error(`Falha ao renomear pasta: ${String(err)}`)
       throw err
@@ -143,7 +165,6 @@ export function useInstancesPage() {
     if (!deleteFolderTarget) return
     try {
       await deleteFolder(deleteFolderTarget.id)
-      toast.success('Pasta excluída')
       await refresh()
     } catch (err) {
       toast.error(`Falha ao excluir pasta: ${String(err)}`)
@@ -219,6 +240,7 @@ export function useInstancesPage() {
     refresh,
     refreshAll,
     handleEdit,
+    handleDuplicate,
     handleImport,
     confirmDelete,
     handleCreateFolder,

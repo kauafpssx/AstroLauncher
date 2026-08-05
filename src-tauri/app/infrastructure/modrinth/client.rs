@@ -77,12 +77,25 @@ pub struct Dependency {
     pub dependency_type: String,
 }
 
+/// Maps our unified sort key to Modrinth's `index` values. Modrinth also
+/// supports `"follows"`, but there's no equivalent on CurseForge's side, so
+/// it's left out to keep the two providers' sort options symmetric.
+fn search_index(sort: Option<&str>) -> &'static str {
+    match sort {
+        Some("downloads") => "downloads",
+        Some("newest") => "newest",
+        Some("updated") => "updated",
+        _ => "relevance",
+    }
+}
+
 pub async fn search(
     client: &reqwest::Client,
     query: &str,
     project_type: &str,
     game_version: Option<&str>,
     loader: Option<&str>,
+    sort: Option<&str>,
 ) -> anyhow::Result<Vec<SearchHit>> {
     let mut facets: Vec<Vec<String>> = vec![vec![format!("project_type:{project_type}")]];
     if let Some(gv) = game_version {
@@ -97,6 +110,7 @@ pub async fn search(
     url.query_pairs_mut()
         .append_pair("query", query)
         .append_pair("facets", &facets_json)
+        .append_pair("index", search_index(sort))
         .append_pair("limit", "30");
 
     let response = client
@@ -195,6 +209,7 @@ pub async fn get_versions_by_hashes(
 #[derive(Debug, Deserialize)]
 pub struct ProjectSummary {
     pub id: String,
+    pub title: String,
     pub icon_url: Option<String>,
 }
 

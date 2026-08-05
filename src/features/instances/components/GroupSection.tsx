@@ -30,6 +30,7 @@ interface GroupSectionProps {
   onEdit: (id: string) => void
   onDelete: (id: string) => void
   onExport: (id: string) => void
+  onDuplicate: (id: string) => void
   onMoveToFolder: (id: string, folderId: string | null) => void
   onRename: () => void
   onPickIconPath: (iconPath: string) => void
@@ -48,6 +49,7 @@ export function GroupSection({
   onEdit,
   onDelete,
   onExport,
+  onDuplicate,
   onMoveToFolder,
   onRename,
   onPickIconPath,
@@ -70,7 +72,7 @@ export function GroupSection({
       <Collapsible open={open} onOpenChange={setOpen}>
         <EntityContextMenu
           stopPropagation
-          actions={[
+          items={[
             {
               key: 'rename',
               icon: Pencil,
@@ -120,6 +122,7 @@ export function GroupSection({
             onEdit={onEdit}
             onDelete={onDelete}
             onExport={onExport}
+            onDuplicate={onDuplicate}
             onMoveToFolder={onMoveToFolder}
           />
         </CollapsibleContent>
