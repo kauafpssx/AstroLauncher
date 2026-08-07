@@ -7,7 +7,7 @@ import { useTooltipStore } from '@/stores/tooltip.store'
 const OFFSET = 14
 const MARGIN = 8
 
-/** Renders the tooltip driven by `tooltipProps()` (src/lib/tooltip.ts) —
+/** Renders the tooltip driven by `tooltipProps()` (src/lib/tooltip.ts):
  * mount once at the app root. Follows the cursor at a fixed diagonal
  * offset (bottom-right by default), flipping horizontally/vertically
  * whenever it would otherwise overflow the window. */
@@ -28,19 +28,26 @@ export function CursorTooltip() {
   }, [pathname])
 
   // Same root problem as the route change above, but for anything that
-  // unmounts a hovered trigger without moving the mouse off it first — most
+  // unmounts a hovered trigger without moving the mouse off it first: most
   // commonly closing a dialog (its close button, an "X", a click outside,
   // or Escape). Every one of those goes through a click or a keydown, so
   // hiding on both catches the whole class of "tooltip survives its own
   // trigger's dialog closing" bugs generically, without wiring anything
   // dialog-specific.
+  // Same root problem again, but for the OS's own native file picker
+  // (opened from inside dialogs like the icon upload modal): the webview
+  // loses focus while it's open, with no click/keydown of ours in between,
+  // so the trigger's tooltip is still "shown" by the time focus returns and
+  // the dialog closes right after the user picks a file.
   useEffect(() => {
     const hide = () => useTooltipStore.getState().hide()
     document.addEventListener('click', hide, true)
     document.addEventListener('keydown', hide, true)
+    window.addEventListener('blur', hide)
     return () => {
       document.removeEventListener('click', hide, true)
       document.removeEventListener('keydown', hide, true)
+      window.removeEventListener('blur', hide)
     }
   }, [])
 

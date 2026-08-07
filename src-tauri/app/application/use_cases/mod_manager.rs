@@ -68,7 +68,7 @@ impl ModManagerService {
         };
         let _presence = self
             .discord
-            .guard(details, format!("{instance_name} — {}", input.mod_name));
+            .guard(details, format!("{instance_name}: {}", input.mod_name));
 
         let target_dir = paths::instance_dir(&self.app_data_dir, &input.instance_id)
             .join(target_folder(&input.kind));
@@ -92,7 +92,7 @@ impl ModManagerService {
     }
 
     /// Copies a user-picked local file into the instance's mods/resourcepacks/
-    /// shaderpacks folder and registers it with source `"custom"` — no
+    /// shaderpacks folder and registers it with source `"custom"`: no
     /// update source, no re-fetch.
     pub fn install_custom(&self, input: InstallCustomModInput) -> anyhow::Result<InstalledModDTO> {
         let source_path = std::path::Path::new(&input.file_path);
@@ -127,13 +127,13 @@ impl ModManagerService {
         Ok(to_dto(installed))
     }
 
-    /// Toggling a mod renames its file with a `.disabled` suffix — the
-    /// convention every Minecraft loader already ignores — instead of
+    /// Toggling a mod renames its file with a `.disabled` suffix: the
+    /// convention every Minecraft loader already ignores: instead of
     /// deleting it, so re-enabling doesn't need a re-download.
     ///
     /// The renamed path must be persisted back to `file_path`, otherwise the
     /// next toggle compares against the stale original name and never
-    /// detects the file is already suffixed — silently breaking re-enable.
+    /// detects the file is already suffixed: silently breaking re-enable.
     pub fn set_enabled(
         &self,
         instance_id: &str,

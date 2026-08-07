@@ -54,7 +54,7 @@ export function useReviewEntries({
             const depKey = `modrinth:${depId}`
             if (resolved.has(depKey)) continue
             // Already installed in this instance (possibly via CurseForge
-            // originally) — don't re-queue it as a dependency to install.
+            // originally): don't re-queue it as a dependency to install.
             if (installedKeys.has(depKey)) continue
             try {
               const [project, versions] = await Promise.all([

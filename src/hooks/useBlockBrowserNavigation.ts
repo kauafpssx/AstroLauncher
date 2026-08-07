@@ -11,8 +11,8 @@ function isTypingTarget(target: EventTarget | null) {
   )
 }
 
-/** Blocks the WebView's native back/forward navigation gestures — mouse
- * side buttons and Alt+Left/Right (and Backspace outside text fields) — so
+/** Blocks the WebView's native back/forward navigation gestures: mouse
+ * side buttons and Alt+Left/Right (and Backspace outside text fields): so
  * they never fight the app's own HashRouter history. Escape is left alone. */
 export function useBlockBrowserNavigation() {
   useEffect(() => {

@@ -20,7 +20,7 @@ function SkinThumbnail({ skin, alt }: { skin: SkinSummary; alt: string }) {
   useEffect(() => {
     let cancelled = false
     // Rendered locally with skinview3d (same engine as the detail modal's 3D
-    // view) instead of a third-party render service — no network flakiness,
+    // view) instead of a third-party render service: no network flakiness,
     // no bot-detection surprises. The texture is fetched through our own
     // backend into a data: URI first so the canvas read-back below never
     // taints on a cross-origin image.

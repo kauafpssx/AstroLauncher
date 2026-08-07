@@ -114,7 +114,7 @@ impl AstroPackService {
                 for entry_name in entry_names {
                     let relative = &entry_name[prefix.len()..];
                     // `world_name` and `relative` come from untrusted zip entry
-                    // names — reject any `..`/absolute that would escape saves/.
+                    // names: reject any `..`/absolute that would escape saves/.
                     let Some(dest) = safe_join(&saves_dir, &format!("{world_name}/{relative}"))
                     else {
                         continue;

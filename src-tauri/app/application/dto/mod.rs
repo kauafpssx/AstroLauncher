@@ -23,7 +23,7 @@ pub use astropack_dto::{
 pub use config_file_dto::ConfigFileDTO;
 pub use custom_icon_dto::CustomIconDTO;
 pub use folder_dto::{CreateFolderInput, FolderDTO, UpdateFolderInput};
-pub use instance_dto::{CreateInstanceInput, InstanceDTO, UpdateInstanceInput};
+pub use instance_dto::{CreateInstanceInput, InstanceDTO, SuggestedMemoryDTO, UpdateInstanceInput};
 pub use launch_event_dto::LaunchEventDTO;
 pub use mod_dto::{
     GetModProjectInput, GetModVersionsInput, InstallCustomModInput, InstallModInput,

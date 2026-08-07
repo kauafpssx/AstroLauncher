@@ -2,6 +2,7 @@ import { Check } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { cn } from '@/lib/utils'
 import type { ModVersion } from '@/types/mods'
 
 interface ModpackVersionPickerProps {
@@ -32,7 +33,7 @@ export function ModpackVersionPicker({
               type="button"
               disabled={unavailable}
               onClick={() => onSelect(version)}
-              className="hover:bg-accent data-[active=true]:bg-accent flex w-full items-center justify-between rounded-md p-2 text-left text-sm disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+              className="group hover:bg-accent data-[active=true]:bg-accent flex w-full items-center justify-between rounded-md p-2 text-left text-sm disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
               data-active={isActive}
             >
               <span className="flex min-w-0 items-center gap-1.5">
@@ -40,7 +41,11 @@ export function ModpackVersionPicker({
                 {version.gameVersions[0] && (
                   <Badge
                     variant={isActive ? 'default' : 'secondary'}
-                    className="shrink-0"
+                    className={cn(
+                      'shrink-0',
+                      !isActive &&
+                        'group-hover:bg-primary group-hover:text-primary-foreground',
+                    )}
                   >
                     {version.gameVersions[0]}
                   </Badge>

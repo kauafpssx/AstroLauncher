@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 import { formatBytes } from '@/lib/format'
+import { tooltipProps } from '@/lib/tooltip'
 import type { WorldDTO } from '@/types/world'
 
 interface WorldsTabProps {
@@ -122,6 +123,8 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => setDeleteTarget(world.name)}
+                    aria-label="Excluir"
+                    {...tooltipProps('Excluir')}
                   >
                     <Trash2 className="text-destructive" />
                   </Button>

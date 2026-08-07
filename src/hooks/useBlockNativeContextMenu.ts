@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 /** Disables the WebView's native right-click context menu (Inspect,
- * Reload, ...) in production builds — end users shouldn't reach devtools
+ * Reload, ...) in production builds: end users shouldn't reach devtools
  * through it. Left enabled in dev for debugging. Areas with their own
  * `EntityContextMenu` are unaffected, since Radix intercepts the event on
  * the trigger itself before this would ever need to act. */

@@ -20,7 +20,7 @@ export function ConfirmDeleteFolderDialog({
       description={
         <>
           Isso vai excluir a pasta <strong>{folder?.name}</strong>. As
-          instâncias dentro dela não são apagadas — elas voltam para "Todas as
+          instâncias dentro dela não são apagadas, elas voltam para "Todas as
           Instâncias".
         </>
       }

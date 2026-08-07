@@ -9,7 +9,7 @@ use discord_rich_presence::{DiscordIpc, DiscordIpcClient};
 /// client when it isn't running yet (or the pipe dropped).
 const RETRY_INTERVAL: Duration = Duration::from_secs(15);
 
-/// Shown as a Rich Presence button on every state — Discord only renders
+/// Shown as a Rich Presence button on every state: Discord only renders
 /// buttons for other people viewing the activity, not the local user.
 const REPO_URL: &str = "https://github.com/kauafpssx/AstroLauncher";
 
@@ -18,7 +18,7 @@ enum PresenceState {
     /// while no game is running.
     Idle,
     /// Arbitrary two-line presence (`details` on top, `state` below) set by
-    /// whichever screen/operation is currently active — menu, create/edit
+    /// whichever screen/operation is currently active: menu, create/edit
     /// instance, modpack install, mod download, etc.
     Custom { details: String, state: String },
     /// A game session is running; shows an elapsed-time counter.
@@ -31,14 +31,14 @@ enum PresenceState {
 
 /// Cloneable handle to a background thread that owns the Discord IPC
 /// connection. Presence updates are fire-and-forget: if Discord isn't
-/// running, or the pipe write fails, the thread silently retries later —
+/// running, or the pipe write fails, the thread silently retries later:
 /// this must never affect gameplay or launcher behavior.
 #[derive(Clone)]
 pub struct DiscordRpcHandle {
     sender: Sender<PresenceState>,
 }
 
-/// Reverts to the idle presence when dropped — lets a use case just hold
+/// Reverts to the idle presence when dropped: lets a use case just hold
 /// this for the duration of an operation (install, download) instead of
 /// manually resetting on every early-return/error path.
 #[must_use]
@@ -54,7 +54,7 @@ impl Drop for PresenceGuard<'_> {
 
 impl DiscordRpcHandle {
     /// `client_id` and `logo_asset_key` come from `tauri.conf.json`
-    /// (`plugins.discord.clientId` / `.logoAssetKey`) — the Discord
+    /// (`plugins.discord.clientId` / `.logoAssetKey`): the Discord
     /// application and uploaded Rich Presence art asset registered for
     /// AstroLauncher, not something to hardcode here.
     pub fn spawn(client_id: String, logo_asset_key: String) -> Self {
@@ -83,7 +83,7 @@ impl DiscordRpcHandle {
     }
 
     /// Sets a custom presence and returns a guard that reverts to idle when
-    /// dropped — use for bounded operations (installs, downloads) so every
+    /// dropped: use for bounded operations (installs, downloads) so every
     /// return path (success, error, cancellation) clears it automatically.
     pub fn guard(&self, details: impl Into<String>, state: impl Into<String>) -> PresenceGuard<'_> {
         self.set_custom(details, state);

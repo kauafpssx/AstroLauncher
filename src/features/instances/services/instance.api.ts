@@ -2,6 +2,7 @@ import { apiInvoke } from '@/lib/api/client'
 import type {
   CreateInstanceInput,
   InstanceDTO,
+  SuggestedMemoryDTO,
   UpdateInstanceInput,
 } from '@/types/instance'
 
@@ -32,5 +33,10 @@ export const InstanceAPI = {
   },
   listAudioOutputDevices(): Promise<string[]> {
     return apiInvoke<string[]>('list_audio_output_devices')
+  },
+  getSuggestedMemory(instanceId: string): Promise<SuggestedMemoryDTO> {
+    return apiInvoke<SuggestedMemoryDTO>('get_suggested_memory', {
+      instanceId,
+    })
   },
 }

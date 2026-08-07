@@ -1,5 +1,5 @@
 // Caps concurrent texture fetches so a full grid mount doesn't fire dozens
-// of backend requests in the exact same instant. Cheap and mild — the
+// of backend requests in the exact same instant. Cheap and mild: the
 // actual thumbnail rendering itself is serialized separately, and much more
 // strictly, by thumbnailRenderer's single shared WebGL context.
 const MAX_CONCURRENT = 16

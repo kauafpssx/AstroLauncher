@@ -1,3 +1,4 @@
+pub mod language;
 pub mod manifest;
 pub mod rules;
 pub mod servers_dat;

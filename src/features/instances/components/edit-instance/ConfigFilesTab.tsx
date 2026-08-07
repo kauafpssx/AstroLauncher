@@ -29,7 +29,7 @@ export function ConfigFilesTab({ instanceId }: ConfigFilesTabProps) {
   const [isSaving, setIsSaving] = useState(false)
 
   // Reset the editor (spinner + cleared buffer) during render whenever the
-  // target file changes — the effect below only performs the fetch, so the
+  // target file changes: the effect below only performs the fetch, so the
   // linter's "no synchronous setState in effects" rule stays satisfied.
   const loadKey = `${instanceId}:${selected ?? ''}`
   const [prevLoadKey, setPrevLoadKey] = useState(loadKey)

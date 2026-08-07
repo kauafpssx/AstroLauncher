@@ -3,6 +3,7 @@ import { Check, Loader2, X } from 'lucide-react'
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { tooltipProps } from '@/lib/tooltip'
 
 import type { EntryStatus, ReviewEntry } from './mod-review.types'
 
@@ -52,6 +53,8 @@ export function ModReviewRow({
           size="icon-sm"
           onClick={() => onRemove(entry.key)}
           disabled={isInstalling}
+          aria-label="Remover"
+          {...tooltipProps('Remover')}
         >
           <X />
         </Button>

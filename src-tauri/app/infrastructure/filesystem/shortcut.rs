@@ -124,7 +124,7 @@ pub fn create(
         ps_single(&working_dir)
     ));
     if let Some(icon) = &icon_path {
-        // The `,0` (icon index) must be part of the same quoted string — a
+        // The `,0` (icon index) must be part of the same quoted string: a
         // bare `'path',0` is PowerShell's array-construction operator, not
         // string concatenation, so assigning it to IconLocation silently
         // sets a 2-element array instead and the COM property write no-ops.
@@ -136,7 +136,7 @@ pub fn create(
     script.push_str("$sc.Save()\n");
     // Explorer caches shell icons aggressively and won't notice a `.lnk`
     // pointing at an already-known path got a new icon (or an icon at all)
-    // until something tells it to look again — without this, the desktop
+    // until something tells it to look again: without this, the desktop
     // keeps showing a generic placeholder until the user manually reopens
     // the shortcut's properties dialog.
     script.push_str(&notify_shell_icons_changed_script());

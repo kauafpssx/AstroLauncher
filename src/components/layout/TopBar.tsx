@@ -20,7 +20,7 @@ export function TopBar({ onCreateInstance, onImportInstance }: TopBarProps) {
         <Plus /> Nova Instância
       </Button>
       {/* Ghost icon buttons have ~8px of invisible padding before the glyph
-          (size-8 box, size-4 icon centered) that the solid button doesn't —
+          (size-8 box, size-4 icon centered) that the solid button doesn't:
           skip the right margin so the visible gap looks even on both sides. */}
       <Separator orientation="vertical" className="ml-2 !h-6 !self-auto" />
       {onImportInstance && (

@@ -10,7 +10,7 @@ pub struct ModrinthIndex {
     pub files: Vec<PackFile>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct PackFile {
     pub path: String,
     pub hashes: PackFileHashes,
@@ -20,12 +20,12 @@ pub struct PackFile {
     pub file_size: u64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct PackFileHashes {
     pub sha1: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct PackFileEnv {
     pub client: String,
 }

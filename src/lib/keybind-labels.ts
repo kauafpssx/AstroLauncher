@@ -17,7 +17,7 @@ export const KEYBIND_CATEGORY_ORDER: KeybindCategory[] = [
   'Mods',
 ]
 
-/** Same grouping as Minecraft's own Controls screen — hardcoded in the client, so curated by hand here. */
+/** Same grouping as Minecraft's own Controls screen: hardcoded in the client, so curated by hand here. */
 const ACTION_CATEGORY: Record<string, KeybindCategory> = {
   forward: 'Movimento',
   left: 'Movimento',

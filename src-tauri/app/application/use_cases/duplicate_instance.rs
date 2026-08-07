@@ -63,7 +63,7 @@ impl DuplicateInstanceUseCase {
         self.instance_repository.save(&copy)?;
 
         // Mod metadata rows reference absolute paths inside the source
-        // instance dir — duplicate them with paths rewritten to the copy.
+        // instance dir: duplicate them with paths rewritten to the copy.
         // Rows whose file is not under the source dir are skipped: they were
         // not copied, and keeping them would cross-link the copy to the
         // source's files (toggling/deleting would hit the original).

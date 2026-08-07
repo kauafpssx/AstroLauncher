@@ -47,8 +47,8 @@ async function toggleShortcut(
   iconPath: string | null,
 ) {
   try {
-    // Resolved unconditionally: the backend — not `hasShortcut` (zustand
-    // state that can lag behind a `.lnk` deleted/created outside the app) —
+    // Resolved unconditionally: the backend: not `hasShortcut` (zustand
+    // state that can lag behind a `.lnk` deleted/created outside the app):
     // is what actually decides whether this call creates or removes the
     // shortcut, based on the real filesystem. Sending `null` here whenever
     // the frontend *assumed* it was a removal risks a shortcut getting

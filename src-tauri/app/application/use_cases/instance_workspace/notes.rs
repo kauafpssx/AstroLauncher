@@ -6,7 +6,7 @@ use crate::domain::errors::InstanceError;
 use super::InstanceWorkspaceService;
 
 impl InstanceWorkspaceService {
-    /// Notes live as individual `.md` files under `notes/` — the file name
+    /// Notes live as individual `.md` files under `notes/`: the file name
     /// (sans extension) is both the note's id and its title. A lone legacy
     /// `notes.txt` (pre-multi-note) is migrated in transparently the first
     /// time the list is read.
@@ -79,7 +79,7 @@ impl InstanceWorkspaceService {
     }
 
     /// Finds a `<base> N.md`-style name that doesn't collide with an
-    /// existing note — shared by note creation and renaming.
+    /// existing note: shared by note creation and renaming.
     fn unique_note_title(&self, dir: &Path, base: &str) -> String {
         let trimmed = base.trim();
         let base = if trimmed.is_empty() {

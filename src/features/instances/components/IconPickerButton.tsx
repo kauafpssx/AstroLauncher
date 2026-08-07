@@ -15,7 +15,7 @@ interface IconPickerButtonProps {
   fallbackIconClassName?: string
   rounded?: 'rounded-md' | 'rounded-lg' | 'rounded-xl'
   overlay?: ReactNode
-  /** When false, a plain click no longer opens the picker — used where the icon sits inside a card that already has its own click/double-click behavior. */
+  /** When false, a plain click no longer opens the picker: used where the icon sits inside a card that already has its own click/double-click behavior. */
   clickOpensPicker?: boolean
   onDoubleClick?: () => void
 }

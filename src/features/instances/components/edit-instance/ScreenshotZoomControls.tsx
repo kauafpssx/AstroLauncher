@@ -1,6 +1,7 @@
 import { Minus, Plus, RotateCcw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { tooltipProps } from '@/lib/tooltip'
 
 import { MAX_SCALE, MIN_SCALE } from './useScreenshotZoom'
 
@@ -22,6 +23,7 @@ export function ScreenshotZoomControls({
         size="icon-sm"
         onClick={() => onZoomBy(-0.4)}
         disabled={scale <= MIN_SCALE}
+        {...tooltipProps('Diminuir zoom')}
       >
         <Minus />
       </Button>
@@ -33,6 +35,7 @@ export function ScreenshotZoomControls({
         size="icon-sm"
         onClick={() => onZoomBy(0.4)}
         disabled={scale >= MAX_SCALE}
+        {...tooltipProps('Aumentar zoom')}
       >
         <Plus />
       </Button>
@@ -41,6 +44,7 @@ export function ScreenshotZoomControls({
         size="icon-sm"
         onClick={onReset}
         disabled={scale === MIN_SCALE}
+        {...tooltipProps('Redefinir zoom')}
       >
         <RotateCcw />
       </Button>

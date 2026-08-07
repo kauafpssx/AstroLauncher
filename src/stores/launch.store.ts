@@ -113,7 +113,7 @@ listen<string>('instance://stopped', (event) => {
 })
 
 // Cold start: the app may have been opened by a desktop shortcut carrying
-// `--launch-instance <id>` — consume it once and start that instance.
+// `--launch-instance <id>`: consume it once and start that instance.
 apiInvoke<string | null>('take_pending_launch').then((id) => {
   if (id) useLaunchStore.getState().launch(id)
 })

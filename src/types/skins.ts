@@ -33,6 +33,6 @@ export interface SearchSkinsInput {
   query: string
   page: number
   sortBy: SkinSortBy
-  /** MCStat only — Classic/Slim skin model filter. */
+  /** MCStat only: Classic/Slim skin model filter. */
   model?: SkinModel | null
 }

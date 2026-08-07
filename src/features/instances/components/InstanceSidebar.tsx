@@ -1,4 +1,5 @@
 import { Clock } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { formatDateTime, formatDuration, parseLauncherDate } from '@/lib/format'
@@ -47,6 +48,23 @@ export function InstanceSidebar({
   const deleteAction = rest.find((a) => a.key === 'delete')!
   const secondaryActions = rest.filter((a) => a.key !== 'delete')
 
+  // Guards the launch/stop and shortcut toggle buttons against double-clicks
+  // while their own async call is in flight (e.g. clicking "Criar Atalho"
+  // twice before the first `.lnk` write finishes) — `onSelect` here always
+  // returns the underlying action's promise, even though the shared
+  // `ContextMenuAction` type declares it `void` for context-menu callers
+  // that don't need to await it.
+  const [pendingKey, setPendingKey] = useState<string | null>(null)
+  const runAction = async (key: string, onSelect: () => void) => {
+    if (pendingKey) return
+    setPendingKey(key)
+    try {
+      await onSelect()
+    } finally {
+      setPendingKey(null)
+    }
+  }
+
   return (
     <aside className="flex h-full min-w-0 flex-col gap-4 border-l p-4">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -65,7 +83,8 @@ export function InstanceSidebar({
       <div className="flex flex-col gap-2">
         <Button
           variant={primaryAction.key === 'stop' ? 'destructive' : 'default'}
-          onClick={primaryAction.onSelect}
+          disabled={pendingKey !== null}
+          onClick={() => runAction(primaryAction.key, primaryAction.onSelect)}
         >
           <primaryAction.icon /> {primaryAction.label}
         </Button>
@@ -77,7 +96,10 @@ export function InstanceSidebar({
             key={key}
             variant="ghost"
             className="justify-start"
-            onClick={onSelect}
+            disabled={key === 'shortcut' && pendingKey !== null}
+            onClick={() =>
+              key === 'shortcut' ? runAction(key, onSelect) : onSelect()
+            }
           >
             <Icon /> {label}
           </Button>

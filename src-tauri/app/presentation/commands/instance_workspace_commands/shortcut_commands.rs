@@ -23,7 +23,7 @@ pub fn toggle_instance_shortcut(
 }
 
 /// Re-creates the instance's shortcut with its current icon (no-op if none
-/// exists) — called after the icon changes so an existing shortcut updates
+/// exists): called after the icon changes so an existing shortcut updates
 /// without the user having to toggle it off/on.
 #[tauri::command]
 pub fn refresh_instance_shortcut_icon(

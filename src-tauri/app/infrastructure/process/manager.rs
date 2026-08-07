@@ -14,7 +14,7 @@ const CREATE_NO_WINDOW: u32 = 0x08000000;
 /// let the user stop a running instance.
 ///
 /// The `Child` itself is owned exclusively by the background wait task (never
-/// shared behind a lock) — `Child::wait` blocks for as long as the game runs,
+/// shared behind a lock): `Child::wait` blocks for as long as the game runs,
 /// so sharing it via a `Mutex` would make `stop()` deadlock waiting for the
 /// same lock the waiter holds for the process's entire lifetime. Killing is
 /// done by PID instead, which needs no lock at all.

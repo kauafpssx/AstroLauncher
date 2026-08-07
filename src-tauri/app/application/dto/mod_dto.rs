@@ -51,7 +51,7 @@ pub struct SearchModsInput {
     pub project_type: String,
     pub game_version: Option<String>,
     pub loader: Option<String>,
-    /// `"relevance"`, `"downloads"`, `"newest"` or `"updated"` — mapped to
+    /// `"relevance"`, `"downloads"`, `"newest"` or `"updated"`: mapped to
     /// each provider's own sort parameter in `ModBrowserService::search`.
     pub sort: Option<String>,
 }
@@ -79,7 +79,7 @@ pub struct ModProjectDTO {
     pub project_id: String,
     pub name: String,
     pub description: String,
-    /// The project's full page body — Modrinth serves this as markdown,
+    /// The project's full page body: Modrinth serves this as markdown,
     /// CurseForge as raw HTML from a separate `/description` endpoint. Both
     /// render fine through the same markdown-with-embedded-HTML pipeline on
     /// the frontend.

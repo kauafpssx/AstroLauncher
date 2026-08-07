@@ -22,7 +22,7 @@ const EXTENSIONS: Record<CodeEditorLanguage, Extension[]> = {
 
 /**
  * Overrides just the editor's background to match the app instead of CodeMirror's
- * default dark preset background — token colors stay the built-in default.
+ * default dark preset background: token colors stay the built-in default.
  * `!important` is required: the built-in "dark" theme's stylesheet is injected
  * after this extension's, so without it the preset's own background silently wins.
  */

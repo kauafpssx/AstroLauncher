@@ -84,6 +84,9 @@ Launcher de Minecraft desktop (Windows) feito em **Tauri v2 + React 19**. Inspir
 - Discord Rich Presence (backend Rust, sem SDK no frontend)
 - AstroPack: exportação/importação de instâncias completas
 - Console de log em tempo real, changelog in-app, auto-update (plugin-updater)
+- Sugestão de memória (RAM mín/máx) conforme conteúdo instalado, aplicada em modpacks e editável na UI
+- Idioma automático: instâncias novas abrem no locale do Windows (`lang:` no `options.txt`)
+- Persistência de janela: posição/tamanho/maximizado da janela principal restaurados no próximo launch
 - Dual-window: `main` (app) + `splash` (360x420 frameless, checa updater, depois `invoke('finish_splash')`)
 
 **Idioma:** UI, toasts, docs, commits e PR em **PT-BR**. Código (identificadores, mensagens de erro de domínio, comentários): **inglês** (comentários podem ser PT-BR na prática, mas documentam o _porquê_).
@@ -96,7 +99,7 @@ React 19, TypeScript ~6.0 (strict, `verbatimModuleSyntax`, `erasableSyntaxOnly`)
 
 ### Backend (Rust, crate `astrolauncher`)
 
-tauri 2.11 (plugins: dialog, fs, shell, clipboard-manager, updater, process, log), tokio (full), reqwest 0.13 (json, stream), rusqlite 0.40 **bundled**, thiserror + anyhow, parking_lot, chrono, uuid v4, mc-launcher-core 0.1.2 (Forge/NeoForge + launch command builder), mc_chat, sysinfo, cpal, discord-rich-presence, tracing (+ subscriber/appender), jsonwebtoken, sha1/sha2/md-5, zip, semver, regex, walkdir, tempfile, fs_extra, mockall + criterion (dev).
+tauri 2.11 (plugins: dialog, fs, shell, clipboard-manager, updater, process, log, **single-instance**), tokio (full), reqwest 0.13 (json, stream), rusqlite 0.40 **bundled**, thiserror + anyhow, parking_lot, chrono, uuid v4, mc-launcher-core 0.1.2 (Forge/NeoForge + launch command builder), futures (downloads concorrentes via `stream::iter(...).buffer_unordered(N)` — ver §15), sysinfo, cpal, discord-rich-presence, tracing, sha1, zip, walkdir, tempfile (dev). Lint `#![warn(unused_crate_dependencies)]` em `lib.rs` (allow em `main.rs`) pega dependência do Cargo.toml sem nenhum uso — roda em todo `cargo clippy` (CI já usa `--all-targets -D warnings`).
 
 ### Configs relevantes
 
@@ -162,8 +165,8 @@ Rotas (HashRouter, inline em `App.tsx`): `/`, `/instances/new`, `/instances/:id/
 presentation/  # commands/*_commands.rs (um por domínio, snake_case) + state/app_state.rs
 application/   # use_cases/XxxUseCase.rs (CRUD) + XxxService.rs + dto/ (XxxDTO, CreateXxxInput) + mappers/
 domain/        # entities/ (plain structs, sem serde), errors/ (thiserror), repositories/ (traits)
-infrastructure/# sqlite/, downloader/, process/, minecraft/, modloader/, java/, modrinth/, curseforge/,
-               # playermc/, mcstat/, discord/, filesystem/, config/
+infrastructure/# persistence/, downloader/, process/, minecraft/ (incl. language.rs), modloader/, java/, modrinth/,
+               # curseforge/, playermc/, mcstat/, discord/, filesystem/, config/, window_state.rs
 bootstrap/     # setup.rs — composition root (DI manual, única fonte de wiring)
 ```
 
@@ -302,7 +305,7 @@ impl ListAccountsUseCase {
 }
 ```
 
-PascalCase `XxxUseCase`, `new(repo)`, `execute(&self)`. Features maiores usam `XxxService` com vários métodos (PlaytimeService, ModManagerService, ModBrowserService, ModpackInstallerService, AstroPackService, CustomIconService, SkinBrowserService, InstanceWorkspaceService, SettingsService).
+PascalCase `XxxUseCase`, `new(repo)`, `execute(&self)`. Features maiores usam `XxxService` com vários métodos (PlaytimeService, ModManagerService, ModBrowserService, ModpackInstallerService, AstroPackService, CustomIconService, SkinBrowserService, InstanceWorkspaceService, SettingsService). `SuggestMemoryUseCase` (novo na v0.5.2) expõe `suggest_memory_mb(content_count)` — heurística pura, sem I/O, testável em isolamento.
 
 ### DTO (`application/dto/`)
 
@@ -352,21 +355,21 @@ Registro function-pointer: `(u32, fn(&Connection) -> rusqlite::Result<()>)`, tab
 
 ### Comandos (todos registrados no `generate_handler!` da lib.rs)
 
-| Arquivo                          | Domínio                                                                                                                                   |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `instance_commands.rs`           | `list/create/update/delete_instance`, `move_instance_to_folder`, `reorder_instances`                                                      |
-| `folder_commands.rs`             | `list/create/update/delete_folder`, `reorder_folders`                                                                                     |
-| `instance_workspace_commands.rs` | 22: log, notas, config files, mundos, servers, screenshots                                                                                |
-| `minecraft_commands.rs`          | `list_minecraft_versions`, `launch_instance`, `stop_instance`, `cancel_launch`, `get_total_system_memory_mb`, `list_audio_output_devices` |
-| `account_commands.rs`            | 6: CRUD + `set_default_account`, `reorder_accounts`                                                                                       |
-| `mod_commands.rs`                | 11: busca, versões, projeto, instalar, listar, habilitar, excluir, modpacks                                                               |
-| `skin_commands.rs`               | `search_skins`, `get_skin`, `download_skin`, `fetch_skin_texture_base64`                                                                  |
-| `astropack_commands.rs`          | `preview_astropack`, `get_astropack_export_summary`, `export_instance`, `import_astropack`                                                |
-| `playtime_commands.rs`           | `get_playtime_summary`                                                                                                                    |
-| `settings_commands.rs`           | `get_settings`, `update_settings`                                                                                                         |
-| `discord_commands.rs`            | `discord_set_presence`                                                                                                                    |
-| `custom_icon_commands.rs`        | `list_custom_icons`, `save_custom_icon`, `delete_custom_icon`                                                                             |
-| `splash_commands.rs`             | `finish_splash`                                                                                                                           |
+| Arquivo                          | Domínio                                                                                                                                                          |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `instance_commands.rs`           | `list/create/update/delete_instance`, `duplicate_instance`, `move_instance_to_folder`, `reorder_instances`                                                       |
+| `folder_commands.rs`             | `list/create/update/delete_folder`, `reorder_folders`                                                                                                            |
+| `instance_workspace_commands.rs` | 25: log, notas, config files, mundos, servers, screenshots, atalhos (shortcuts)                                                                                  |
+| `minecraft_commands.rs`          | `list_minecraft_versions`, `launch_instance`, `stop_instance`, `cancel_launch`, `get_total_system_memory_mb`, `list_audio_output_devices`, `take_pending_launch` |
+| `account_commands.rs`            | 6: CRUD + `set_default_account`, `reorder_accounts`                                                                                                              |
+| `mod_commands.rs`                | 12: busca, versões, projeto, instalar, listar, `get_suggested_memory`, habilitar, excluir, modpacks                                                              |
+| `skin_commands.rs`               | `search_skins`, `get_skin`, `download_skin`, `fetch_skin_texture_base64`                                                                                         |
+| `astropack_commands.rs`          | `preview_astropack`, `get_astropack_export_summary`, `export_instance`, `import_astropack`, `take_pending_astropack_path`                                        |
+| `playtime_commands.rs`           | `get_playtime_summary`                                                                                                                                           |
+| `settings_commands.rs`           | `get_settings`, `update_settings`                                                                                                                                |
+| `discord_commands.rs`            | `discord_set_presence`                                                                                                                                           |
+| `custom_icon_commands.rs`        | `list_custom_icons`, `save_custom_icon`, `delete_custom_icon`                                                                                                    |
+| `splash_commands.rs`             | `finish_splash`                                                                                                                                                  |
 
 ### Eventos (namespace `://`, não `:`)
 
@@ -413,7 +416,7 @@ Frontend escuta com `listen()` de `@tauri-apps/api/event`, tipado `listen<Launch
 - **Imports**: `@/` para tudo; relativo (`../`) só dentro da mesma feature.
 - **Erros**: domain = thiserror enums; use cases `Result<T, DomainError>`; launch/I/O `anyhow::Result`; commands `Result<T, String>`.
 - **Markdown** (novo `.md`): markdownlint com `default: true`, desabilitados MD013 (linha longa), MD041 (h1 na 1ª linha), MD033 (HTML inline), MD040 (code block sem lang), MD051 (âncora emoji), MD034 (URL crua), MD024 `siblings_only`; tabelas estilo padded (prettier formata).
-- **knip** (dead-code): entry `src/splash-main.tsx`, projeta `src/**`, ignora `src/components/ui/**`; ignoreDependencies: tailwindcss, `@fontsource-variable/geist`, `@tailwindcss/typography`, shadcn, cmdk, tailwindcss-animate, tw-animate-css. Adicionou entry novo (ex.: nova janela Vite) → atualizar `knip.json`.
+- **knip** (dead-code, `npm run knip`): entry `src/splash-main.tsx`, projeta `src/**`, ignora `src/components/ui/**`; ignoreDependencies: tailwindcss, `@fontsource-variable/geist`, `@tailwindcss/typography`, shadcn, cmdk, tw-animate-css. **Bloqueia o CI** (sem `--no-exit-code`) — achou algo, o gate quebra de propósito. Adicionou entry novo (ex.: nova janela Vite) → atualizar `knip.json`.
 
 ### Limites de tamanho (docs/05, enforce)
 
@@ -428,7 +431,7 @@ Passou disso → quebre em peças menores (lego!). Exceção conhecida: `launch_
 
 ### Testes
 
-Rust: unidade para regras de domínio, use cases com repos mockados (`mockall`), integração para infra. Domínio nunca toca I/O. Benchmarks: criterion. Frontend: sem suíte de testes configurada (não adicionar test runner sem necessidade real — gate não exige).
+Rust: unidade para regras de domínio, integração para infra. Domínio nunca toca I/O. Sem mocking framework nem benchmarks configurados hoje (`mockall`/`criterion` removidos do Cargo.toml por estarem sem uso real — adicionar de volta só quando for escrever teste/benchmark de verdade que precise deles). Frontend: sem suíte de testes configurada (não adicionar test runner sem necessidade real — gate não exige).
 
 **Localização dos unit tests:** o corpo dos testes de unidade fica em arquivo separado numa subpasta `tests/` ao lado do fonte; o arquivo-fonte só declara `#[cfg(test)] #[path = "tests/<nome>_tests.rs"] mod tests;` (o test file usa `use super::*;`, acessa internals normalmente). Mantém o arquivo de lógica limpo. Padrão aplicado em `domain/entities/`, `application/mappers/`, `infrastructure/modloader/forge_like`. Novo unit test → siga esse layout, não deixe `mod tests { ... }` inline.
 
@@ -436,7 +439,8 @@ Rust: unidade para regras de domínio, use cases com repos mockados (`mockall`),
 
 - **SQLite** (rusqlite bundled): `<app_data_dir>/data/launcher.db` (via resolver do Tauri, não crate `dirs`). Sem ORM, SQL raw, repos síncronos.
 - Tabelas v1: `instances`, `folders`, `playtime_sessions`, `accounts`, `instance_mods`, `installed_modpacks`, `meta`. Migrações v2–v6 = ALTER TABLE (`position`/`is_default` em accounts, `icon_url`/`kind` em instance_mods, `position` em instances, `icon_path` em folders). `installed_modpacks` existe mas sem repositório no domínio.
-- **settings.json** (único JSON, `<app_data_dir>/settings.json`): só 3 campos — `curseforge_api_key`, `root_group_name`, `root_group_icon`. NÃO adicionar `theme`/`minecraft_dir` etc. (schema antigo de docs).
+- **settings.json** (config de usuário, `<app_data_dir>/settings.json`): schema mínimo — confira campos atuais no código (`json_settings_repository.rs`). NÃO adicionar `theme`/`minecraft_dir` etc. (schema antigo de docs). Existe também `window-state.json` (v0.5.2, ver `infrastructure/window_state.rs`), mas é estado de janela, não config de usuário.
+- **window-state.json** (`<app_data_dir>/window-state.json`, desde v0.5.2): posição/tamanho/maximizado da janela principal, salvo no `CloseRequested` e restaurado no boot. Implementação própria em `infrastructure/window_state.rs` (NÃO `tauri-plugin-window-state` — ver §15).
 - **Filesystem**: instâncias/notas/screenshots/mundos/icons em `<app_data_dir>` (paths via `infrastructure/filesystem/paths.rs` — path-joining puro, sem I/O). Assets Mojang por hash SHA1. Java portátil em `<app_data_dir>/java/<major>/`.
 - **Sem cache em nada**: manifests, buscas de mods, skins batem nas APIs externas toda vez (lacuna conhecida, não decisão de design).
 - CurseForge precisa de `CURSEFORGE_API_KEY` (env de build ou settings.json).
@@ -518,11 +522,11 @@ v2–v6 = ALTER TABLE: `accounts` + `position`/`is_default`; `instance_mods` + `
 
 `.github/workflows/quality-gate.yml` (name: **Testes**) — roda em push para `main`, tags `v*`, todo PR e `workflow_dispatch`. 3 jobs paralelos; nenhum bloqueia merge por gate formal (revisão de PR fica no CodeRabbit). Mantenha tudo verde. Review de PR = CodeRabbit (`.coderabbit.yaml`), não há mais Sonar/Codecov/CodeQL/coverage no CI.
 
-| Job           | O que roda                                                                                                                                                        |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `frontend`    | ESLint, Prettier check, `tsc -b --noEmit` (fallback `tsc --noEmit`), `npm run build`, knip (`--no-exit-code`, dead-code informativo)                              |
-| `rust`        | fmt check, `cargo check --all-targets`, clippy `-D warnings` (pega dead_code/unused), `cargo test --all`, doc com RUSTDOCFLAGS `-D warnings`                      |
-| `tauri-build` | Windows: `npm run tauri build -- --bundles nsis --config src-tauri/tauri.ci.conf.json` (sem updater artifacts → sem chave de assinatura) + verifica `.exe` gerado |
+| Job           | O que roda                                                                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `frontend`    | ESLint, Prettier check, `tsc -b --noEmit` (fallback `tsc --noEmit`), `npm run build`, knip (bloqueia — dead code/deps não usados quebram o job)                                                                    |
+| `rust`        | fmt check, `cargo check --all-targets`, clippy `-D warnings` (pega dead_code/unused + `unused_crate_dependencies`, i.e. dependência do Cargo.toml sem uso), `cargo test --all`, doc com RUSTDOCFLAGS `-D warnings` |
+| `tauri-build` | Windows: `npm run tauri build -- --bundles nsis --config src-tauri/tauri.ci.conf.json` (sem updater artifacts → sem chave de assinatura) + verifica `.exe` gerado                                                  |
 
 ### Release build (`.github/workflows/build.yml`)
 
@@ -599,7 +603,6 @@ Bug report: título `bug:`, label `bug` — versão do launcher, SO, loader, ver
 - Theme: `index.html` hardcoda `class="dark"`; next-themes só alimenta o wrapper do sonner. Não há ThemeProvider.
 - Stores zustand: sem middleware persist; seletores derivados exportados do mesmo arquivo (`useSelectedInstance()`).
 - `data-slot` nas primitivas shadcn; variantes cva separadas em `*-variants.ts`.
-- `reqwest-retry` está no Cargo.toml mas NÃO é usado — não assuma retry no downloader.
 - `npm run tauri build` local exige chave de assinatura do updater (artifacts) — sem chave, usar `--config src-tauri/tauri.ci.conf.json` (desliga signing, igual ao CI).
 - Assets estáticos ficam em `public/` (logos); obsoletos vão para `public/_unused/` em vez de serem deletados.
 - Forge/NeoForge launch usa `mc_launcher_core::command::builder::build_launch_command`, não `process/launcher.rs`.
@@ -610,6 +613,13 @@ Bug report: título `bug:`, label `bug` — versão do launcher, SO, loader, ver
 - React 19 StrictMode roda effects 2x em dev — `let cancelled` guard cobre isso; não é bug.
 - User-Agent do reqwest definido no bootstrap (atualmente `AstroLauncher/0.1.0`); connect timeout 10s, sem timeout total.
 - Sessões de playtime órfãs (crash) são fechadas no bootstrap — não duplicar essa lógica.
+- **Downloads concorrentes**: `stream::iter(items).map(|i| { ...clona o que precisa... async move { ... } }).buffer_unordered(N)` (crate `futures`, já usado). `asset_downloader.rs` usa `CONCURRENCY = 16` (Mojang, milhares de arquivo pequeno); `launch_instance.rs` usa `LIBRARY_CONCURRENCY = 8` (Maven-style, dezenas de jar) para bibliotecas do jogo E do loader; `modpack_installer.rs` usa `FILE_CONCURRENCY = 6` (Modrinth/CurseForge, host de terceiro, mais conservador) nos dois instaladores (Modrinth + CurseForge). Pegadinha: nunca borrow dados do escopo externo dentro do `async move` (dá erro de HRTB "implementation of FnOnce is not general enough") — clona pra dentro do closure síncrono do `.map()` antes do `async move`.
+- **Forge/NeoForge exige `launcher_profiles.json`**: o instalador oficial aborta com "There is no minecraft launcher profile in ..." se o arquivo não existir no diretório de dados (herança do launcher vanilla da Mojang). `forge_like::install::ensure_launcher_profile_stub` cria um stub mínimo (`{"profiles":{},"settings":{},"version":3}`) antes de rodar o instalador — só se o arquivo ainda não existir. Novo ponto que spawna o instalador = lembrar disso.
+- **Progresso do Forge/NeoForge**: `mc_launcher_core::progress::ProgressEvent` (`StageStarted`/`TaskFinished`/`TaskSkipped`) é mapeado para labels PT-BR legíveis + progresso real de bibliotecas em `launch_instance.rs::run_forge_like` — só a fase `DownloadLibraries` emite eventos de progresso por item (assets são milhares e inundariam o frontend).
+- **Idioma automático do Minecraft**: `infrastructure/minecraft/language.rs::ensure_default_language` detecta o locale do Windows (`GetUserDefaultLocaleName`, Win32 via FFI) e grava `lang:pt_br` no `options.txt` da instância no primeiro launch — NUNCA sobrescreve `options.txt` existente (respeita o usuário/modpack). Chamado no launch vanilla e no `run_forge_like`.
+- **Sugestão de memória**: `suggest_memory_mb(content_count)` = `max = min(4096 + min(count*40, 8192), 12288)`, `min = max(max/2, 1024)`. Aplicada automaticamente ao final da instalação de modpack (Modrinth/CurseForge) e exposta via comando `get_suggested_memory` (botão "Usar sugerido" na aba de configurações da instância). Heurística deliberadamente simples — não é ciência exata.
+- **Janela (window-state) NÃO usa `tauri-plugin-window-state`**: o plugin tem bug conhecido (tauri-apps/plugins-workspace#244) restaurando janela maximizada no monitor errado com DPIs diferentes. `infrastructure/window_state.rs` salva offsets relativos ao monitor (nome + offset x/y) e sempre aplica posição antes do tamanho, em unidades físicas — evita a classe de bug inteira. Novo código de janela deve seguir esse padrão, não adicionar o plugin.
+- **MCStat 401**: chave inválida/expirada/revogada → o backend responde com texto do reqwest contendo "401"; o frontend (`useSkinsBrowser.ts::isUnauthorized`) detecta por substring e reabre o dialog de chave com aviso "Chave inválida, expirada ou revogada" em vez de toast genérico. Salvar a chave dispara um probe (busca real) antes de trocar de fonte.
 - Linha com 2+ padrões conflitantes → seguir código real existente + docs/05 (source of truth das regras) e reportar no AGENTS.md.
 
 ## 16. Fluxo de trabalho: adicionar uma feature ponta-a-ponta

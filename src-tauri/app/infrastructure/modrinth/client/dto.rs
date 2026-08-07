@@ -31,7 +31,7 @@ impl SearchHit {
             .map(|c| c.as_str())
     }
 
-    /// The newest Minecraft version this project supports — `versions` is
+    /// The newest Minecraft version this project supports: `versions` is
     /// sorted oldest to newest, so the last entry is the most recent.
     pub fn latest_game_version(&self) -> Option<&str> {
         self.versions.last().map(String::as_str)

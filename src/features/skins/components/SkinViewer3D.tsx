@@ -69,7 +69,7 @@ export function SkinViewer3D({
     }
 
     // mcstat.org sends no CORS headers, so the WebGL texture load fails
-    // silently if fed the raw URL directly — fetch it server-side instead
+    // silently if fed the raw URL directly: fetch it server-side instead
     // and hand skinview3d a same-origin data URL.
     if (source !== 'playermc') {
       SkinAPI.fetchTextureBase64(skinUrl)

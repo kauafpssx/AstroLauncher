@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { InstanceDTO } from '@/types/instance'
 
+import type { SuggestedMemoryDTO } from '@/types/instance'
+
 import { IconPickerButton } from '../IconPickerButton'
 import { LoaderSelectionCard } from '../create-instance/LoaderSelectionCard'
 import { InstanceAPI } from '../../services/instance.api'
@@ -35,12 +37,26 @@ export function SettingsTab({ instance }: SettingsTabProps) {
   const [javaArgs, setJavaArgs] = useState(instance.javaArgs ?? '')
   const [isSaving, setIsSaving] = useState(false)
   const [totalMemoryMb, setTotalMemoryMb] = useState(FALLBACK_TOTAL_MEMORY_MB)
+  const [suggestedMemory, setSuggestedMemory] =
+    useState<SuggestedMemoryDTO | null>(null)
 
   useEffect(() => {
     InstanceAPI.getTotalSystemMemoryMb()
       .then(setTotalMemoryMb)
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    InstanceAPI.getSuggestedMemory(instance.id)
+      .then((suggestion) => {
+        if (!cancelled) setSuggestedMemory(suggestion)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [instance.id])
 
   const updateMinMemory = (value: number) => {
     const clamped = Math.min(Math.max(value, MIN_MEMORY_MB), totalMemoryMb)
@@ -131,8 +147,27 @@ export function SettingsTab({ instance }: SettingsTabProps) {
         minMemory={minMemory}
         maxMemory={maxMemory}
         totalMemoryMb={totalMemoryMb}
+        suggestedMemory={suggestedMemory}
         onMinChange={updateMinMemory}
         onMaxChange={updateMaxMemory}
+        onUseSuggested={() => {
+          if (!suggestedMemory) return
+          // Set both together instead of chaining updateMinMemory/
+          // updateMaxMemory: each of those reads the *other* value from
+          // this render's closure, so calling them back to back applies
+          // the second one's cross-clamp against a stale value of the
+          // first.
+          const min = Math.min(
+            Math.max(suggestedMemory.minMb, MIN_MEMORY_MB),
+            totalMemoryMb,
+          )
+          const max = Math.min(
+            Math.max(suggestedMemory.maxMb, MIN_MEMORY_MB),
+            totalMemoryMb,
+          )
+          setMinMemory(Math.min(min, max))
+          setMaxMemory(Math.max(min, max))
+        }}
       />
 
       <div className="flex flex-col gap-2 border-t pt-4">

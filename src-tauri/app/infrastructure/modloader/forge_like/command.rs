@@ -10,7 +10,7 @@ pub struct BuiltCommand {
     pub working_dir: PathBuf,
 }
 
-/// Builds the final Java command for a merged Forge/NeoForge version —
+/// Builds the final Java command for a merged Forge/NeoForge version:
 /// classpath, main class, and the loader's own JVM/game argument templates
 /// (module `--add-opens`/`--add-exports`, `--launchTarget`, etc.) that our
 /// own hand-rolled `spawn_game` doesn't generate.

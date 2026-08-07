@@ -4,17 +4,17 @@ use anyhow::Context;
 
 /// Wraps raw PNG bytes in a minimal single-image `.ico` container. Windows
 /// has natively supported a PNG payload inside `.ico` (instead of a legacy
-/// BMP bitmap) since Vista, so this needs no actual image decoding — which
+/// BMP bitmap) since Vista, so this needs no actual image decoding: which
 /// matters because GDI+ (`System.Drawing.Bitmap.FromFile`, the "obvious" way
 /// to build an `.ico` on Windows) throws a generic `OutOfMemoryException` on
 /// PNGs carrying a color-profile chunk, which is exactly what Chromium/
-/// WebView2's `canvas.toDataURL('image/png')` embeds — i.e. every custom
+/// WebView2's `canvas.toDataURL('image/png')` embeds: i.e. every custom
 /// uploaded/cropped icon. Reading the width/height straight from the PNG's
 /// `IHDR` chunk (always the first 8 bytes after the fixed PNG signature)
 /// sidesteps decoding it at all.
 ///
 /// ICO layout: 6-byte `ICONDIR` header, one 16-byte `ICONDIRENTRY`, then the
-/// image bytes — see the MS-ICO format spec.
+/// image bytes: see the MS-ICO format spec.
 fn wrap_png_as_ico(png_bytes: &[u8]) -> anyhow::Result<Vec<u8>> {
     if png_bytes.len() < 24 {
         anyhow::bail!("icon PNG is too small to be valid");

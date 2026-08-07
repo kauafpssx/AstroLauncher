@@ -137,7 +137,7 @@ impl AstroPackService {
                 });
                 continue;
             }
-            // `file_name` comes from the pack manifest — reject `..`/absolute.
+            // `file_name` comes from the pack manifest: reject `..`/absolute.
             let Some(dest) = safe_join(&target_dir, &entry.file_name) else {
                 on_event(AstroPackEventDTO::Error {
                     message: format!("Caminho inválido no pacote: {}", entry.file_name),

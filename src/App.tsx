@@ -14,7 +14,7 @@ import { useImportAstropackStore } from '@/stores/import-astropack.store'
 
 /** Jumps to the instances page (where the import dialog lives) when a
  * `.astropack` is opened via its file association while the user is on a
- * different screen — InstancesPage itself picks up the pending path once
+ * different screen: InstancesPage itself picks up the pending path once
  * mounted. */
 function AstropackFileAssociationBridge() {
   const navigate = useNavigate()

@@ -1,3 +1,11 @@
+// Flags any [dependencies] entry in Cargo.toml never referenced by a `use`
+// anywhere in this crate — cargo check/clippy already catch dead code inside
+// used crates, but not a whole crate nobody imports. Native rustc lint, no
+// extra tool needed (main.rs stays a thin `app_lib::run()` shim and doesn't
+// use most deps directly, so it opts out below instead of firing false
+// positives).
+#![warn(unused_crate_dependencies)]
+
 #[path = "../app/application/mod.rs"]
 pub mod application;
 #[path = "../app/bootstrap/mod.rs"]
@@ -22,7 +30,7 @@ pub fn run() {
         // Must be the first plugin registered. A second launch (e.g. via a
         // desktop shortcut's `--launch-instance <id>`, or double-clicking a
         // `.astropack` file, while the app is already running) forwards its
-        // argv here instead of spawning a second process — this is also
+        // argv here instead of spawning a second process: this is also
         // what enforces the single-instance limit, since Tauri exits that
         // second process right after this callback runs.
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
@@ -81,7 +89,7 @@ pub fn run() {
 
             // Windows can pick up a launching shortcut's own icon for the
             // taskbar button instead of the exe's (relevant now that
-            // per-instance desktop shortcuts carry their own icon) — force
+            // per-instance desktop shortcuts carry their own icon): force
             // the window icon back to the app's own regardless of how the
             // process was started.
             if let Some(icon) = app.default_window_icon() {
@@ -91,11 +99,29 @@ pub fn run() {
                 }
             }
 
+            if let Some(main) = app.get_webview_window("main") {
+                // Only registers the close-time save here — applying the
+                // saved state itself happens in `finish_splash` (and the
+                // ASTRO_DEV_NO_SPLASH branch below), right before `main`
+                // actually becomes visible. See the comment there.
+                let app_data_dir_for_close = app_data_dir.clone();
+                let main_for_close = main.clone();
+                main.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { .. } = event {
+                        infrastructure::window_state::save(
+                            &app_data_dir_for_close,
+                            &main_for_close,
+                        );
+                    }
+                });
+            }
+
             if cfg!(debug_assertions) && std::env::var("ASTRO_DEV_NO_SPLASH").is_ok() {
                 if let Some(splash) = app.get_webview_window("splash") {
                     splash.close()?;
                 }
                 if let Some(main) = app.get_webview_window("main") {
+                    infrastructure::window_state::restore(&app_data_dir, &main);
                     main.show()?;
                     main.set_focus()?;
                 }
@@ -164,6 +190,7 @@ pub fn run() {
             mod_commands::install_mod,
             mod_commands::install_custom_mod,
             mod_commands::list_instance_mods,
+            mod_commands::get_suggested_memory,
             mod_commands::set_instance_mod_enabled,
             mod_commands::delete_instance_mod,
             mod_commands::install_modrinth_modpack,

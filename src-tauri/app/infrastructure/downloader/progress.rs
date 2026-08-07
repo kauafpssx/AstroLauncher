@@ -13,7 +13,7 @@ pub struct ProgressUpdate {
 
 /// Tracks bytes downloaded across the whole launch pipeline (client,
 /// libraries and assets) and reports a snapshot every time an item finishes.
-/// Kept infra-local (no application DTO knowledge) — the use case maps
+/// Kept infra-local (no application DTO knowledge): the use case maps
 /// updates to whatever event type the presentation layer expects.
 #[derive(Clone)]
 pub struct ProgressReporter {

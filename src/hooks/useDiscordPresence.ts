@@ -4,7 +4,7 @@ import { apiInvoke } from '@/lib/api/client'
 
 /** Reflects the current screen in Discord Rich Presence. Backend-driven
  * flows (modpack install, mod download, playing) set their own presence and
- * revert automatically when done — this only covers screens with no
+ * revert automatically when done: this only covers screens with no
  * long-running backend operation attached to them. */
 export function useDiscordPresence(details: string, state: string) {
   useEffect(() => {

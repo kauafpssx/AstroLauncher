@@ -8,7 +8,7 @@ pub struct InstalledMod {
     pub version: String,
     pub file_path: String,
     pub icon_url: Option<String>,
-    /// `"mod"`, `"resourcepack"` or `"shader"` — shares Modrinth's own
+    /// `"mod"`, `"resourcepack"` or `"shader"`: shares Modrinth's own
     /// project-type vocabulary and doubles as the target subfolder key.
     pub kind: String,
     pub enabled: bool,

@@ -17,7 +17,7 @@ export const OPTION_CATEGORY_ORDER: OptionCategory[] = [
   'Geral',
 ]
 
-/** Grouping mirrors Minecraft's own options screens as closely as reasonable — there's no metadata file for this, it's hardcoded in the game's client, so it's curated here by hand. */
+/** Grouping mirrors Minecraft's own options screens as closely as reasonable: there's no metadata file for this, it's hardcoded in the game's client, so it's curated here by hand. */
 const CATEGORY_BY_KEY: Record<string, OptionCategory> = {
   ao: 'Vídeo',
   biomeBlendRadius: 'Vídeo',
@@ -136,7 +136,7 @@ const CATEGORY_BY_KEY: Record<string, OptionCategory> = {
   pauseOnLostFocus: 'Geral',
 }
 
-/** Real min/max as used by the game's own sliders — most floats are 0–1, these are the exceptions. */
+/** Real min/max as used by the game's own sliders: most floats are 0 to 1, these are the exceptions. */
 const FLOAT_RANGE_BY_KEY: Record<string, [number, number]> = {
   entityDistanceScaling: [0.5, 5],
   mouseSensitivity: [0, 2],

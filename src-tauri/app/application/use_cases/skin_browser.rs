@@ -76,7 +76,7 @@ impl SkinBrowserService {
                         model: s.model,
                         player_count: s.players_using_count,
                         // The skin's own name is what identifies it in this
-                        // gallery — `owner` is usually mcstat's own bulk-import
+                        // gallery: `owner` is usually mcstat's own bulk-import
                         // bot account (`MojangSkins`), not a meaningful label.
                         first_seen_player: SkinPlayerDTO {
                             uuid: String::new(),
@@ -154,7 +154,7 @@ impl SkinBrowserService {
     }
 
     /// Fetches a texture PNG server-side and returns it standard base64
-    /// encoded — mcstat.org doesn't send CORS headers, so the webview can't
+    /// encoded: mcstat.org doesn't send CORS headers, so the webview can't
     /// `fetch()` it directly, and feeding it through here also guarantees a
     /// same-origin `data:` URI for the local skinview3d thumbnail renderer
     /// (a cross-origin image without a CORS-clean response taints the

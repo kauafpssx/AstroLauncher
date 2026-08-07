@@ -1,4 +1,4 @@
-/** Decorative dotted background behind the instances grid — purely visual,
+/** Decorative dotted background behind the instances grid: purely visual,
  * no pointer interaction, sits below all grid content. */
 export function InstancesBackground() {
   return (

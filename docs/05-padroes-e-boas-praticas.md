@@ -100,4 +100,4 @@ pub enum InstanceError {
 - Testes de caso de uso com repositórios mockados
 - Testes de integração para infraestrutura
 - Domínio nunca depende de I/O (rede, disco, processo)
-- Use `mockall` ou traits para mockar dependências
+- Use traits para mockar dependências (não há `mockall` — removido na v0.5.2; adicionar de volta só quando um teste de verdade precisar)

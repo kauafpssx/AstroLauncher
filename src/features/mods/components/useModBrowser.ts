@@ -52,7 +52,7 @@ export function useModBrowser({
   const [view, setView] = useState<'browse' | 'review'>('browse')
   const [isUploading, setIsUploading] = useState(false)
   const [installedMods, setInstalledMods] = useState<InstalledMod[]>([])
-  // Keys with an in-flight version fetch — checkbox reflects these instantly
+  // Keys with an in-flight version fetch: checkbox reflects these instantly
   // instead of waiting for the network round-trip.
   const [pendingKeys, setPendingKeys] = useState<Set<string>>(new Set())
 
@@ -63,7 +63,7 @@ export function useModBrowser({
 
   const requestIdRef = useRef(0)
 
-  // Reset the whole browsing state when the dialog closes — done during render
+  // Reset the whole browsing state when the dialog closes: done during render
   // ("adjust state when a prop changes") instead of in an effect.
   const [prevOpen, setPrevOpen] = useState(open)
   if (prevOpen !== open) {
@@ -86,7 +86,7 @@ export function useModBrowser({
       .catch(() => setInstalledMods([]))
   }, [open, instanceId, kind])
 
-  // Mods already installed in this instance — matched both by exact
+  // Mods already installed in this instance: matched both by exact
   // source+projectId (reinstalling the same mod) and by jar filename
   // (the same mod pulled from the other platform), since CurseForge and
   // Modrinth use different project IDs for what is otherwise the same file.

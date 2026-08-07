@@ -50,9 +50,8 @@ jobs:
       - name: Build frontend (vite)
         run: npm run build
 
-      # knip: dead-code informativo (não quebra o build).
       - name: Dead code / unused deps (knip)
-        run: npx --yes knip --no-exit-code
+        run: npm run knip
 
   # ────────────────────────────────────────────────────────────────
   # 🦀 RUST — fmt / clippy / check / test / doc

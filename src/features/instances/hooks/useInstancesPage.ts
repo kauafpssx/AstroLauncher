@@ -58,7 +58,7 @@ export function useInstancesPage() {
   }, [])
 
   // Opened via the `.astropack` file association (cold start or a second
-  // launch attempt forwarded while already running) — adjusted during
+  // launch attempt forwarded while already running): adjusted during
   // render rather than in an effect, same as the reset patterns elsewhere.
   const [prevPendingImportPath, setPrevPendingImportPath] =
     useState(pendingImportPath)

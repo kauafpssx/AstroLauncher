@@ -1,6 +1,8 @@
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
+
+use futures::stream::{self, StreamExt};
 
 use crate::application::dto::LaunchEventDTO;
 use crate::application::use_cases::PlaytimeService;
@@ -10,6 +12,7 @@ use crate::infrastructure::downloader::progress::{ProgressReporter, ProgressUpda
 use crate::infrastructure::downloader::{asset_downloader, file_downloader};
 use crate::infrastructure::filesystem::paths;
 use crate::infrastructure::java;
+use crate::infrastructure::minecraft::language as minecraft_language;
 use crate::infrastructure::minecraft::rules::rules_allow;
 use crate::infrastructure::minecraft::{manifest, version_meta};
 use crate::infrastructure::modloader::profile::library_download_url;
@@ -17,9 +20,15 @@ use crate::infrastructure::modloader::{fabric_like, forge_like, liteloader};
 use crate::infrastructure::process::launcher;
 use crate::infrastructure::process::manager::ProcessManager;
 
-/// Fabric/Quilt/LiteLoader libraries have no advertised size — used only to
+/// Fabric/Quilt/LiteLoader libraries have no advertised size: used only to
 /// keep the overall progress bar moving sensibly before they're downloaded.
 const ESTIMATED_LOADER_LIBRARY_BYTES: u64 = 300_000;
+
+/// Library downloads hit Mojang/Forge/NeoForge Maven repos in parallel
+/// instead of one at a time — moderate concurrency, unlike
+/// `asset_downloader`'s 16 (thousands of tiny asset files vs. dozens of
+/// jars), so it stays polite to Maven-style hosts.
+const LIBRARY_CONCURRENCY: usize = 8;
 
 pub struct LaunchInstanceUseCase {
     instance_repository: Arc<dyn InstanceRepository>,
@@ -34,7 +43,7 @@ pub struct LaunchInstanceUseCase {
     /// shared flag is enough to signal cancellation into whichever download
     /// step is currently running. Once Forge/NeoForge's own installer starts
     /// (a blocking third-party call we don't control), cancellation can no
-    /// longer interrupt it — the flag only stops things before that point.
+    /// longer interrupt it: the flag only stops things before that point.
     cancelled: Arc<AtomicBool>,
 }
 
@@ -251,73 +260,124 @@ impl LaunchInstanceUseCase {
         .await?;
         reporter.report_item("Cliente", "client.jar", meta.downloads.client.size, 1, 1);
 
-        let mut library_paths = Vec::new();
-        let mut lib_index = 0u64;
-        for library in &meta.libraries {
-            self.check_cancelled()?;
-            if !rules_allow(&library.rules) {
-                continue;
-            }
-            let Some(downloads) = &library.downloads else {
-                continue;
-            };
+        self.check_cancelled()?;
+        let lib_done = Arc::new(AtomicU64::new(0));
+        let downloadable_libraries: Vec<_> = meta
+            .libraries
+            .iter()
+            .filter(|library| rules_allow(&library.rules))
+            .filter_map(|library| library.downloads.clone().map(|d| (library.clone(), d)))
+            .collect();
+        let lib_results: Vec<anyhow::Result<Option<PathBuf>>> =
+            stream::iter(downloadable_libraries)
+                .map(|(library, downloads)| {
+                    let client = self.http_client.clone();
+                    let libraries_dir = libraries_dir.clone();
+                    let natives_dir = natives_dir.clone();
+                    let reporter = reporter.clone();
+                    let cancelled = self.cancelled.clone();
+                    let lib_done = lib_done.clone();
+                    async move {
+                        if cancelled.load(Ordering::SeqCst) {
+                            anyhow::bail!("Inicialização cancelada");
+                        }
+                        let mut path = None;
+                        if let Some(artifact) = &downloads.artifact {
+                            let dest = launcher::library_path(&libraries_dir, &library.name);
+                            file_downloader::download_to_file(
+                                &client,
+                                &artifact.url,
+                                &dest,
+                                Some(&artifact.sha1),
+                            )
+                            .await?;
+                            let done = lib_done.fetch_add(1, Ordering::Relaxed) + 1;
+                            reporter.report_item(
+                                "Bibliotecas",
+                                &library.name,
+                                artifact.size,
+                                done,
+                                total_library_downloads,
+                            );
+                            path = Some(dest);
+                        }
 
-            if let Some(artifact) = &downloads.artifact {
-                let dest = launcher::library_path(&libraries_dir, &library.name);
-                file_downloader::download_to_file(
-                    &self.http_client,
-                    &artifact.url,
-                    &dest,
-                    Some(&artifact.sha1),
-                )
-                .await?;
-                library_paths.push(dest);
-                lib_index += 1;
-                reporter.report_item(
-                    "Bibliotecas",
-                    &library.name,
-                    artifact.size,
-                    lib_index,
-                    total_library_downloads,
-                );
-            }
-
-            if let (Some(natives), Some(classifiers)) = (&library.natives, &downloads.classifiers) {
-                if let Some(classifier_key) = natives.get("windows") {
-                    if let Some(artifact) = classifiers.get(classifier_key) {
-                        let dest = libraries_dir.join("natives").join(format!(
-                            "{}-{}.jar",
-                            library.name.replace(':', "_"),
-                            classifier_key
-                        ));
-                        file_downloader::download_to_file(
-                            &self.http_client,
-                            &artifact.url,
-                            &dest,
-                            Some(&artifact.sha1),
-                        )
-                        .await?;
-                        launcher::extract_natives(&dest, &natives_dir)?;
+                        if let (Some(natives), Some(classifiers)) =
+                            (&library.natives, &downloads.classifiers)
+                        {
+                            if let Some(classifier_key) = natives.get("windows") {
+                                if let Some(artifact) = classifiers.get(classifier_key) {
+                                    let dest = libraries_dir.join("natives").join(format!(
+                                        "{}-{}.jar",
+                                        library.name.replace(':', "_"),
+                                        classifier_key
+                                    ));
+                                    file_downloader::download_to_file(
+                                        &client,
+                                        &artifact.url,
+                                        &dest,
+                                        Some(&artifact.sha1),
+                                    )
+                                    .await?;
+                                    launcher::extract_natives(&dest, &natives_dir)?;
+                                }
+                            }
+                        }
+                        Ok(path)
                     }
-                }
+                })
+                // `buffered` (not `buffer_unordered`): still downloads up to
+                // LIBRARY_CONCURRENCY at once, but yields results in input
+                // order — `library_paths` feeds `build_classpath` below, and
+                // an out-of-order classpath is a real (if usually silent)
+                // correctness risk when libraries have overlapping packages.
+                .buffered(LIBRARY_CONCURRENCY)
+                .collect()
+                .await;
+
+        let mut library_paths = Vec::new();
+        for result in lib_results {
+            if let Some(path) = result? {
+                library_paths.push(path);
             }
         }
 
         if let Some(profile) = &loader_profile {
+            self.check_cancelled()?;
             let total_loader_libs = profile.libraries.len() as u64;
-            for (index, library) in profile.libraries.iter().enumerate() {
-                self.check_cancelled()?;
-                let dest = launcher::library_path(&libraries_dir, &library.name);
-                let url = library_download_url(library);
-                file_downloader::download_to_file(&self.http_client, &url, &dest, None).await?;
-                library_paths.push(dest);
-                reporter.report_item(
-                    "Bibliotecas do Loader",
-                    &library.name,
-                    ESTIMATED_LOADER_LIBRARY_BYTES,
-                    index as u64 + 1,
-                    total_loader_libs,
-                );
+            let loader_done = Arc::new(AtomicU64::new(0));
+            let loader_results: Vec<anyhow::Result<PathBuf>> =
+                stream::iter(profile.libraries.clone())
+                    .map(|library| {
+                        let client = self.http_client.clone();
+                        let libraries_dir = libraries_dir.clone();
+                        let reporter = reporter.clone();
+                        let cancelled = self.cancelled.clone();
+                        let loader_done = loader_done.clone();
+                        async move {
+                            if cancelled.load(Ordering::SeqCst) {
+                                anyhow::bail!("Inicialização cancelada");
+                            }
+                            let dest = launcher::library_path(&libraries_dir, &library.name);
+                            let url = library_download_url(&library);
+                            file_downloader::download_to_file(&client, &url, &dest, None).await?;
+                            let done = loader_done.fetch_add(1, Ordering::Relaxed) + 1;
+                            reporter.report_item(
+                                "Bibliotecas do Loader",
+                                &library.name,
+                                ESTIMATED_LOADER_LIBRARY_BYTES,
+                                done,
+                                total_loader_libs,
+                            );
+                            Ok(dest)
+                        }
+                    })
+                    .buffered(LIBRARY_CONCURRENCY)
+                    .collect()
+                    .await;
+
+            for result in loader_results {
+                library_paths.push(result?);
             }
         }
 
@@ -334,6 +394,7 @@ impl LaunchInstanceUseCase {
         .await?;
 
         self.check_cancelled()?;
+        minecraft_language::ensure_default_language(&instance_dir);
         (*on_event)(LaunchEventDTO::Stage {
             label: "Iniciando jogo".to_string(),
         });
@@ -378,7 +439,7 @@ impl LaunchInstanceUseCase {
     /// Registers the spawned process, wraps `on_exit` so the playtime
     /// session opened for this launch is closed (and the instance total
     /// updated) when the game exits, and updates Discord Rich Presence for
-    /// the session's duration. Both are best-effort — a failure must never
+    /// the session's duration. Both are best-effort: a failure must never
     /// prevent the game from launching.
     async fn register_with_playtime(
         &self,
@@ -442,7 +503,7 @@ impl LaunchInstanceUseCase {
     /// Forge/NeoForge: the installer, library/asset downloads, and final
     /// command are all delegated to `mc-launcher-core` (see
     /// `infrastructure::modloader::forge_like`) since the modern installer
-    /// runs its own binary-patch processors — something worth reusing rather
+    /// runs its own binary-patch processors: something worth reusing rather
     /// than reimplementing. The crate's API is synchronous, so the whole
     /// sequence runs inside one `spawn_blocking`.
     async fn run_forge_like(
@@ -492,6 +553,7 @@ impl LaunchInstanceUseCase {
                 (*on_event_blocking)(LaunchEventDTO::Stage {
                     label: format!("Instalando {loader} (isso pode levar um tempo)"),
                 });
+                forge_like::ensure_launcher_profile_stub(&app_data_dir)?;
                 forge_like::run_installer(&java_bin_path, &installer_path, &app_data_dir, &loader)?;
 
                 let version_id =
@@ -502,8 +564,46 @@ impl LaunchInstanceUseCase {
                     label: "Baixando bibliotecas e assets".to_string(),
                 });
                 let on_event_files = on_event_blocking.clone();
-                forge_like::install_files(&merged, &app_data_dir, move |label| {
-                    (*on_event_files)(LaunchEventDTO::Stage { label });
+                let libraries_total = merged.libraries.len() as u64;
+                let mut libraries_done = 0u64;
+                // `install_version_files` never actually emits `StageStarted`
+                // (verified against the crate source) — gating on a "current
+                // stage" that never changes from its initial value would
+                // silently sweep every task (including the thousands of
+                // asset files) into the "library" bucket. Classify by the
+                // task's own destination path instead, captured at
+                // `TaskStarted` and looked up when it finishes (`TaskFinished`
+                // only carries the label, not the path).
+                let mut task_paths: std::collections::HashMap<String, std::path::PathBuf> =
+                    std::collections::HashMap::new();
+                forge_like::install_files(&merged, &app_data_dir, move |event| {
+                    use mc_launcher_core::progress::ProgressEvent;
+                    match event {
+                        ProgressEvent::TaskStarted { label, path } => {
+                            task_paths.insert(label, path);
+                        }
+                        ProgressEvent::TaskFinished { label }
+                        | ProgressEvent::TaskSkipped { label, .. } => {
+                            let is_library = task_paths.remove(&label).is_some_and(|p| {
+                                p.components().any(|c| c.as_os_str() == "libraries")
+                            });
+                            if is_library {
+                                libraries_done = (libraries_done + 1).min(libraries_total.max(1));
+                                (*on_event_files)(LaunchEventDTO::Progress {
+                                    stage: "Baixando bibliotecas".to_string(),
+                                    current_item: label,
+                                    stage_current: libraries_done,
+                                    stage_total: libraries_total.max(1),
+                                    overall_current: libraries_done,
+                                    overall_total: libraries_total.max(1),
+                                });
+                            }
+                        }
+                        // Never actually emitted by `install_version_files`
+                        // (see comment above), but still part of the enum.
+                        ProgressEvent::StageStarted { .. }
+                        | ProgressEvent::BytesReceived { .. } => {}
+                    }
                 })?;
 
                 (*on_event_blocking)(LaunchEventDTO::Stage {
@@ -521,6 +621,7 @@ impl LaunchInstanceUseCase {
             })
             .await??;
 
+        minecraft_language::ensure_default_language(&instance_dir);
         (*on_event)(LaunchEventDTO::Stage {
             label: "Iniciando jogo".to_string(),
         });

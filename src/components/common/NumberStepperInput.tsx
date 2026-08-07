@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
+import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
 
 interface NumberStepperInputProps {
@@ -66,6 +67,8 @@ export function NumberStepperInput({
           onClick={() => onChange(clamp(value + step))}
           disabled={value >= max}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-1/2 w-5 items-center justify-center transition-colors disabled:pointer-events-none disabled:opacity-40"
+          aria-label="Aumentar"
+          {...tooltipProps('Aumentar')}
         >
           <ChevronUp className="size-3" />
         </button>
@@ -75,6 +78,8 @@ export function NumberStepperInput({
           onClick={() => onChange(clamp(value - step))}
           disabled={value <= min}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-1/2 w-5 items-center justify-center border-t transition-colors disabled:pointer-events-none disabled:opacity-40"
+          aria-label="Diminuir"
+          {...tooltipProps('Diminuir')}
         >
           <ChevronDown className="size-3" />
         </button>
