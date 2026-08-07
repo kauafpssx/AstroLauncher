@@ -5,7 +5,7 @@ use tauri::{AppHandle, Emitter, State};
 use crate::application::dto::{
     GetModProjectInput, GetModVersionsInput, InstallCustomModInput, InstallModInput,
     InstallModpackInput, InstalledModDTO, InstanceDTO, ModProjectDTO, ModSearchResultDTO,
-    ModVersionDTO, SearchModsInput,
+    ModVersionDTO, SearchModsInput, SuggestedMemoryDTO,
 };
 use crate::presentation::state::AppState;
 
@@ -77,6 +77,17 @@ pub fn list_instance_mods(
     state
         .mod_manager
         .list(&instance_id, &kind)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn get_suggested_memory(
+    state: State<AppState>,
+    instance_id: String,
+) -> Result<SuggestedMemoryDTO, String> {
+    state
+        .suggest_memory
+        .execute(&instance_id)
         .map_err(|e| e.to_string())
 }
 

@@ -1,5 +1,5 @@
 import { apiInvoke } from '@/lib/api/client'
-import type { InstanceDTO } from '@/types/instance'
+import type { InstanceDTO, SuggestedMemoryDTO } from '@/types/instance'
 import type {
   ContentKind,
   GetModVersionsInput,
@@ -37,6 +37,9 @@ export const ModAPI = {
     kind: ContentKind,
   ): Promise<InstalledMod[]> {
     return apiInvoke<InstalledMod[]>('list_instance_mods', { instanceId, kind })
+  },
+  getSuggestedMemory(instanceId: string): Promise<SuggestedMemoryDTO> {
+    return apiInvoke<SuggestedMemoryDTO>('get_suggested_memory', { instanceId })
   },
   setEnabled(instanceId: string, id: string, enabled: boolean): Promise<void> {
     return apiInvoke<void>('set_instance_mod_enabled', {

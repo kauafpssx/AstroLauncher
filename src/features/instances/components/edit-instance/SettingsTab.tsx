@@ -9,6 +9,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { InstanceDTO } from '@/types/instance'
 
+import { ModAPI } from '@/features/mods/services/mod.api'
+import type { SuggestedMemoryDTO } from '@/types/instance'
+
 import { IconPickerButton } from '../IconPickerButton'
 import { LoaderSelectionCard } from '../create-instance/LoaderSelectionCard'
 import { InstanceAPI } from '../../services/instance.api'
@@ -35,12 +38,26 @@ export function SettingsTab({ instance }: SettingsTabProps) {
   const [javaArgs, setJavaArgs] = useState(instance.javaArgs ?? '')
   const [isSaving, setIsSaving] = useState(false)
   const [totalMemoryMb, setTotalMemoryMb] = useState(FALLBACK_TOTAL_MEMORY_MB)
+  const [suggestedMemory, setSuggestedMemory] =
+    useState<SuggestedMemoryDTO | null>(null)
 
   useEffect(() => {
     InstanceAPI.getTotalSystemMemoryMb()
       .then(setTotalMemoryMb)
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    ModAPI.getSuggestedMemory(instance.id)
+      .then((suggestion) => {
+        if (!cancelled) setSuggestedMemory(suggestion)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [instance.id])
 
   const updateMinMemory = (value: number) => {
     const clamped = Math.min(Math.max(value, MIN_MEMORY_MB), totalMemoryMb)
@@ -131,8 +148,14 @@ export function SettingsTab({ instance }: SettingsTabProps) {
         minMemory={minMemory}
         maxMemory={maxMemory}
         totalMemoryMb={totalMemoryMb}
+        suggestedMemory={suggestedMemory}
         onMinChange={updateMinMemory}
         onMaxChange={updateMaxMemory}
+        onUseSuggested={() => {
+          if (!suggestedMemory) return
+          updateMinMemory(suggestedMemory.minMb)
+          updateMaxMemory(suggestedMemory.maxMb)
+        }}
       />
 
       <div className="flex flex-col gap-2 border-t pt-4">

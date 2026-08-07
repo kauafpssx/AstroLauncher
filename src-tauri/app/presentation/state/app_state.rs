@@ -9,7 +9,7 @@ use crate::application::use_cases::{
     ModBrowserService, ModManagerService, ModpackInstallerService, MoveInstanceToFolderUseCase,
     PlaytimeService, ReorderAccountsUseCase, ReorderFoldersUseCase, ReorderInstancesUseCase,
     SetDefaultAccountUseCase, SettingsService, SkinBrowserService, StopInstanceUseCase,
-    UpdateAccountUseCase, UpdateFolderUseCase, UpdateInstanceUseCase,
+    SuggestMemoryUseCase, UpdateAccountUseCase, UpdateFolderUseCase, UpdateInstanceUseCase,
 };
 use crate::domain::repositories::{
     AccountRepository, FolderRepository, InstanceRepository, ModRepository, PlaytimeRepository,
@@ -44,6 +44,7 @@ pub struct AppState {
     pub mod_browser: ModBrowserService,
     pub mod_manager: ModManagerService,
     pub modpack_installer: ModpackInstallerService,
+    pub suggest_memory: SuggestMemoryUseCase,
     pub astropack: AstroPackService,
     pub custom_icon: CustomIconService,
     pub skin_browser: SkinBrowserService,
@@ -110,6 +111,7 @@ impl AppState {
                 http_client.clone(),
                 app_data_dir.clone(),
             ),
+            suggest_memory: SuggestMemoryUseCase::new(mod_repository.clone()),
             astropack: AstroPackService::new(
                 instance_repository.clone(),
                 mod_repository.clone(),

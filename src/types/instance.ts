@@ -23,6 +23,11 @@ export interface CreateInstanceInput {
   iconPath?: string | null
 }
 
+export interface SuggestedMemoryDTO {
+  minMb: number
+  maxMb: number
+}
+
 export interface UpdateInstanceInput {
   id: string
   name: string

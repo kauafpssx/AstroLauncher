@@ -29,6 +29,13 @@ pub struct CreateInstanceInput {
     pub icon_path: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SuggestedMemoryDTO {
+    pub min_mb: i64,
+    pub max_mb: i64,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateInstanceInput {
