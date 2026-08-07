@@ -9,7 +9,6 @@
     "@tailwindcss/typography",
     "shadcn",
     "cmdk",
-    "tailwindcss-animate",
     "tw-animate-css"
   ]
 }
