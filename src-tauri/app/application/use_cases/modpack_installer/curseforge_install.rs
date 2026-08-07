@@ -1,8 +1,11 @@
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::Arc;
+
+use futures::stream::{self, StreamExt};
 
 use crate::application::dto::{AstroPackEventDTO, InstallModpackInput, InstanceDTO};
 use crate::application::mappers::instance_mapper;
+use crate::application::use_cases::suggest_memory_mb;
 use crate::domain::entities::{InstalledMod, Instance};
 use crate::infrastructure::curseforge;
 use crate::infrastructure::downloader::file_downloader;
@@ -32,6 +35,20 @@ impl ModpackInstallerService {
                     "Configure sua API key do CurseForge em Configurações antes de instalar."
                 )
             })?;
+
+        // Downloading the modpack zip itself (overrides can bundle whole
+        // resource/shader packs, so it's often several MB on a single
+        // connection) plus resolving every mod's metadata below can take a
+        // while with nothing to show for it otherwise — this is the only
+        // feedback the user gets before the per-file downloads (and their
+        // own Progress events) start.
+        on_event(AstroPackEventDTO::Progress {
+            kind: "mod".to_string(),
+            name: "Baixando pacote...".to_string(),
+            icon_url: None,
+            current: 0,
+            total: 0,
+        });
 
         let bytes = self
             .http_client
@@ -67,6 +84,14 @@ impl ModpackInstallerService {
         let mods_dir = instance_dir.join("mods");
         std::fs::create_dir_all(&mods_dir)?;
 
+        on_event(AstroPackEventDTO::Progress {
+            kind: "mod".to_string(),
+            name: "Resolvendo mods...".to_string(),
+            icon_url: None,
+            current: 0,
+            total: 0,
+        });
+
         let project_ids: Vec<u32> = {
             let mut ids: Vec<u32> = manifest.files.iter().map(|f| f.project_id).collect();
             ids.sort_unstable();
@@ -86,54 +111,87 @@ impl ModpackInstallerService {
         }
 
         let total = manifest.files.len() as u64;
-        for (i, file) in manifest.files.iter().enumerate() {
-            if self.cancelled.load(Ordering::SeqCst) {
-                rollback_instance(
-                    self.instance_repository.as_ref(),
-                    &self.app_data_dir,
-                    &instance.id,
-                );
-                anyhow::bail!("Instalação cancelada");
-            }
-            let resolved = curseforge::client::get_file(
-                &self.http_client,
-                &api_key,
-                file.project_id,
-                file.file_id,
-            )
-            .await?;
-            let icon_url = icons_by_project.get(&file.project_id).cloned().flatten();
-            let mod_name = names_by_project
-                .get(&file.project_id)
-                .cloned()
-                .unwrap_or_else(|| resolved.display_name.clone());
-            on_event(AstroPackEventDTO::Progress {
-                kind: "mod".to_string(),
-                name: mod_name.clone(),
-                icon_url: icon_url.clone(),
-                current: i as u64,
-                total,
-            });
-            let Some(url) = resolved.download_url else {
-                continue;
-            };
-            let dest = mods_dir.join(&resolved.file_name);
-            file_downloader::download_to_file(&self.http_client, &url, &dest, None).await?;
+        let done = Arc::new(AtomicU64::new(0));
+        let installed_count = Arc::new(AtomicI64::new(0));
+        let results: Vec<anyhow::Result<()>> = stream::iter(manifest.files.clone())
+            .map(|file| {
+                let client = self.http_client.clone();
+                let api_key = api_key.clone();
+                let mod_repository = self.mod_repository.clone();
+                let mods_dir = mods_dir.clone();
+                let instance_id = instance.id.clone();
+                let on_event = on_event.clone();
+                let cancelled = self.cancelled.clone();
+                let done = done.clone();
+                let installed_count = installed_count.clone();
+                let icon_url = icons_by_project.get(&file.project_id).cloned().flatten();
+                let fallback_name = names_by_project.get(&file.project_id).cloned();
+                async move {
+                    if cancelled.load(Ordering::SeqCst) {
+                        anyhow::bail!("Instalação cancelada");
+                    }
+                    let resolved = curseforge::client::get_file(
+                        &client,
+                        &api_key,
+                        file.project_id,
+                        file.file_id,
+                    )
+                    .await?;
+                    let mod_name = fallback_name.unwrap_or_else(|| resolved.display_name.clone());
 
-            let installed = InstalledMod::new(
-                instance.id.clone(),
-                file.project_id.to_string(),
-                "curseforge".to_string(),
-                mod_name,
-                resolved.display_name.clone(),
-                dest.display().to_string(),
-                icon_url,
-                "mod".to_string(),
+                    let current = done.fetch_add(1, Ordering::Relaxed) + 1;
+                    on_event(AstroPackEventDTO::Progress {
+                        kind: "mod".to_string(),
+                        name: mod_name.clone(),
+                        icon_url: icon_url.clone(),
+                        current,
+                        total,
+                    });
+
+                    let Some(url) = resolved.download_url else {
+                        return Ok(());
+                    };
+                    let dest = mods_dir.join(&resolved.file_name);
+                    file_downloader::download_to_file(&client, &url, &dest, None).await?;
+
+                    let installed = InstalledMod::new(
+                        instance_id,
+                        file.project_id.to_string(),
+                        "curseforge".to_string(),
+                        mod_name,
+                        resolved.display_name,
+                        dest.display().to_string(),
+                        icon_url,
+                        "mod".to_string(),
+                    );
+                    if mod_repository.save(&installed).is_ok() {
+                        installed_count.fetch_add(1, Ordering::Relaxed);
+                    }
+                    Ok(())
+                }
+            })
+            .buffer_unordered(super::FILE_CONCURRENCY)
+            .collect()
+            .await;
+
+        if results.iter().any(|r| r.is_err()) {
+            rollback_instance(
+                self.instance_repository.as_ref(),
+                &self.app_data_dir,
+                &instance.id,
             );
-            let _ = self.mod_repository.save(&installed);
+            for result in results {
+                result?;
+            }
         }
 
         curseforge::modpack::extract_overrides(&bytes, &manifest.overrides, &instance_dir)?;
+
+        let (min_mb, max_mb) = suggest_memory_mb(installed_count.load(Ordering::Relaxed));
+        instance.min_memory = min_mb;
+        instance.max_memory = max_mb;
+        self.instance_repository.save(&instance)?;
+
         on_event(AstroPackEventDTO::Done {
             instance_id: instance.id.clone(),
         });

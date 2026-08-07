@@ -9,6 +9,13 @@ use crate::infrastructure::filesystem::paths;
 mod curseforge_install;
 mod modrinth_install;
 
+/// Modpack file downloads hit Modrinth/CurseForge's CDN in parallel instead
+/// of one at a time. Deliberately more conservative than
+/// `asset_downloader`'s 16 (Mojang's static asset CDN) — these are third-
+/// party hosts fronting a heavier per-file payload (whole mod jars), so
+/// staying polite matters more than squeezing out max throughput.
+pub(super) const FILE_CONCURRENCY: usize = 6;
+
 pub struct ModpackInstallerService {
     instance_repository: Arc<dyn InstanceRepository>,
     mod_repository: Arc<dyn ModRepository>,
@@ -21,7 +28,7 @@ pub struct ModpackInstallerService {
     cancelled: Arc<AtomicBool>,
 }
 
-/// Cleans up a partially-downloaded instance after a cancelled install —
+/// Cleans up a partially-downloaded instance after a cancelled install:
 /// otherwise the user would be left with a broken, incomplete instance
 /// silently sitting in their list.
 fn rollback_instance(
@@ -81,7 +88,7 @@ impl ModpackInstallerService {
         let path = dir.join(format!("{}.png", uuid::Uuid::new_v4()));
 
         // Modrinth/CurseForge often serve project icons as WebP regardless
-        // of the `.png` we save under — decode-and-re-encode so the file on
+        // of the `.png` we save under: decode-and-re-encode so the file on
         // disk is a *real* PNG like every other icon in the app (manual
         // uploads go through the same crop-to-PNG step on the frontend),
         // square-cropped the same way. Falls back to the raw bytes if
