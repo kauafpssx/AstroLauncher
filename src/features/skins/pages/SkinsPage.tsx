@@ -17,7 +17,6 @@ export function SkinsPage() {
   const navigate = useNavigate()
   const {
     source,
-    setSource,
     sortBy,
     setSortBy,
     model,
@@ -30,9 +29,10 @@ export function SkinsPage() {
     selected,
     setSelected,
     mcstatApiKey,
-    setMcstatApiKey,
     mcstatKeyDialogOpen,
     setMcstatKeyDialogOpen,
+    mcstatKeyInvalid,
+    submitMcstatKey,
     handleSourceChange,
     loadMore,
     isSearching,
@@ -58,12 +58,12 @@ export function SkinsPage() {
 
       <div className="flex-1 overflow-y-auto p-4">
         {isLoading ? (
-          <CenteredSpinner className="h-64" />
+          <CenteredSpinner className="h-full" />
         ) : combined.length === 0 ? (
           <EmptyState title="Nenhuma skin encontrada." className="p-8" />
         ) : (
           <>
-            <div className="grid grid-cols-4 gap-4 sm:grid-cols-6 xl:grid-cols-8">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-4">
               {combined.map((skin) => {
                 const key = skinKey(skin)
                 return (
@@ -112,11 +112,9 @@ export function SkinsPage() {
       <McstatApiKeyDialog
         open={mcstatKeyDialogOpen}
         currentKey={mcstatApiKey}
+        invalidKey={mcstatKeyInvalid}
         onOpenChange={setMcstatKeyDialogOpen}
-        onSaved={(key) => {
-          setMcstatApiKey(key)
-          setSource('mcstat')
-        }}
+        onSubmit={submitMcstatKey}
       />
     </div>
   )
