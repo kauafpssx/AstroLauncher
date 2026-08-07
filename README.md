@@ -22,45 +22,88 @@
 
 <br />
 
+## 📥 Download
+
+O **AstroLauncher** é gratuito e open source. Baixe a versão mais recente direto do GitHub:
+
+<p align="center">
+  <a href="https://github.com/kauafpssx/AstroLauncher/releases/latest">
+    <img src="https://img.shields.io/github/v/release/kauafpssx/AstroLauncher?style=for-the-badge&label=Baixar%20AstroLauncher&color=8b5cf6" alt="Baixar AstroLauncher" />
+  </a>
+</p>
+
+| O que vem no pacote             | Como funciona                                             |
+| ------------------------------- | --------------------------------------------------------- |
+| 🖥️ **Instalador `.exe` (NSIS)** | Instala por usuário, sem precisar de admin                |
+| 🔄 **Auto-update**              | A splash verifica e instala novas versões automaticamente |
+| 📦 **Arquivos `.astropack`**    | Duplo clique importa a instância direto no launcher       |
+
+> [!TIP]
+> Novas versões saem pelo **GitHub Releases**. O botão acima sempre aponta para a mais recente.
+
+<br />
+
 ## 📖 Índice
 
+- [📥 Download](#-download)
 - [🚀 Sobre o projeto](#-sobre-o-projeto)
 - [✨ Funcionalidades](#-funcionalidades)
+- [🖼️ Screenshots](#-screenshots)
 - [🧩 Loaders e versões suportadas](#-loaders-e-versões-suportadas)
 - [🧱 Stack de tecnologias](#-stack-de-tecnologias)
 - [📐 Arquitetura](#-arquitetura)
 - [📂 Estrutura do projeto](#-estrutura-do-projeto)
 - [🔧 Desenvolvimento](#-desenvolvimento)
 - [📦 Build e distribuição](#-build-e-distribuição)
+- [⚖️ Aviso legal](#-aviso-legal)
 - [🤝 Contribuindo](#-contribuindo)
 - [📄 Licença](#-licença)
 
 ## 🚀 Sobre o projeto
 
-**AstroLauncher** é um launcher de Minecraft construído do zero, inspirado no [PrismLauncher](https://prismlauncher.org/), com foco em arquitetura limpa e facilidade de manutenção. A interface usa [shadcn/ui](https://ui.shadcn.com/), com componentes Radix UI e Tailwind CSS.
+**AstroLauncher** é um launcher de Minecraft construído do zero, inspirado no [PrismLauncher](https://prismlauncher.org/), com foco em arquitetura limpa e facilidade de manutenção. A interface usa [shadcn/ui](https://ui.shadcn.com/), com componentes Radix UI e Tailwind CSS. Do grid de instâncias ao visualizador de skins 3D, cada tela foi pensada para ser rápida e agradável de usar.
+
+Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases e snapshots mais recentes, com os principais loaders (**Fabric, Quilt, Forge, NeoForge e LiteLoader**). Num único lugar você tem instalação de mods e modpacks via **Modrinth e CurseForge**, contas offline, download automático de Java, playtime, atalhos de desktop e exportação de instâncias completas em `.astropack`.
+
+![Demo](docs/screenshots/demo.gif)
 
 > 🎯 **Público-alvo:** jogadores que precisam de contas offline (crackeado) e suporte a múltiplas versões e loaders num único launcher.
 
 ### ✨ Funcionalidades
 
-|     | Feature                 | Descrição                                                                           |
-| --- | ----------------------- | ----------------------------------------------------------------------------------- |
-| 🪐  | **Splash screen**       | Tela de abertura com checagem automática de atualização                             |
-| 🧊  | **Instâncias**          | Criar, editar, excluir e organizar instâncias em **pastas** com drag & drop         |
-| 🕰️  | **Todas as versões**    | Releases, snapshots, alphas, betas, infdev, classic e indev (desde 2009!)           |
-| 🧩  | **Multi-loader**        | Fabric, Quilt, Forge, NeoForge e LiteLoader                                         |
-| 👤  | **Contas offline**      | Modo crackeado com gerenciador de contas e reordenação por drag & drop              |
-| ☕  | **Java Manager**        | Detecção e download automático de runtimes (Adoptium Temurin)                       |
-| ⏱️  | **Playtime**            | Tempo de jogo por instância, sessões e estatísticas                                 |
-| 🧪  | **Mod Browser**         | Busca e instalação de mods via **Modrinth** e **CurseForge**                        |
-| 📦  | **Modpacks**            | Instalação direta de modpacks (.mrpack e manifest do CurseForge)                    |
-| ⚙️  | **Editor de Config**    | `options.txt` tipado, arquivos de `config/` e **Keybinds** com detecção de conflito |
-| 📝  | **Notas**               | Múltiplas notas por instância, exportadas no `.astropack`                           |
-| 🖼️  | **Ícones customizados** | Presets de blocos/itens ou upload com recorte (crop)                                |
-| 👕  | **Visualizador 3D**     | Preview de skins 3D com skinview3d                                                  |
-| 💬  | **Discord RPC**         | Status do jogo exibido no perfil do Discord                                         |
-| 📜  | **Console**             | Log do Minecraft em tempo real                                                      |
-| 🪄  | **AstroPack**           | Exportar/importar instâncias completas (`.astropack`)                               |
+|     | Feature                   | Descrição                                                                           |
+| --- | ------------------------- | ----------------------------------------------------------------------------------- |
+| 🪐  | **Splash screen**         | Tela de abertura com checagem automática de atualização                             |
+| 🧊  | **Instâncias**            | Criar, editar, excluir e organizar instâncias em **pastas** com drag & drop         |
+| 🕰️  | **Todas as versões**      | Releases, snapshots, alphas, betas, infdev, classic e indev (desde 2009!)           |
+| 🧩  | **Multi-loader**          | Fabric, Quilt, Forge, NeoForge e LiteLoader                                         |
+| 👤  | **Contas offline**        | Modo crackeado com gerenciador de contas e reordenação por drag & drop              |
+| ☕  | **Java Manager**          | Detecção e download automático de runtimes (Adoptium Temurin)                       |
+| ⏱️  | **Playtime**              | Tempo de jogo por instância, sessões e estatísticas                                 |
+| 🧪  | **Mod Browser**           | Busca e instalação de mods via **Modrinth** e **CurseForge**                        |
+| 📦  | **Modpacks**              | Instalação direta de modpacks (.mrpack e manifest do CurseForge)                    |
+| ⚙️  | **Editor de Config**      | `options.txt` tipado, arquivos de `config/` e **Keybinds** com detecção de conflito |
+| 📝  | **Notas**                 | Múltiplas notas por instância, exportadas no `.astropack`                           |
+| 🖼️  | **Ícones customizados**   | Presets de blocos/itens ou upload com recorte (crop)                                |
+| 👕  | **Galeria de skins**      | Fontes **PlayerMC + MCStat**, filtro Classic/Slim e preview 3D (skinview3d)         |
+| 💬  | **Discord RPC**           | Status do jogo exibido no perfil do Discord                                         |
+| 📜  | **Console**               | Log do Minecraft em tempo real                                                      |
+| 🪄  | **AstroPack**             | Exportar/importar instâncias completas (`.astropack`)                               |
+| 🖱️  | **Atalhos de desktop**    | Criar atalho da instância na área de trabalho, com ícone customizado                |
+| 📂  | **Arquivos `.astropack`** | Duplo clique importa instâncias; atalhos abrem o jogo direto                        |
+| 📋  | **Duplicar instância**    | Cópia completa com mods, mundos e configurações                                     |
+| 🌍  | **Mundos**                | Gerenciar os mundos salvos da instância                                             |
+| 🔌  | **Servidores**            | Editor visual do `servers.dat` (multiplayer)                                        |
+| 📸  | **Screenshots**           | Visualizador das capturas da instância com zoom                                     |
+| 🎨  | **Conteúdo instalado**    | Mods, Resource Packs e Shaders: ativar, desativar e excluir                         |
+| 🧠  | **Sugestão de RAM**       | Recomendação de memória automática conforme a quantidade de mods                    |
+| 🗞️  | **Changelog in-app**      | Notas de versão acessíveis direto no launcher, offline                              |
+
+## 🖼️ Screenshots
+
+| Home (instâncias)                  | Editor de instância                                 | Galeria de skins                                |
+| ---------------------------------- | --------------------------------------------------- | ----------------------------------------------- |
+| ![Home](docs/screenshots/home.png) | ![Editor de instância](docs/screenshots/editor.png) | ![Galeria de skins](docs/screenshots/skins.png) |
 
 ## 🧩 Loaders e versões suportadas
 
@@ -96,14 +139,12 @@
 
 <img src="https://icons.kauafpss.com.br/api/asset/shadcnui.svg?color=ffffff&size=32&background=default" alt="shadcn/ui" width="20" valign="middle" /> shadcn/ui &nbsp;
 <img src="https://icons.kauafpss.com.br/api/asset/radixui.svg?color=ffffff&size=32&background=default" alt="Radix UI" width="20" valign="middle" /> Radix UI &nbsp;
-<img src="https://icons.kauafpss.com.br/api/asset/lucide.svg?color=ffffff&size=32&background=default" alt="Lucide" width="20" valign="middle" /> lucide-react &nbsp;
-<img src="https://icons.kauafpss.com.br/api/asset/phosphoricons.svg?color=ffffff&size=32&background=default" alt="Phosphor Icons" width="20" valign="middle" /> phosphor-icons
+<img src="https://icons.kauafpss.com.br/api/asset/lucide.svg?color=ffffff&size=32&background=default" alt="Lucide" width="20" valign="middle" /> lucide-react
 
 </td></tr>
 <tr><td><b>🗄️ Estado</b></td><td>
 
-![Zustand](https://img.shields.io/badge/Zustand-grey?style=flat) &nbsp;
-<img src="https://icons.kauafpss.com.br/api/asset/reactquery.svg?color=ffffff&size=32&background=default" alt="TanStack Query" width="20" valign="middle" /> TanStack Query
+![Zustand](https://img.shields.io/badge/Zustand-grey?style=flat)
 
 </td></tr>
 <tr><td><b>🧙 Minecraft</b></td><td>
@@ -116,14 +157,17 @@
 
 ![Mojang launchermeta](https://img.shields.io/badge/Mojang-launchermeta-grey?style=flat) &nbsp;
 <img src="https://icons.kauafpss.com.br/api/asset/modrinth.svg?color=ffffff&size=32&background=default" alt="Modrinth" width="20" valign="middle" /> Modrinth API v3 &nbsp;
-<img src="https://icons.kauafpss.com.br/api/asset/curseforge.svg?color=ffffff&size=32&background=default" alt="CurseForge" width="20" valign="middle" /> CurseForge Core API
+<img src="https://icons.kauafpss.com.br/api/asset/curseforge.svg?color=ffffff&size=32&background=default" alt="CurseForge" width="20" valign="middle" /> CurseForge Core API &nbsp;
+![PlayerMC](https://img.shields.io/badge/PlayerMC-grey?style=flat) &nbsp;
+![MCStat](https://img.shields.io/badge/MCStat-grey?style=flat) &nbsp;
+![Adoptium Temurin](https://img.shields.io/badge/Adoptium%20Temurin-grey?style=flat)
 
 </td></tr>
 <tr><td><b>📊 Dados</b></td><td>
 
 <img src="https://icons.kauafpss.com.br/api/asset/sqlite.svg?color=ffffff&size=32&background=default" alt="SQLite" width="20" valign="middle" /> SQLite &nbsp;
 <img src="https://icons.kauafpss.com.br/api/asset/json.svg?color=ffffff&size=32&background=default" alt="JSON" width="20" valign="middle" /> JSON &nbsp;
-cache com TTL
+sem cache, dados sempre atualizados das APIs
 
 </td></tr>
 <tr><td><b>🎵 Extras</b></td><td>
@@ -157,7 +201,7 @@ graph LR
 | 🏛️ **Domain**         | Entidades, value objects, traits de repositório, erros tipados    |
 | 🔌 **Infrastructure** | SQLite, download manager, processo, Java, Minecraft, APIs de mods |
 
-**Princípios:** Dependency Inversion, Composição sobre herança, Fail fast, Repository Pattern, Event Driven e SOLID
+**Princípios:** Dependency Inversion, Composição sobre herança, Fail fast, Repository Pattern, CQRS-lite e SOLID
 
 ## 📂 Estrutura do projeto
 
@@ -190,8 +234,8 @@ AstroLauncher/
 ├── public/                     # 🖼️ Assets estáticos (logo, ícones, providers)
 ├── .github/
 │   ├── workflows/              #   CI/CD:
-│   │   ├── build.yml           #     build + release + updater
-│   │   └── quality-gate.yml    #     lint, testes, build, segurança e cobertura
+│   │   ├── build.yml           #     release manual: build + tag + updater
+│   │   └── quality-gate.yml    #     lint, prettier, typecheck, build e testes
 │   └── releases/               #   notas de release versionadas
 ├── components.json             # shadcn/ui config
 └── package.json
@@ -236,12 +280,12 @@ npm run dev:tauri:fast
 
 ## 📦 Build e distribuição
 
-O pipeline de **CI/CD** roda via GitHub Actions (`.github/workflows/build.yml`) a cada push na `main`:
+O **build de release** é manual, disparado via GitHub Actions (`.github/workflows/build.yml`, `workflow_dispatch`), e gera o instalador assinado. Já o **Quality Gate** (`quality-gate.yml`) roda em todo push/PR com lint, prettier, typecheck, build e testes:
 
 ```mermaid
 graph LR
-    A[push main] --> B[Setup Node e Rust]
-    B --> C[Build Tauri]
+    A[workflow_dispatch (manual)] --> B[Setup Node e Rust]
+    B --> C[Build Tauri assinado]
     C --> D[NSIS .exe]
     D --> F[Create tag + Release]
     F --> G[Generate updater manifest]
@@ -255,6 +299,17 @@ graph LR
 
 > [!IMPORTANT]
 > A integração com a **CurseForge Core API** exige uma API key. Ela é injetada no CI via secret `CURSEFORGE_API_KEY` (variável de ambiente `CURSEFORGE_API_KEY`).
+
+## ⚖️ Aviso legal
+
+O **AstroLauncher** é um projeto **independente e open source**, sem qualquer afiliação com a **Mojang Studios** ou a **Microsoft**. "Minecraft" é uma marca registrada da Mojang Synergies AB.
+
+- No primeiro launch, o AstroLauncher baixa versões, bibliotecas e assets direto dos servidores oficiais da Mojang (e dos repositórios oficiais dos loaders). O launcher **não inclui nem distribui** arquivos do jogo.
+- O suporte a **contas offline** é apenas um mecanismo técnico de autenticação local, sem envolvimento com o sistema de contas da Mojang.
+- O uso de contas offline para jogar sem adquirir o jogo é de **inteira responsabilidade do usuário**.
+
+> [!IMPORTANT]
+> Adquira o Minecraft oficialmente para jogar com todo o suporte, atualizações e funcionalidades online.
 
 ## 🤝 Contribuindo
 
