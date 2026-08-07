@@ -6,8 +6,9 @@ import { TabHeader } from '@/components/common/TabHeader'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
-import { cn } from '@/lib/utils'
 import { parseLogContent } from '@/lib/log-utils'
+import { tooltipProps } from '@/lib/tooltip'
+import { cn } from '@/lib/utils'
 
 interface LogTabProps {
   instanceId: string
@@ -160,6 +161,7 @@ export function LogTab({ instanceId }: LogTabProps) {
               setAutoScroll(true)
               setShowScrollBtn(false)
             }}
+            {...tooltipProps('Ir para o fim')}
           >
             <ChevronDown />
           </Button>

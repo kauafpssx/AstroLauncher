@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
+import { tooltipProps } from '@/lib/tooltip'
 import type { ServerEntryDTO } from '@/types/server'
 
 import { ServerEditDialog } from './ServerEditDialog'
@@ -144,6 +145,7 @@ export function ServersTab({ instanceId }: ServersTabProps) {
                           ip: server.ip,
                         })
                       }
+                      {...tooltipProps('Editar')}
                     >
                       <Pencil />
                     </Button>
@@ -151,6 +153,7 @@ export function ServersTab({ instanceId }: ServersTabProps) {
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => setDeleteTarget(server)}
+                      {...tooltipProps('Excluir')}
                     >
                       <Trash2 className="text-destructive" />
                     </Button>

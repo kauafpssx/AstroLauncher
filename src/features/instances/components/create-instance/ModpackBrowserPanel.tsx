@@ -124,7 +124,7 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
                       disabled={isInstalling}
                       onClick={() => setSelected(result)}
                       className={cn(
-                        'hover:bg-accent flex w-full min-w-0 items-center gap-3 rounded-lg p-2 text-left transition-colors',
+                        'group hover:bg-accent flex w-full min-w-0 items-center gap-3 rounded-lg p-2 text-left transition-colors',
                         selected?.projectId === result.projectId &&
                           'bg-primary/10',
                         isInstalling &&
@@ -152,7 +152,14 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
                             </Badge>
                           )}
                           {result.gameVersion && (
-                            <Badge variant="secondary" className="shrink-0">
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                'group-hover:bg-primary group-hover:text-primary-foreground shrink-0',
+                                selected?.projectId === result.projectId &&
+                                  'bg-primary text-primary-foreground',
+                              )}
+                            >
                               {result.gameVersion}
                             </Badge>
                           )}

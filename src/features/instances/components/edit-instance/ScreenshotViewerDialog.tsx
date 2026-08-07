@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
+import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
 
 import { splitExtension } from './screenshot-name'
@@ -137,6 +138,7 @@ export function ScreenshotViewerDialog({
                 size="icon-sm"
                 onClick={commitRename}
                 disabled={isSavingName}
+                {...tooltipProps('Confirmar')}
               >
                 <Check />
               </Button>
@@ -145,6 +147,7 @@ export function ScreenshotViewerDialog({
                 size="icon-sm"
                 onClick={() => setIsRenaming(false)}
                 disabled={isSavingName}
+                {...tooltipProps('Cancelar')}
               >
                 <X />
               </Button>
@@ -152,7 +155,12 @@ export function ScreenshotViewerDialog({
           ) : (
             <div className="flex min-w-0 items-center gap-1.5">
               <p className="text-muted-foreground truncate text-sm">{name}</p>
-              <Button variant="ghost" size="icon-sm" onClick={startRenaming}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={startRenaming}
+                {...tooltipProps('Renomear')}
+              >
                 <Pencil />
               </Button>
             </div>

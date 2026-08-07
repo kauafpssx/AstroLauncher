@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { tooltipProps } from '@/lib/tooltip'
 import type { ContentKind, InstalledMod } from '@/types/mods'
 
 import { ModAPI } from '../services/mod.api'
@@ -155,6 +156,7 @@ export function InstalledContentTab({
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => handleDelete(item)}
+                    {...tooltipProps('Excluir')}
                   >
                     <Trash2 className="text-destructive" />
                   </Button>

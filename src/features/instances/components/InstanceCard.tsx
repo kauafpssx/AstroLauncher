@@ -97,7 +97,7 @@ export function InstanceCard({
           <IconPickerButton
             iconPath={instance.iconPath}
             onSelect={handleIconSelect}
-            className="size-16"
+            className="size-16 bg-transparent"
             fallbackIconClassName="size-8"
             clickOpensPicker={false}
             onDoubleClick={() =>

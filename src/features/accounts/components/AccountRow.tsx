@@ -54,6 +54,7 @@ export function AccountRow({
           {...attributes}
           {...listeners}
           className="text-muted-foreground flex cursor-grab touch-none items-center active:cursor-grabbing"
+          {...tooltipProps('Arrastar para reordenar')}
         >
           <GripVertical className="size-4" />
         </button>
@@ -94,7 +95,11 @@ export function AccountRow({
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              {...tooltipProps('Mais opções')}
+            >
               <MoreHorizontal />
             </Button>
           </DropdownMenuTrigger>

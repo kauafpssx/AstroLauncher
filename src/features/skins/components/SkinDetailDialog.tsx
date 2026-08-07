@@ -87,7 +87,7 @@ export function SkinDetailDialog({
                   className="flex-1 justify-start"
                   onClick={copySkinUrlCommand}
                   {...tooltipProps(
-                    'Copia /skin set web <classic|slim> "<link da skin>" — funciona em servidores com SkinRestorer, sem precisar de nickname',
+                    'Funciona em servidores com SkinRestorer, sem precisar de nickname',
                   )}
                 >
                   {copiedUrl ? <Check className="text-primary" /> : <Link2 />}

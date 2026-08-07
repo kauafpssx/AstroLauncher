@@ -51,7 +51,7 @@ export function SidebarNav<T extends string>({
             disabled={disabled}
             {...tooltipProps('Voltar')}
             className={cn(
-              'bg-primary/10 text-primary hover:bg-primary/20 flex size-7 items-center justify-center rounded-md transition-colors',
+              'bg-primary/10 text-primary hover:bg-primary/20 flex size-7 shrink-0 items-center justify-center rounded-md transition-colors',
               disabled && 'hover:bg-primary/10 cursor-not-allowed opacity-50',
             )}
           >
@@ -59,7 +59,7 @@ export function SidebarNav<T extends string>({
           </button>
         ) : (
           TitleIcon && (
-            <div className="bg-primary/10 flex size-7 items-center justify-center rounded-md">
+            <div className="bg-primary/10 flex size-7 shrink-0 items-center justify-center rounded-md">
               <TitleIcon className="text-primary size-4" />
             </div>
           )
