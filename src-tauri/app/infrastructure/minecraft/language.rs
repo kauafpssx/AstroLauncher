@@ -6,6 +6,7 @@ use std::path::Path;
 fn detect_system_locale() -> Option<String> {
     use std::os::raw::c_int;
 
+    #[link(name = "kernel32")]
     extern "system" {
         fn GetUserDefaultLocaleName(locale_name: *mut u16, locale_name_len: c_int) -> c_int;
     }

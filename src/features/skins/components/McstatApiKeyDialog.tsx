@@ -30,7 +30,7 @@ export function McstatApiKeyDialog({
               Chave inválida, expirada ou revogada. Gere uma nova e cole abaixo.
             </p>
           )}
-          Buscar skins no MCStat exige uma API key própria, ela não vem embutida
+          Buscar skins no MCStat exige uma API key própria. Ela não vem embutida
           no launcher. Gere a sua em{' '}
           <a
             href={env?.mcstatDashboard ?? ''}

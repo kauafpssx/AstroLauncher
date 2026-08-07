@@ -84,6 +84,7 @@ export function IconUploadTab({
           type="button"
           onClick={onChooseFile}
           className="border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary flex aspect-square items-center justify-center rounded-md border border-dashed transition-colors"
+          aria-label="Enviar imagem"
           {...tooltipProps('Enviar imagem')}
         >
           <Plus className="size-5" />
@@ -105,6 +106,7 @@ export function IconUploadTab({
               type="button"
               onClick={(e) => onDeleteCustom(icon, e)}
               className="bg-destructive text-destructive-foreground absolute -top-1.5 -right-1.5 hidden size-5 items-center justify-center rounded-full group-hover:flex"
+              aria-label="Excluir"
               {...tooltipProps('Excluir')}
             >
               <X className="size-3" />

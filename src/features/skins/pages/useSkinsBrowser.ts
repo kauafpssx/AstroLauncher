@@ -98,12 +98,14 @@ export function useSkinsBrowser() {
   // (and `prevGalleryKey` is updated to match) so skins show up immediately
   // instead of flashing empty while a second, redundant fetch runs.
   const submitMcstatKey = async (key: string) => {
+    const settings = await SettingsAPI.get()
+    let keySaved = false
     try {
-      const settings = await SettingsAPI.get()
       await SettingsAPI.update({
         curseforgeApiKey: settings.curseforgeApiKey,
         mcstatApiKey: key,
       })
+      keySaved = true
       const mcstatSortBy = defaultSortFor('mcstat')
       const data = await SkinAPI.search({
         source: 'mcstat',
@@ -125,8 +127,18 @@ export function useSkinsBrowser() {
     } catch (err) {
       if (isUnauthorized(err)) {
         setMcstatKeyInvalid(true)
+        // The new key got persisted above before the probe revealed it's
+        // bad — revert to whatever was saved before this attempt so an
+        // invalid key never lingers in settings.json if the user closes
+        // the dialog instead of trying again.
+        SettingsAPI.update({
+          curseforgeApiKey: settings.curseforgeApiKey,
+          mcstatApiKey: settings.mcstatApiKey,
+        }).catch(() => {})
       } else {
-        toast.error(`Falha ao salvar chave: ${String(err)}`)
+        toast.error(
+          `Falha ao ${keySaved ? 'validar' : 'salvar'} chave: ${String(err)}`,
+        )
       }
       throw err
     }
@@ -156,7 +168,10 @@ export function useSkinsBrowser() {
         setPage(1)
         setHasMore(data.length > 0)
       })
-      .catch((err) => handleSkinsError(err, 'Falha ao buscar skins'))
+      .catch((err) => {
+        if (galleryRequestIdRef.current !== requestId) return
+        handleSkinsError(err, 'Falha ao buscar skins')
+      })
       .finally(() => {
         if (galleryRequestIdRef.current === requestId) setIsLoading(false)
       })
@@ -190,6 +205,12 @@ export function useSkinsBrowser() {
 
   const loadMore = async () => {
     setIsLoadingMore(true)
+    // Read (not bumped) up front: the gallery effect above increments this
+    // ref on every source/sort/model change, so if it moved on by the time
+    // this request settles, the user already switched away from the filter
+    // combo this page belongs to — a late failure shouldn't reopen the
+    // MCStat key dialog (or toast) on behalf of a screen that's gone.
+    const requestId = galleryRequestIdRef.current
     try {
       const nextPage = page + 1
       const data = await SkinAPI.search({
@@ -203,7 +224,9 @@ export function useSkinsBrowser() {
       setPage(nextPage)
       setHasMore(data.length > 0)
     } catch (err) {
-      handleSkinsError(err, 'Falha ao buscar mais skins')
+      if (galleryRequestIdRef.current === requestId) {
+        handleSkinsError(err, 'Falha ao buscar mais skins')
+      }
     } finally {
       setIsLoadingMore(false)
     }

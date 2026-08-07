@@ -16,6 +16,10 @@ pub fn suggest_memory_mb(content_count: i64) -> (i64, i64) {
     (min_mb, max_mb)
 }
 
+#[cfg(test)]
+#[path = "tests/memory_suggestion_tests.rs"]
+mod tests;
+
 pub struct SuggestMemoryUseCase {
     mod_repository: Arc<dyn ModRepository>,
 }

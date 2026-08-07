@@ -439,7 +439,7 @@ Rust: unidade para regras de domínio, integração para infra. Domínio nunca t
 
 - **SQLite** (rusqlite bundled): `<app_data_dir>/data/launcher.db` (via resolver do Tauri, não crate `dirs`). Sem ORM, SQL raw, repos síncronos.
 - Tabelas v1: `instances`, `folders`, `playtime_sessions`, `accounts`, `instance_mods`, `installed_modpacks`, `meta`. Migrações v2–v6 = ALTER TABLE (`position`/`is_default` em accounts, `icon_url`/`kind` em instance_mods, `position` em instances, `icon_path` em folders). `installed_modpacks` existe mas sem repositório no domínio.
-- **settings.json** (único JSON, `<app_data_dir>/settings.json`): só 3 campos — `curseforge_api_key`, `root_group_name`, `root_group_icon`. NÃO adicionar `theme`/`minecraft_dir` etc. (schema antigo de docs).
+- **settings.json** (config de usuário, `<app_data_dir>/settings.json`): schema mínimo — confira campos atuais no código (`json_settings_repository.rs`). NÃO adicionar `theme`/`minecraft_dir` etc. (schema antigo de docs). Existe também `window-state.json` (v0.5.2, ver `infrastructure/window_state.rs`), mas é estado de janela, não config de usuário.
 - **window-state.json** (`<app_data_dir>/window-state.json`, desde v0.5.2): posição/tamanho/maximizado da janela principal, salvo no `CloseRequested` e restaurado no boot. Implementação própria em `infrastructure/window_state.rs` (NÃO `tauri-plugin-window-state` — ver §15).
 - **Filesystem**: instâncias/notas/screenshots/mundos/icons em `<app_data_dir>` (paths via `infrastructure/filesystem/paths.rs` — path-joining puro, sem I/O). Assets Mojang por hash SHA1. Java portátil em `<app_data_dir>/java/<major>/`.
 - **Sem cache em nada**: manifests, buscas de mods, skins batem nas APIs externas toda vez (lacuna conhecida, não decisão de design).

@@ -48,13 +48,13 @@ Todos síncronos (sem `async_trait`) — comentário no código: "Local SQLite d
 
 Padrão "um struct por ação" para CRUD simples:
 
-| Domínio  | Use Cases                                                                                                                                                                                                                                   |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Instance | `CreateInstanceUseCase`, `UpdateInstanceUseCase`, `DeleteInstanceUseCase`, `ListInstancesUseCase`, `MoveInstanceToFolderUseCase`, `ReorderInstancesUseCase`, `LaunchInstanceUseCase` (async, emite `LaunchEventDTO`), `StopInstanceUseCase` |
-| Account  | `CreateAccountUseCase`, `UpdateAccountUseCase`, `DeleteAccountUseCase`, `ListAccountsUseCase`, `SetDefaultAccountUseCase`, `ReorderAccountsUseCase`                                                                                         |
-| Folder   | `CreateFolderUseCase`, `UpdateFolderUseCase`, `DeleteFolderUseCase`, `ListFoldersUseCase`, `ReorderFoldersUseCase`                                                                                                                          |
-| Versões  | `FetchVersionManifestUseCase` (async) → `Vec<VersionDTO>`                                                                                                                                                                                   |
-| Memória  | `SuggestMemoryUseCase` (v0.5.2): `suggest_memory_mb(content_count)` → `SuggestedMemoryDTO { minMb, maxMb }` — heurística pura sem I/O, aplicada no fim da instalação de modpack e exposta via comando `get_suggested_memory`                |
+| Domínio  | Use Cases                                                                                                                                                                                                                                                                |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Instance | `CreateInstanceUseCase`, `UpdateInstanceUseCase`, `DeleteInstanceUseCase`, `ListInstancesUseCase`, `MoveInstanceToFolderUseCase`, `ReorderInstancesUseCase`, `LaunchInstanceUseCase` (async, emite `LaunchEventDTO`), `StopInstanceUseCase`                              |
+| Account  | `CreateAccountUseCase`, `UpdateAccountUseCase`, `DeleteAccountUseCase`, `ListAccountsUseCase`, `SetDefaultAccountUseCase`, `ReorderAccountsUseCase`                                                                                                                      |
+| Folder   | `CreateFolderUseCase`, `UpdateFolderUseCase`, `DeleteFolderUseCase`, `ListFoldersUseCase`, `ReorderFoldersUseCase`                                                                                                                                                       |
+| Versões  | `FetchVersionManifestUseCase` (async) → `Vec<VersionDTO>`                                                                                                                                                                                                                |
+| Memória  | `SuggestMemoryUseCase` (v0.5.2): consulta `ModRepository::find_by_instance` e aplica a heurística pura `suggest_memory_mb(content_count)` → `SuggestedMemoryDTO { minMb, maxMb }`, aplicada no fim da instalação de modpack e exposta via comando `get_suggested_memory` |
 
 Features maiores usam um único "Service" com vários métodos em vez de um use case por ação:
 

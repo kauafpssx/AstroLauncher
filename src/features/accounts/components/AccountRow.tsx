@@ -54,6 +54,7 @@ export function AccountRow({
           {...attributes}
           {...listeners}
           className="text-muted-foreground flex cursor-grab touch-none items-center active:cursor-grabbing"
+          aria-label="Arrastar para reordenar"
           {...tooltipProps('Arrastar para reordenar')}
         >
           <GripVertical className="size-4" />
@@ -98,6 +99,7 @@ export function AccountRow({
             <Button
               variant="ghost"
               size="icon-sm"
+              aria-label="Mais opções"
               {...tooltipProps('Mais opções')}
             >
               <MoreHorizontal />

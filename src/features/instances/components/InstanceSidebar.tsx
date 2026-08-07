@@ -83,7 +83,7 @@ export function InstanceSidebar({
       <div className="flex flex-col gap-2">
         <Button
           variant={primaryAction.key === 'stop' ? 'destructive' : 'default'}
-          disabled={pendingKey === primaryAction.key}
+          disabled={pendingKey !== null}
           onClick={() => runAction(primaryAction.key, primaryAction.onSelect)}
         >
           <primaryAction.icon /> {primaryAction.label}
@@ -96,7 +96,7 @@ export function InstanceSidebar({
             key={key}
             variant="ghost"
             className="justify-start"
-            disabled={key === 'shortcut' && pendingKey === key}
+            disabled={key === 'shortcut' && pendingKey !== null}
             onClick={() =>
               key === 'shortcut' ? runAction(key, onSelect) : onSelect()
             }

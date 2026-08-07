@@ -53,6 +53,7 @@ export function ModReviewRow({
           size="icon-sm"
           onClick={() => onRemove(entry.key)}
           disabled={isInstalling}
+          aria-label="Remover"
           {...tooltipProps('Remover')}
         >
           <X />

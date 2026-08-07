@@ -138,6 +138,7 @@ export function ScreenshotViewerDialog({
                 size="icon-sm"
                 onClick={commitRename}
                 disabled={isSavingName}
+                aria-label="Confirmar"
                 {...tooltipProps('Confirmar')}
               >
                 <Check />
@@ -147,6 +148,7 @@ export function ScreenshotViewerDialog({
                 size="icon-sm"
                 onClick={() => setIsRenaming(false)}
                 disabled={isSavingName}
+                aria-label="Cancelar"
                 {...tooltipProps('Cancelar')}
               >
                 <X />
@@ -159,6 +161,7 @@ export function ScreenshotViewerDialog({
                 variant="ghost"
                 size="icon-sm"
                 onClick={startRenaming}
+                aria-label="Renomear"
                 {...tooltipProps('Renomear')}
               >
                 <Pencil />

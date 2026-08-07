@@ -123,6 +123,7 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => setDeleteTarget(world.name)}
+                    aria-label="Excluir"
                     {...tooltipProps('Excluir')}
                   >
                     <Trash2 className="text-destructive" />

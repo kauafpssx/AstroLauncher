@@ -326,7 +326,12 @@ impl LaunchInstanceUseCase {
                         Ok(path)
                     }
                 })
-                .buffer_unordered(LIBRARY_CONCURRENCY)
+                // `buffered` (not `buffer_unordered`): still downloads up to
+                // LIBRARY_CONCURRENCY at once, but yields results in input
+                // order — `library_paths` feeds `build_classpath` below, and
+                // an out-of-order classpath is a real (if usually silent)
+                // correctness risk when libraries have overlapping packages.
+                .buffered(LIBRARY_CONCURRENCY)
                 .collect()
                 .await;
 
@@ -367,7 +372,7 @@ impl LaunchInstanceUseCase {
                             Ok(dest)
                         }
                     })
-                    .buffer_unordered(LIBRARY_CONCURRENCY)
+                    .buffered(LIBRARY_CONCURRENCY)
                     .collect()
                     .await;
 
@@ -561,31 +566,28 @@ impl LaunchInstanceUseCase {
                 let on_event_files = on_event_blocking.clone();
                 let libraries_total = merged.libraries.len() as u64;
                 let mut libraries_done = 0u64;
-                let mut current_stage = mc_launcher_core::progress::InstallStage::DownloadLibraries;
+                // `install_version_files` never actually emits `StageStarted`
+                // (verified against the crate source) — gating on a "current
+                // stage" that never changes from its initial value would
+                // silently sweep every task (including the thousands of
+                // asset files) into the "library" bucket. Classify by the
+                // task's own destination path instead, captured at
+                // `TaskStarted` and looked up when it finishes (`TaskFinished`
+                // only carries the label, not the path).
+                let mut task_paths: std::collections::HashMap<String, std::path::PathBuf> =
+                    std::collections::HashMap::new();
                 forge_like::install_files(&merged, &app_data_dir, move |event| {
-                    use mc_launcher_core::progress::{InstallStage, ProgressEvent};
+                    use mc_launcher_core::progress::ProgressEvent;
                     match event {
-                        ProgressEvent::StageStarted { stage } => {
-                            current_stage = stage.clone();
-                            let label = match stage {
-                                InstallStage::ResolveVersion => "Resolvendo versão",
-                                InstallStage::DownloadLibraries => "Baixando bibliotecas",
-                                InstallStage::DownloadAssets => "Baixando assets",
-                                InstallStage::InstallRuntime => "Instalando runtime Java",
-                                InstallStage::ExtractNatives => "Extraindo bibliotecas nativas",
-                                InstallStage::LoaderInstall => "Instalando loader",
-                                InstallStage::Verify => "Verificando arquivos",
-                            };
-                            (*on_event_files)(LaunchEventDTO::Stage {
-                                label: label.to_string(),
-                            });
+                        ProgressEvent::TaskStarted { label, path } => {
+                            task_paths.insert(label, path);
                         }
                         ProgressEvent::TaskFinished { label }
                         | ProgressEvent::TaskSkipped { label, .. } => {
-                            // Only the library phase has a known task count upfront:
-                            // asset downloads can number in the thousands and would
-                            // otherwise flood the frontend with one event per file.
-                            if current_stage == InstallStage::DownloadLibraries {
+                            let is_library = task_paths.remove(&label).is_some_and(|p| {
+                                p.components().any(|c| c.as_os_str() == "libraries")
+                            });
+                            if is_library {
                                 libraries_done = (libraries_done + 1).min(libraries_total.max(1));
                                 (*on_event_files)(LaunchEventDTO::Progress {
                                     stage: "Baixando bibliotecas".to_string(),
@@ -597,8 +599,10 @@ impl LaunchInstanceUseCase {
                                 });
                             }
                         }
-                        ProgressEvent::TaskStarted { .. } | ProgressEvent::BytesReceived { .. } => {
-                        }
+                        // Never actually emitted by `install_version_files`
+                        // (see comment above), but still part of the enum.
+                        ProgressEvent::StageStarted { .. }
+                        | ProgressEvent::BytesReceived { .. } => {}
                     }
                 })?;
 

@@ -156,6 +156,7 @@ export function InstalledContentTab({
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => handleDelete(item)}
+                    aria-label="Excluir"
                     {...tooltipProps('Excluir')}
                   >
                     <Trash2 className="text-destructive" />

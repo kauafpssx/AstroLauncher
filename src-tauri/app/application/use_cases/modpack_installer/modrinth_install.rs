@@ -172,13 +172,19 @@ impl ModpackInstallerService {
                     if cancelled.load(Ordering::SeqCst) {
                         anyhow::bail!("Instalação cancelada");
                     }
+                    // Both early returns below still count toward `done` —
+                    // `total` is fixed at the full downloadable count, so
+                    // skipping a file without advancing the counter would
+                    // leave the progress bar permanently short of 100%.
                     let Some(url) = file.downloads.first() else {
+                        done.fetch_add(1, Ordering::Relaxed);
                         return Ok(());
                     };
                     // `file.path` comes from the untrusted `.mrpack` index:
                     // reject any `..`/absolute path that would escape the
                     // instance dir.
                     let Some(dest) = safe_join(&instance_dir, &file.path) else {
+                        done.fetch_add(1, Ordering::Relaxed);
                         return Ok(());
                     };
                     file_downloader::download_to_file(&client, url, &dest, Some(&file.hashes.sha1))
@@ -209,7 +215,9 @@ impl ModpackInstallerService {
                             icon_url,
                             kind.to_string(),
                         );
-                        if mod_repository.save(&installed).is_ok() {
+                        if let Err(err) = mod_repository.save(&installed) {
+                            tracing::warn!("failed to persist installed mod record: {err}");
+                        } else {
                             installed_count.fetch_add(1, Ordering::Relaxed);
                         }
                     }

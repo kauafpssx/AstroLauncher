@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS meta (
 
 ## 12.3 JSON — Configurações do Usuário
 
-Só existe **um** arquivo de config JSON: **`<app_data_dir>/settings.json`**, via `infrastructure/persistence/config/json_settings_repository.rs`. Não existem `java.json` ou `ui.json` — Java é detectado/gerenciado direto no disco (sem tracking em JSON).
+Config de usuário fica em **`<app_data_dir>/settings.json`**, via `infrastructure/persistence/config/json_settings_repository.rs`. Não existem `java.json` ou `ui.json` — Java é detectado/gerenciado direto no disco (sem tracking em JSON). Há também `window-state.json` (v0.5.2), mas é estado de janela, não config de usuário — ver `infrastructure/window_state.rs`.
 
 **`<app_data_dir>/window-state.json` (v0.5.2+):** persistência da janela principal (posição, tamanho, maximizado, monitor) — salvo no `CloseRequested` e restaurado no boot por `infrastructure/window_state.rs`. Implementação própria, não usa `tauri-plugin-window-state` (bug conhecido de restauração em monitor errado com DPI diferente — tauri-apps/plugins-workspace#244). Formato interno: offsets relativos ao monitor + nome do monitor; aplica posição antes do tamanho em unidades físicas.
 

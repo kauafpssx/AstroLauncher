@@ -47,7 +47,7 @@ infrastructure/minecraft/
 
 Boa parte da lógica de baixo nível (download de client jar, resolução de libraries, comando de launch para Forge/NeoForge) vive na crate externa `mc-launcher-core` (v0.1.2), não em arquivos locais — não existem `assets.rs`/`libraries.rs`/`client.rs`/`old_versions.rs`/`version_type.rs` no código. Download de assets fica em `downloader/asset_downloader.rs`.
 
-`language.rs::ensure_default_language(instance_dir)` grava `lang:pt_br` no `options.txt` da instância no primeiro launch (locale do SO via `GetUserDefaultLocaleName`, Win32 FFI). **Nunca sobrescreve** um `options.txt` existente — respeita o que o usuário/modpack já configurou. Chamado no launch vanilla e no `run_forge_like`. Best-effort: falha nunca bloqueia o launch.
+`language.rs::ensure_default_language(instance_dir)` grava `lang:<locale>` (ex.: `lang:pt_br`) no `options.txt` da instância no primeiro launch, detectando o locale do SO via `GetUserDefaultLocaleName` (Win32 FFI). **Nunca sobrescreve** um `options.txt` existente — respeita o que o usuário/modpack já configurou. Chamado no launch vanilla e no `run_forge_like`. Best-effort: falha nunca bloqueia o launch.
 
 ## 8.5 Modloader
 

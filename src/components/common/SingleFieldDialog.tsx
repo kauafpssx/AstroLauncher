@@ -66,6 +66,12 @@ export function SingleFieldDialog({
     try {
       await onSubmit(trimmed)
       onOpenChange(false)
+    } catch {
+      // Swallowed deliberately: `onSubmit` implementations are expected to
+      // surface their own error (toast, inline message) and rejecting here
+      // just keeps the dialog open — an unhandled promise rejection would
+      // otherwise bubble up from this async event handler with nothing to
+      // catch it.
     } finally {
       setIsSubmitting(false)
     }

@@ -9,6 +9,7 @@ import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-wor
 import { parseLogContent } from '@/lib/log-utils'
 import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
+import { useTooltipStore } from '@/stores/tooltip.store'
 
 interface LogTabProps {
   instanceId: string
@@ -160,6 +161,11 @@ export function LogTab({ instanceId }: LogTabProps) {
               scrollToBottom()
               setAutoScroll(true)
               setShowScrollBtn(false)
+              // Belt-and-suspenders: CursorTooltip already hides globally on
+              // any click, but this button unmounts the instant it's
+              // clicked, so hide explicitly too rather than rely solely on
+              // event-listener ordering between the two.
+              useTooltipStore.getState().hide()
             }}
             {...tooltipProps('Ir para o fim')}
           >

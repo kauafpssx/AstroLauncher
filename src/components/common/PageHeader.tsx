@@ -17,6 +17,7 @@ export function PageHeader({ title, onBack, children }: PageHeaderProps) {
         variant="ghost"
         size="icon"
         onClick={onBack}
+        aria-label="Voltar"
         {...tooltipProps('Voltar')}
       >
         <ArrowLeft />

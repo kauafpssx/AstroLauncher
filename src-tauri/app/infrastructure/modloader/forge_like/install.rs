@@ -72,11 +72,15 @@ pub fn run_installer(
         const CREATE_NO_WINDOW: u32 = 0x08000000;
         cmd.creation_flags(CREATE_NO_WINDOW);
     }
-    let status = cmd.status()?;
-    if !status.success() {
+    let output = cmd.output()?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let mut tail_lines: Vec<&str> = stderr.lines().rev().take(10).collect();
+        tail_lines.reverse();
+        let tail = tail_lines.join("\n");
         anyhow::bail!(
-            "Instalador do {loader} falhou (código de saída: {:?})",
-            status.code()
+            "Instalador do {loader} falhou (código de saída: {:?}):\n{tail}",
+            output.status.code()
         );
     }
     Ok(())

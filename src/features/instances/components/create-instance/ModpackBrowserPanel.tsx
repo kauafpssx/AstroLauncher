@@ -155,7 +155,9 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
                             <Badge
                               variant="secondary"
                               className={cn(
-                                'group-hover:bg-primary group-hover:text-primary-foreground shrink-0',
+                                'shrink-0',
+                                !isInstalling &&
+                                  'group-hover:bg-primary group-hover:text-primary-foreground',
                                 selected?.projectId === result.projectId &&
                                   'bg-primary text-primary-foreground',
                               )}

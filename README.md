@@ -71,33 +71,33 @@ Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases 
 
 ### ✨ Funcionalidades
 
-|     | Feature                   | Descrição                                                                           |
-| --- | ------------------------- | ----------------------------------------------------------------------------------- |
-| 🪐  | **Splash screen**         | Tela de abertura com checagem automática de atualização                             |
-| 🧊  | **Instâncias**            | Criar, editar, excluir e organizar instâncias em **pastas** com drag & drop         |
-| 🕰️  | **Todas as versões**      | Releases, snapshots, alphas, betas, infdev, classic e indev (desde 2009!)           |
-| 🧩  | **Multi-loader**          | Fabric, Quilt, Forge, NeoForge e LiteLoader                                         |
-| 👤  | **Contas offline**        | Modo crackeado com gerenciador de contas e reordenação por drag & drop              |
-| ☕  | **Java Manager**          | Detecção e download automático de runtimes (Adoptium Temurin)                       |
-| ⏱️  | **Playtime**              | Tempo de jogo por instância, sessões e estatísticas                                 |
-| 🧪  | **Mod Browser**           | Busca e instalação de mods via **Modrinth** e **CurseForge**                        |
-| 📦  | **Modpacks**              | Instalação direta de modpacks (.mrpack e manifest do CurseForge)                    |
-| ⚙️  | **Editor de Config**      | `options.txt` tipado, arquivos de `config/` e **Keybinds** com detecção de conflito |
-| 📝  | **Notas**                 | Múltiplas notas por instância, exportadas no `.astropack`                           |
-| 🖼️  | **Ícones customizados**   | Presets de blocos/itens ou upload com recorte (crop)                                |
-| 👕  | **Galeria de skins**      | Fontes **PlayerMC + MCStat**, filtro Classic/Slim e preview 3D (skinview3d)         |
-| 💬  | **Discord RPC**           | Status do jogo exibido no perfil do Discord                                         |
-| 📜  | **Console**               | Log do Minecraft em tempo real                                                      |
-| 🪄  | **AstroPack**             | Exportar/importar instâncias completas (`.astropack`)                               |
-| 🖱️  | **Atalhos de desktop**    | Criar atalho da instância na área de trabalho, com ícone customizado                |
-| 📂  | **Arquivos `.astropack`** | Duplo clique importa instâncias; atalhos abrem o jogo direto                        |
-| 📋  | **Duplicar instância**    | Cópia completa com mods, mundos e configurações                                     |
-| 🌍  | **Mundos**                | Gerenciar os mundos salvos da instância                                             |
-| 🔌  | **Servidores**            | Editor visual do `servers.dat` (multiplayer)                                        |
-| 📸  | **Screenshots**           | Visualizador das capturas da instância com zoom                                     |
-| 🎨  | **Conteúdo instalado**    | Mods, Resource Packs e Shaders: ativar, desativar e excluir                         |
-| 🧠  | **Sugestão de RAM**       | Recomendação de memória automática conforme a quantidade de mods                    |
-| 🗞️  | **Changelog in-app**      | Notas de versão acessíveis direto no launcher, offline                              |
+|     | Feature                   | Descrição                                                                                                      |
+| --- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 🪐  | **Splash screen**         | Tela de abertura com checagem automática de atualização                                                        |
+| 🧊  | **Instâncias**            | Criar, editar, excluir e organizar instâncias em **pastas** com drag & drop                                    |
+| 🕰️  | **Todas as versões**      | Releases, snapshots, alphas, betas, infdev, classic e indev (desde 2009!)                                      |
+| 🧩  | **Multi-loader**          | Fabric, Quilt, Forge, NeoForge e LiteLoader                                                                    |
+| 👤  | **Contas offline**        | Modo crackeado com gerenciador de contas e reordenação por drag & drop                                         |
+| ☕  | **Java Manager**          | Detecção e download automático de runtimes (Adoptium Temurin)                                                  |
+| ⏱️  | **Playtime**              | Tempo de jogo por instância, sessões e estatísticas                                                            |
+| 🧪  | **Mod Browser**           | Busca e instalação de mods via **Modrinth** e **CurseForge**                                                   |
+| 📦  | **Modpacks**              | Instalação direta de modpacks (.mrpack e manifest do CurseForge)                                               |
+| ⚙️  | **Editor de Config**      | `options.txt` tipado, arquivos de `config/` e **Keybinds** com detecção de conflito                            |
+| 📝  | **Notas**                 | Múltiplas notas por instância, exportadas no `.astropack`                                                      |
+| 🖼️  | **Ícones customizados**   | Presets de blocos/itens ou upload com recorte (crop)                                                           |
+| 👕  | **Galeria de skins**      | Fontes **PlayerMC + MCStat**, filtro Classic/Slim e preview 3D (skinview3d)                                    |
+| 💬  | **Discord RPC**           | Status do jogo exibido no perfil do Discord                                                                    |
+| 📜  | **Console**               | Log do Minecraft em tempo real                                                                                 |
+| 🪄  | **AstroPack**             | Exportar/importar instâncias completas (`.astropack`)                                                          |
+| 🖱️  | **Atalhos de desktop**    | Criar atalho da instância na área de trabalho, com ícone customizado                                           |
+| 📂  | **Arquivos `.astropack`** | Duplo clique importa instâncias; atalhos abrem o jogo direto                                                   |
+| 📋  | **Duplicar instância**    | Cópia completa com mods, mundos e configurações                                                                |
+| 🌍  | **Mundos**                | Gerenciar os mundos salvos da instância                                                                        |
+| 🔌  | **Servidores**            | Editor visual do `servers.dat` (multiplayer)                                                                   |
+| 📸  | **Screenshots**           | Visualizador das capturas da instância com zoom                                                                |
+| 🎨  | **Conteúdo instalado**    | Mods, Resource Packs e Shaders: ativar, desativar e excluir                                                    |
+| 🧠  | **Sugestão de RAM**       | Recomendação de memória automática conforme a quantidade de conteúdo instalado (mods, resource packs, shaders) |
+| 🗞️  | **Changelog in-app**      | Notas de versão acessíveis direto no launcher, offline                                                         |
 
 ## 🖼️ Screenshots
 

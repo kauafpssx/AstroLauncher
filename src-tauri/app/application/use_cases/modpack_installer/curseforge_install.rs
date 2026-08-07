@@ -139,6 +139,16 @@ impl ModpackInstallerService {
                     .await?;
                     let mod_name = fallback_name.unwrap_or_else(|| resolved.display_name.clone());
 
+                    let Some(url) = resolved.download_url else {
+                        return Ok(());
+                    };
+                    let dest = mods_dir.join(&resolved.file_name);
+                    file_downloader::download_to_file(&client, &url, &dest, None).await?;
+
+                    // Reported after the file actually lands on disk, not
+                    // when we merely resolved its metadata: progress (and
+                    // the "installed files" list in the UI) should reflect
+                    // completed downloads, not downloads-in-progress.
                     let current = done.fetch_add(1, Ordering::Relaxed) + 1;
                     on_event(AstroPackEventDTO::Progress {
                         kind: "mod".to_string(),
@@ -147,12 +157,6 @@ impl ModpackInstallerService {
                         current,
                         total,
                     });
-
-                    let Some(url) = resolved.download_url else {
-                        return Ok(());
-                    };
-                    let dest = mods_dir.join(&resolved.file_name);
-                    file_downloader::download_to_file(&client, &url, &dest, None).await?;
 
                     let installed = InstalledMod::new(
                         instance_id,
@@ -164,8 +168,13 @@ impl ModpackInstallerService {
                         icon_url,
                         "mod".to_string(),
                     );
-                    if mod_repository.save(&installed).is_ok() {
-                        installed_count.fetch_add(1, Ordering::Relaxed);
+                    match mod_repository.save(&installed) {
+                        Ok(()) => {
+                            installed_count.fetch_add(1, Ordering::Relaxed);
+                        }
+                        Err(err) => {
+                            tracing::warn!("failed to persist installed mod record: {err}");
+                        }
                     }
                     Ok(())
                 }

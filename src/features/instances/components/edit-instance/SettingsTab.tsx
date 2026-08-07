@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { InstanceDTO } from '@/types/instance'
 
-import { ModAPI } from '@/features/mods/services/mod.api'
 import type { SuggestedMemoryDTO } from '@/types/instance'
 
 import { IconPickerButton } from '../IconPickerButton'
@@ -49,7 +48,7 @@ export function SettingsTab({ instance }: SettingsTabProps) {
 
   useEffect(() => {
     let cancelled = false
-    ModAPI.getSuggestedMemory(instance.id)
+    InstanceAPI.getSuggestedMemory(instance.id)
       .then((suggestion) => {
         if (!cancelled) setSuggestedMemory(suggestion)
       })
@@ -153,8 +152,21 @@ export function SettingsTab({ instance }: SettingsTabProps) {
         onMaxChange={updateMaxMemory}
         onUseSuggested={() => {
           if (!suggestedMemory) return
-          updateMinMemory(suggestedMemory.minMb)
-          updateMaxMemory(suggestedMemory.maxMb)
+          // Set both together instead of chaining updateMinMemory/
+          // updateMaxMemory: each of those reads the *other* value from
+          // this render's closure, so calling them back to back applies
+          // the second one's cross-clamp against a stale value of the
+          // first.
+          const min = Math.min(
+            Math.max(suggestedMemory.minMb, MIN_MEMORY_MB),
+            totalMemoryMb,
+          )
+          const max = Math.min(
+            Math.max(suggestedMemory.maxMb, MIN_MEMORY_MB),
+            totalMemoryMb,
+          )
+          setMinMemory(Math.min(min, max))
+          setMaxMemory(Math.max(min, max))
         }}
       />
 

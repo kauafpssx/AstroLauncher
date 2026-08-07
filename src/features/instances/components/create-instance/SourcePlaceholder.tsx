@@ -12,14 +12,14 @@ const COPY: Record<
     icon: Blocks,
     title: 'Integração com Modrinth em breve',
     description:
-      'Quando disponível, você poderá buscar e instalar modpacks diretamente aqui, o mod loader é definido automaticamente pelo modpack escolhido.',
+      'Quando disponível, você poderá buscar e instalar modpacks diretamente aqui. O mod loader é definido automaticamente pelo modpack escolhido.',
     action: 'Buscar modpacks',
   },
   curseforge: {
     icon: Flame,
     title: 'Integração com CurseForge em breve',
     description:
-      'Quando disponível, você poderá buscar e instalar modpacks diretamente aqui, o mod loader é definido automaticamente pelo modpack escolhido.',
+      'Quando disponível, você poderá buscar e instalar modpacks diretamente aqui. O mod loader é definido automaticamente pelo modpack escolhido.',
     action: 'Buscar modpacks',
   },
 }

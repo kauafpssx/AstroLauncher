@@ -29,6 +29,12 @@ export function MemorySettingsSection({
     !!suggestedMemory &&
     minMemory === suggestedMemory.minMb &&
     maxMemory === suggestedMemory.maxMb
+  // If the suggestion doesn't fit in the machine's total RAM, applying it
+  // gets clamped down to `totalMemoryMb` by the caller — the applied values
+  // would then never match `suggestedMemory` above, so `isSuggested` could
+  // never become true and the button would stay stuck on screen forever.
+  const suggestionFits =
+    !!suggestedMemory && suggestedMemory.maxMb <= totalMemoryMb
 
   return (
     <div className="flex flex-col gap-6 border-t pt-4">
@@ -39,7 +45,7 @@ export function MemorySettingsSection({
             Quantidade de RAM alocada para a JVM ao iniciar esta instância.
           </p>
         </div>
-        {suggestedMemory && !isSuggested && (
+        {suggestedMemory && !isSuggested && suggestionFits && (
           <Button
             type="button"
             variant="outline"
