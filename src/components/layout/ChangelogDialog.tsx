@@ -11,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { getAppEnvConfig } from '@/lib/app-config'
 
-// Bundled at build time — every `.github/releases/vX.Y.Z.md` file becomes
+// Bundled at build time: every `.github/releases/vX.Y.Z.md` file becomes
 // part of the app itself, so the changelog works fully offline.
 const modules = import.meta.glob('../../../.github/releases/v*.md', {
   query: '?raw',
@@ -40,7 +40,7 @@ function buildEntries(repo: string): ChangelogEntry[] {
       if (!match) return null
       const version = match[1]
       // The same placeholders the CI release workflow fills in before
-      // publishing to GitHub Releases — the raw files in the repo still have
+      // publishing to GitHub Releases: the raw files in the repo still have
       // them literally, so mirror that substitution here.
       const content = raw
         .replaceAll('{{tag}}', `v${version}`)
@@ -80,7 +80,7 @@ export function ChangelogDialog({ open, onOpenChange }: ChangelogDialogProps) {
 
   const active = entries.find((e) => e.version === selected) ?? entries[0]
 
-  // Switching versions swaps the markdown in place — the scroll position
+  // Switching versions swaps the markdown in place: the scroll position
   // from the previous one otherwise carries over instead of starting at
   // the top of the new content.
   useEffect(() => {

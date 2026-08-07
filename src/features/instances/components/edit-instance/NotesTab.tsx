@@ -40,7 +40,7 @@ export function NotesTab({ instanceId }: NotesTabProps) {
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground text-sm">
           Anotações sobre esta instância. Suporta markdown (# título,
-          **negrito**, listas...) e imagens — digite{' '}
+          **negrito**, listas...) e imagens: digite{' '}
           <kbd className="rounded border px-1 text-xs">/</kbd> ou use o botão
           para inserir uma screenshot.
         </p>

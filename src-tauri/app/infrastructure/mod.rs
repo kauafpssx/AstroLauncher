@@ -12,3 +12,4 @@ pub mod modrinth;
 pub mod persistence;
 pub mod playermc;
 pub mod process;
+pub mod window_state;

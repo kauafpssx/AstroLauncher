@@ -16,7 +16,7 @@ pub struct LaunchOptions<'a> {
     pub assets_dir: &'a Path,
     pub game_dir: &'a Path,
     pub version_meta: &'a VersionMeta,
-    /// The class actually invoked — the vanilla client's main class, or a mod
+    /// The class actually invoked: the vanilla client's main class, or a mod
     /// loader's own entry point (e.g. Fabric/Quilt's Knot launcher) when one
     /// is installed.
     pub main_class: &'a str,
@@ -25,10 +25,10 @@ pub struct LaunchOptions<'a> {
     pub min_memory_mb: i64,
     pub max_memory_mb: i64,
     /// Extra JVM flags some loaders require (e.g. Forge's module `--add-opens`
-    /// set on 1.17+) — inserted before `-cp`. Empty for vanilla/Fabric/Quilt.
+    /// set on 1.17+): inserted before `-cp`. Empty for vanilla/Fabric/Quilt.
     pub extra_jvm_args: &'a [String],
     /// Extra game arguments some loaders require (e.g. LiteLoader's
-    /// `--tweakClass`) — appended after Mojang's standard set.
+    /// `--tweakClass`): appended after Mojang's standard set.
     pub extra_game_args: &'a [String],
 }
 

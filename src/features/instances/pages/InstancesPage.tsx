@@ -102,7 +102,7 @@ export function InstancesPage() {
         {selectedInstance && (
           <>
             <ResizableHandle />
-            {/* Capped well short of the middle of the screen — this is a
+            {/* Capped well short of the middle of the screen: this is a
                 quick-glance info panel, not a workspace someone should be
                 able to drag out to half the window. */}
             <ResizablePanel defaultSize="256px" minSize="220px" maxSize="420px">

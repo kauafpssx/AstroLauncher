@@ -65,7 +65,7 @@ export function ModBrowserDialog({
         className="flex h-[90vh] max-h-[820px] flex-col gap-0 p-0 sm:max-w-6xl"
         // Interacting with the resize handle sometimes gets misread by
         // Radix's dismissable layer as an outside interaction, closing the
-        // dialog. Disable dismiss-on-outside-interaction here — Escape and
+        // dialog. Disable dismiss-on-outside-interaction here: Escape and
         // the close button still work.
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}

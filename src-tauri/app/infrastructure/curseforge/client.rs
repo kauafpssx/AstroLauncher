@@ -37,7 +37,7 @@ struct ModsByIdsRequest<'a> {
     mod_ids: &'a [u32],
 }
 
-/// Resolves many mods' metadata (including their icon) in a single request —
+/// Resolves many mods' metadata (including their icon) in a single request:
 /// used to fetch every modpack mod's icon up front instead of one call each.
 pub async fn get_mods_by_ids(
     client: &reqwest::Client,
@@ -66,7 +66,7 @@ struct DescriptionResponse {
     data: String,
 }
 
-/// The mod's full project page, as raw HTML — CurseForge doesn't include this
+/// The mod's full project page, as raw HTML: CurseForge doesn't include this
 /// in `get_mod`'s response, it's a dedicated endpoint.
 pub async fn get_description(
     client: &reqwest::Client,
@@ -85,7 +85,7 @@ pub async fn get_description(
     Ok(response.data)
 }
 
-/// Resolves a single file's metadata (including its download URL) — needed
+/// Resolves a single file's metadata (including its download URL): needed
 /// when installing a modpack, whose manifest only lists `projectID`/`fileID`
 /// pairs for each mod, not URLs.
 pub async fn get_file(
@@ -118,7 +118,7 @@ fn mod_loader_type(loader: &str) -> Option<u32> {
 }
 
 /// Maps our unified sort key to CurseForge Core API's `sortField` enum
-/// (Popularity=2, TotalDownloads=6, ReleasedDate=11, LastUpdated=3) — chosen
+/// (Popularity=2, TotalDownloads=6, ReleasedDate=11, LastUpdated=3): chosen
 /// to mirror Modrinth's `relevance`/`downloads`/`newest`/`updated`.
 fn sort_field(sort: Option<&str>) -> &'static str {
     match sort {

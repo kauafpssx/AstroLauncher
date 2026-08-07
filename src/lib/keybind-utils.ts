@@ -4,7 +4,7 @@ import type { KeybindCategory } from './keybind-labels'
 export { humanizeKey, KEYBIND_CATEGORY_ORDER } from './keybind-labels'
 
 export interface ParsedKeybind {
-  /** e.g. "forward", "sodium.reload_chunks" — the part after `key_key.` */
+  /** e.g. "forward", "sodium.reload_chunks": the part after `key_key.` */
   action: string
   label: string
   value: string
@@ -34,7 +34,7 @@ export function eventToMinecraftKey(event: KeyboardEvent): string | null {
   return `key.keyboard.${code.toLowerCase()}`
 }
 
-/** Matches any `key_*` line — vanilla (`key_key.forward`) and mod-added ones (`key_iris.keybind.reload`) alike. */
+/** Matches any `key_*` line: vanilla (`key_key.forward`) and mod-added ones (`key_iris.keybind.reload`) alike. */
 const KEY_LINE = /^key_(.+):(.*)$/
 const VANILLA_PREFIX = 'key.'
 
@@ -82,7 +82,7 @@ export function applyKeybinds(
 
 /**
  * Maps each bound physical key (excluding `key.keyboard.unknown`) to the
- * actions currently assigned to it — any key with 2+ actions is a conflict.
+ * actions currently assigned to it: any key with 2+ actions is a conflict.
  */
 export function findKeybindConflicts(
   binds: ParsedKeybind[],

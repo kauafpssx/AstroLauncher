@@ -14,7 +14,7 @@ export const ResizableImage = ImageExtension.extend({
   addNodeView() {
     return ReactNodeViewRenderer(ResizableImageComponent)
   },
-  // tiptap-markdown's built-in image serializer only knows src/alt/title —
+  // tiptap-markdown's built-in image serializer only knows src/alt/title:
   // width/height (set via drag-resize) would silently get dropped on every
   // save, so the resized size never survives a reload. Write a raw <img>
   // tag instead whenever a custom size is set, since plain markdown image

@@ -20,7 +20,7 @@ export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
   const [copiedUuid, setCopiedUuid] = useState<string | null>(null)
   const [copyAsCommand, setCopyAsCommand] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
-  // `null` means "use the model the API reported" — set once the user
+  // `null` means "use the model the API reported": set once the user
   // overrides it, since detection isn't always right (e.g. a classic skin
   // that's actually meant to be worn as slim).
   const [copyModel, setCopyModel] = useState<'classic' | 'slim' | null>(null)
@@ -58,7 +58,7 @@ export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
   }
 
   // SkinRestorer (the most common skin plugin on servers that don't use
-  // Mojang accounts) can apply a skin straight from its PNG URL — no
+  // Mojang accounts) can apply a skin straight from its PNG URL: no
   // username or Mojang lookup needed, which works even for skins nobody's
   // currently wearing. Syntax: `/skin set web <classic|slim> "<url>"`.
   const effectiveModel =

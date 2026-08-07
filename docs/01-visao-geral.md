@@ -19,7 +19,7 @@ Jogadores de Minecraft que desejam um launcher leve, rápido e visualmente moder
 | Store           | Zustand                            |
 | Minecraft API   | mc-launcher-core                   |
 | Modpacks API    | CurseForge Core API + Modrinth API |
-| Ícones          | lucide-react, phosphor-icons       |
+| Ícones          | lucide-react                       |
 
 ## 1.4 Funcionalidades Principais
 
@@ -36,11 +36,16 @@ Jogadores de Minecraft que desejam um launcher leve, rápido e visualmente moder
 - **Modpacks:** instalação direta de `.mrpack` e manifests da CurseForge
 - **Editor de instância:** notas, mundos, servers.dat, screenshots, arquivos de config (`options.txt`, keybinds, arquivos de `config/`)
 - **Ícones customizados:** presets ou upload com recorte
-- **Visualizador de skins 3D:** busca de skins (PlayerMC) com preview via skinview3d
+- **Visualizador de skins 3D:** busca de skins (PlayerMC + MCStat) com preview via skinview3d
 - **Discord Rich Presence:** status do jogo exibido no Discord
 - **AstroPack:** exportação/importação de instâncias completas
+- **Atalhos de desktop:** criar atalho da instância na área de trabalho, com ícone customizado
+- **Duplicar instância:** cópia completa com mods, mundos e configurações
+- **Sugestão de memória:** RAM mín/máx estimada conforme conteúdo instalado, aplicada em modpacks e editável na UI (v0.5.2)
+- **Idioma automático:** instâncias novas abrem no locale do Windows (`lang:` no `options.txt`) (v0.5.2)
+- **Persistência de janela:** posição/tamanho/maximizado restaurados no próximo launch (v0.5.2)
 - **Console de log:** saída do jogo em tempo real
-- **Interface moderna:** shadcn/ui com tema claro/escuro
+- **Interface moderna:** shadcn/ui com tema escuro
 
 ## 1.5 Princípios Arquiteturais
 

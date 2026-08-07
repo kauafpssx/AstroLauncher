@@ -5,11 +5,11 @@ use std::path::{Path, PathBuf};
 /// absolute paths, Windows drive prefixes (`C:\`), and `..` segments.
 ///
 /// Untrusted input reaches here from imported packs (AstroPack/modpack ZIP
-/// entry names, world/screenshot names) and the config editor — a `..` or an
+/// entry names, world/screenshot names) and the config editor: a `..` or an
 /// absolute path would otherwise let `Path::join` write outside the instance.
 ///
 /// Validation is done on the raw string (not `Path::components`, which is
-/// OS-dependent) so `\` and `C:` are rejected on Linux/macOS too — the app
+/// OS-dependent) so `\` and `C:` are rejected on Linux/macOS too: the app
 /// ships on Windows but the CI/tests run on Linux.
 pub fn safe_join(base: &Path, relative: &str) -> Option<PathBuf> {
     if relative.is_empty() {

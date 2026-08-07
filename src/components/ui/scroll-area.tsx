@@ -11,7 +11,7 @@ function ScrollArea({
   viewportRef,
   ...props
 }: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
-  /** Access to the scrollable viewport itself — e.g. to reset scrollTop
+  /** Access to the scrollable viewport itself: e.g. to reset scrollTop
    * when the content underneath changes but the ScrollArea doesn't remount. */
   viewportRef?: React.Ref<HTMLDivElement>
 }) {
@@ -25,7 +25,7 @@ function ScrollArea({
         ref={viewportRef}
         data-slot="scroll-area-viewport"
         // Radix wraps children in an internal `display:table` sizer div for
-        // scroll measurement — that shrink-to-fit layout ignores the
+        // scroll measurement: that shrink-to-fit layout ignores the
         // viewport's actual width, silently breaking any `truncate`/`min-w-0`
         // downstream (content just grows as wide as it wants). Force it back
         // to a normal block so width constraints from our own layout apply.
@@ -58,7 +58,7 @@ function ScrollBar({
       <ScrollAreaPrimitive.ScrollAreaThumb
         data-slot="scroll-area-thumb"
         // Radix only mounts the thumb once its own resize-observer math says
-        // the content actually overflows (`hasThumb`) — inside a
+        // the content actually overflows (`hasThumb`): inside a
         // react-resizable-panels column that measurement can land at 0 on
         // first paint and never re-fire. forceMount guarantees the thumb is
         // always in the DOM; Radix still sizes/positions it correctly.

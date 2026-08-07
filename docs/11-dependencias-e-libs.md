@@ -6,32 +6,34 @@ Versões exatas conforme `Cargo.toml` / `package.json` no momento desta revisão
 
 ### Core
 
-| Biblioteca                       | Versão                  | Finalidade                                          |
-| -------------------------------- | ----------------------- | --------------------------------------------------- |
-| `tauri`                          | 2.11.3                  | Framework desktop nativo (feature `protocol-asset`) |
-| `tauri-build`                    | 2.6.3                   | Build script do Tauri                               |
-| `tauri-plugin-dialog`            | 2.7.2                   | Diálogos nativos                                    |
-| `tauri-plugin-fs`                | 2.5.1                   | Acesso ao sistema de arquivos                       |
-| `tauri-plugin-shell`             | 2.3.5                   | Spawn de processos                                  |
-| `tauri-plugin-clipboard-manager` | 2                       | Área de transferência                               |
-| `tauri-plugin-updater`           | 2.10.1                  | Auto-update in-app                                  |
-| `tauri-plugin-process`           | 2.3.1                   | Controle do processo do próprio app (restart/exit)  |
-| `tauri-plugin-log`               | 2                       | Logging integrado ao Tauri                          |
-| `serde` / `serde_json`           | 1.0                     | Serialização/deserialização                         |
-| `thiserror`                      | 2.0.19                  | Erros tipados                                       |
-| `anyhow`                         | 1.0.104                 | Erros contextuais                                   |
-| `tokio`                          | 1.53.1 (feature `full`) | Runtime assíncrono                                  |
-| `log`                            | 0.4                     | Fachada de logging                                  |
+| Biblioteca                       | Versão                  | Finalidade                                             |
+| -------------------------------- | ----------------------- | ------------------------------------------------------ |
+| `tauri`                          | 2.11.3                  | Framework desktop nativo (feature `protocol-asset`)    |
+| `tauri-build`                    | 2.6.3                   | Build script do Tauri                                  |
+| `tauri-plugin-dialog`            | 2.7.2                   | Diálogos nativos                                       |
+| `tauri-plugin-fs`                | 2.5.1                   | Acesso ao sistema de arquivos                          |
+| `tauri-plugin-shell`             | 2.3.5                   | Spawn de processos                                     |
+| `tauri-plugin-clipboard-manager` | 2                       | Área de transferência                                  |
+| `tauri-plugin-updater`           | 2.10.1                  | Auto-update in-app                                     |
+| `tauri-plugin-process`           | 2.3.1                   | Controle do processo do próprio app (restart/exit)     |
+| `tauri-plugin-single-instance`   | 2                       | Instância única + repasse de argv (atalhos/.astropack) |
+| `tauri-plugin-log`               | 2                       | Logging integrado ao Tauri                             |
+| `serde` / `serde_json`           | 1.0                     | Serialização/deserialização                            |
+| `thiserror`                      | 2.0.19                  | Erros tipados                                          |
+| `anyhow`                         | 1.0.104                 | Erros contextuais                                      |
+| `tokio`                          | 1.53.1 (feature `full`) | Runtime assíncrono                                     |
+| `log`                            | 0.4                     | Fachada de logging                                     |
 
 ### Minecraft
 
 | Biblioteca         | Versão             | Finalidade                                                                     |
 | ------------------ | ------------------ | ------------------------------------------------------------------------------ |
 | `mc-launcher-core` | 0.1.2              | Building blocks de launcher (Forge/NeoForge installer, launch command builder) |
-| `mc_chat`          | 0.3.0              | Parsing de chat formatado do Minecraft                                         |
 | `uuid`             | 1.20.0 (v4, serde) | UUIDs de contas offline                                                        |
 
 Não existe crate `mc-versions` — parsing de tipos de versão é feito com os DTOs próprios (`VersionDTO`, `version_meta.rs`).
+
+`mc_chat` foi **removido** na v0.5.2 (sem uso real — o lint `unused_crate_dependencies` pega dependências órfãs no CI).
 
 ### HTTP e Network
 
@@ -47,20 +49,19 @@ Não há `flate2` no Cargo.toml.
 | Biblioteca | Versão | Finalidade         |
 | ---------- | ------ | ------------------ |
 | `sha1`     | 0.11.0 | Checksum de assets |
-| `sha2`     | 0.11.0 | SHA-256/512        |
-| `md-5`     | 0.10.6 | MD5                |
 | `hex`      | 0.4.3  | Encoding hex       |
+
+`sha2` e `md-5` foram **removidos** na v0.5.2 (sem uso).
 
 ### Sistema e Arquivos
 
-| Biblioteca   | Versão | Finalidade                                                                                           |
-| ------------ | ------ | ---------------------------------------------------------------------------------------------------- |
-| `dirs`       | 6.0.0  | Diretórios padrão (uso pontual — o app data dir principal vem do resolver do Tauri, não desta crate) |
-| `tempfile`   | 3.27.0 | Arquivos temporários                                                                                 |
-| `walkdir`    | 2.5.0  | Iteração recursiva em diretórios                                                                     |
-| `fs_extra`   | 1.3.0  | Cópia/move de arquivos                                                                               |
-| `path-clean` | 1.0.1  | Normalização de paths                                                                                |
-| `sysinfo`    | 0.39.6 | Info de memória/sistema (`get_total_system_memory_mb`)                                               |
+| Biblioteca | Versão | Finalidade                                                                                           |
+| ---------- | ------ | ---------------------------------------------------------------------------------------------------- |
+| `dirs`     | 6.0.0  | Diretórios padrão (uso pontual — o app data dir principal vem do resolver do Tauri, não desta crate) |
+| `walkdir`  | 2.5.0  | Iteração recursiva em diretórios                                                                     |
+| `sysinfo`  | 0.39.6 | Info de memória/sistema (`get_total_system_memory_mb`)                                               |
+
+`tempfile` virou **dev-dependency** (só testes) e `fs_extra`/`path-clean` foram **removidos** na v0.5.2.
 
 ### Processos e Áudio
 
@@ -78,12 +79,12 @@ Não existe `discord-sdk` no projeto.
 
 ### Logging
 
-| Biblioteca           | Versão | Finalidade            |
-| -------------------- | ------ | --------------------- |
-| `tracing`            | 0.1.44 | Logging estruturado   |
-| `tracing-subscriber` | 0.3.23 | Output de logs        |
-| `tracing-appender`   | 0.2.5  | Rolling file appender |
-| `chrono`             | 0.4.45 | Timestamps            |
+| Biblioteca | Versão | Finalidade          |
+| ---------- | ------ | ------------------- |
+| `tracing`  | 0.1.44 | Logging estruturado |
+| `chrono`   | 0.4.45 | Timestamps          |
+
+`tracing-subscriber` e `tracing-appender` foram **removidos** na v0.5.2 (logs saem pelo `tauri-plugin-log`).
 
 ### APIs de Modpack
 
@@ -102,33 +103,26 @@ Não há `rusqlite_migration` — migrações são uma tabela de function pointe
 
 ### Config e Auth
 
-| Biblioteca     | Versão | Finalidade   |
-| -------------- | ------ | ------------ |
-| `toml`         | 1.0.7  | Parsing TOML |
-| `jsonwebtoken` | 11.0.0 | JWT          |
+Nenhuma — `toml` e `jsonwebtoken` foram **removidos** na v0.5.2 (sem uso real).
 
 ### Utilitários
 
-| Biblioteca    | Versão | Finalidade                                               |
-| ------------- | ------ | -------------------------------------------------------- |
-| `once_cell`   | 1.21.4 | Lazy statics                                             |
-| `parking_lot` | 0.12.5 | Mutex/RwLock                                             |
-| `crossbeam`   | 0.8.4  | Estruturas concorrentes                                  |
-| `futures`     | 0.3.33 | Combinadores de futures (usado em `asset_downloader.rs`) |
-| `itertools`   | 0.15.0 | Extensões de iteradores                                  |
-| `regex`       | 1.13.1 | Expressões regulares                                     |
-| `semver`      | 1.0.28 | Comparação de versões                                    |
-| `async-trait` | 0.1.91 | Traits assíncronas                                       |
-| `base64`      | 0.23.0 | Encoding base64 (ícones customizados)                    |
+| Biblioteca    | Versão | Finalidade                                                                                                                                    |
+| ------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `once_cell`   | 1.21.4 | Lazy statics                                                                                                                                  |
+| `parking_lot` | 0.12.5 | Mutex/RwLock                                                                                                                                  |
+| `futures`     | 0.3.33 | Combinadores de futures — downloads concorrentes (`buffer_unordered`) em `asset_downloader.rs`, `launch_instance.rs` e `modpack_installer.rs` |
+| `base64`      | 0.23.0 | Encoding base64 (ícones customizados)                                                                                                         |
+
+`crossbeam`, `itertools`, `regex`, `semver` e `async-trait` foram **removidos** na v0.5.2 (sem uso).
 
 ### Desenvolvimento (dev-dependencies)
 
-| Biblioteca  | Versão | Finalidade     |
-| ----------- | ------ | -------------- |
-| `mockall`   | 0.15.0 | Mock de traits |
-| `criterion` | 0.8.2  | Benchmarks     |
+| Biblioteca | Versão | Finalidade                     |
+| ---------- | ------ | ------------------------------ |
+| `tempfile` | 3.27.0 | Arquivos temporários em testes |
 
-Não existe `tauri-plugin-mock`.
+`mockall` e `criterion` foram **removidos** na v0.5.2 (sem uso real — adicionar de volta só quando houver teste/benchmark que precise).
 
 ---
 
@@ -153,17 +147,17 @@ Não existe `tauri-plugin-mock`.
 
 ### UI (shadcn/ui)
 
-| Pacote                                   | Versão        | Finalidade                                                                    |
-| ---------------------------------------- | ------------- | ----------------------------------------------------------------------------- |
-| `tailwindcss`                            | 4.3.3         | Utility-first CSS                                                             |
-| `@tailwindcss/vite`                      | 4.3.3         | Plugin Tailwind para Vite                                                     |
-| `tailwindcss-animate` + `tw-animate-css` | 1.0.7 / 1.4.0 | Animações Tailwind                                                            |
-| `class-variance-authority`               | 0.7.1         | Variantes de classe (cva)                                                     |
-| `clsx`                                   | 2.1.1         | Junção condicional de classes                                                 |
-| `tailwind-merge`                         | 3.6.0         | Merge de classes Tailwind                                                     |
-| `lucide-react`                           | ^1.28.0       | Ícones (esquema de versionamento mudou — não é mais `0.4xx`)                  |
-| `radix-ui`                               | ^1.6.7        | **Meta-pacote único** — substituiu os pacotes individuais `@radix-ui/react-*` |
-| `shadcn`                                 | ^4.16.1       | CLI do shadcn/ui, presente como dependência (não só via `npx`)                |
+| Pacote                     | Versão  | Finalidade                                                                    |
+| -------------------------- | ------- | ----------------------------------------------------------------------------- |
+| `tailwindcss`              | 4.3.3   | Utility-first CSS                                                             |
+| `@tailwindcss/vite`        | 4.3.3   | Plugin Tailwind para Vite                                                     |
+| `tw-animate-css`           | 1.4.0   | Animações Tailwind (o `tailwindcss-animate` foi **removido** na v0.5.2)       |
+| `class-variance-authority` | 0.7.1   | Variantes de classe (cva)                                                     |
+| `clsx`                     | 2.1.1   | Junção condicional de classes                                                 |
+| `tailwind-merge`           | 3.6.0   | Merge de classes Tailwind                                                     |
+| `lucide-react`             | ^1.28.0 | Ícones (esquema de versionamento mudou — não é mais `0.4xx`)                  |
+| `radix-ui`                 | ^1.6.7  | **Meta-pacote único** — substituiu os pacotes individuais `@radix-ui/react-*` |
+| `shadcn`                   | ^4.16.1 | CLI do shadcn/ui, presente como dependência (não só via `npx`)                |
 
 O projeto **não** usa mais pacotes `@radix-ui/react-*` individuais — tudo vem do meta-pacote `radix-ui`.
 
@@ -234,6 +228,7 @@ Nenhum desses estava documentado antes — cobrem o editor de config e as notas 
 | `prettier-plugin-tailwindcss`       | 0.8.1            | Ordenação de classes Tailwind                              |
 | `@tailwindcss/typography`           | 0.5.20           | Tipografia                                                 |
 | `@tauri-apps/cli`                   | 2.11.4           | CLI do Tauri                                               |
+| `knip`                              | ^6.32.0          | Dead-code/unused deps — `npm run knip`, **bloqueia o CI**  |
 | `cross-env`                         | 10.1.0           | Env vars cross-platform (usado no script `dev:tauri:fast`) |
 | `globals`                           | 17.7.0           | Configuração de globals para ESLint                        |
 
@@ -259,3 +254,4 @@ Não há `menubar`, `navigation-menu`, `radio-group`, `aspect-ratio` nem `toast`
 - **Radix consolidado**: pare de procurar `@radix-ui/react-*` individuais no `package.json` — tudo vem via `radix-ui` (pacote único).
 - **`lucide-react` mudou de esquema de versão**: está em `^1.28.0`, não `0.4xx` como versões antigas do launcher usavam.
 - **Sem retry/backoff no download**: o `reqwest` é usado puro; não há camada de retry.
+- **Lint `unused_crate_dependencies`** (`#![warn(...)]` em `lib.rs`, allow em `main.rs`): qualquer dependência do `Cargo.toml` sem um único `use` no crate quebra o clippy do CI — foi o que motivou a limpeza de deps da v0.5.2. Dependência nova que não será importada é proibida.

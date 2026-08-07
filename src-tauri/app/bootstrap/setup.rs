@@ -32,7 +32,7 @@ pub fn build_app_state(
     let mod_repository: Arc<dyn ModRepository> = Arc::new(SqliteModRepository::new(conn.clone()));
     let playtime_repository: Arc<dyn PlaytimeRepository> =
         Arc::new(SqlitePlaytimeRepository::new(conn));
-    // Any session still open at this point predates this process — the app
+    // Any session still open at this point predates this process: the app
     // crashed or was force-killed mid-game last run, since a normal stop
     // always closes its session before the process exits. Close them now so
     // `get_summary` never adds elapsed time since a stale crash timestamp to
@@ -42,7 +42,7 @@ pub fn build_app_state(
         .expect("failed to reconcile orphaned playtime sessions");
     let http_client = reqwest::Client::builder()
         .user_agent("AstroLauncher/0.1.0")
-        // Only caps connection setup, not the whole transfer — this client is
+        // Only caps connection setup, not the whole transfer: this client is
         // shared with large file downloads (mods, Java, game files) that can
         // legitimately take minutes; a full request timeout would kill those.
         .connect_timeout(std::time::Duration::from_secs(10))

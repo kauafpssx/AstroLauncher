@@ -9,7 +9,7 @@ interface TooltipStore {
   hide: () => void
 }
 
-/** Backs the app's cursor-following tooltip (see CursorTooltip.tsx) — a
+/** Backs the app's cursor-following tooltip (see CursorTooltip.tsx): a
  * plain store rather than context so `tooltipProps()` can call
  * `.getState()` imperatively from anywhere, including inside `.map()`
  * callbacks, without breaking the rules of hooks. */

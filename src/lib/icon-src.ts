@@ -22,7 +22,7 @@ export function resolveIconSrc(
  * Resolves a bundled preset icon (`/picker/...`) to base64 PNG bytes for the
  * desktop shortcut's `.ico`. Data URIs and custom uploads are resolved by
  * the backend instead (it already has the data URI / a real filesystem path
- * in the DB) — going through `fetch` for those hit the Tauri asset protocol,
+ * in the DB): going through `fetch` for those hit the Tauri asset protocol,
  * which doesn't send CORS headers and silently produced corrupt bytes.
  */
 export async function resolvePickerIconPngBase64(

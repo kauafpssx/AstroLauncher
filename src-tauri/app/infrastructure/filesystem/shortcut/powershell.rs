@@ -6,7 +6,7 @@ use std::os::windows::process::CommandExt;
 use anyhow::Context;
 
 /// Impede que a janela do console (PowerShell) pisque na tela do usuário ao
-/// spawnar o processo — todo `Command` no Windows roda oculto.
+/// spawnar o processo: todo `Command` no Windows roda oculto.
 #[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 

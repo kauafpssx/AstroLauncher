@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-/// A resolved loader install — enough to plug into `launch_instance`'s
+/// A resolved loader install: enough to plug into `launch_instance`'s
 /// download loop and `spawn_game` regardless of which loader produced it.
 /// Shared by Fabric/Quilt (fetched ready-made from their meta APIs) and
 /// LiteLoader (assembled by hand from its versions.json).
@@ -21,7 +21,7 @@ pub struct ProfileLibrary {
     pub url: String,
 }
 
-/// Loader libraries are plain Maven coordinates with a repository base URL —
+/// Loader libraries are plain Maven coordinates with a repository base URL:
 /// unlike Mojang's manifest, there's no size/sha1 provided up front.
 pub fn library_download_url(library: &ProfileLibrary) -> String {
     let parts: Vec<&str> = library.name.split(':').collect();

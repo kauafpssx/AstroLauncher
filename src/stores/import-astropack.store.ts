@@ -9,7 +9,7 @@ interface ImportAstropackStore {
 }
 
 /** Holds a `.astropack` file path the app was opened with via its file
- * association — either at cold start or forwarded from a second launch
+ * association: either at cold start or forwarded from a second launch
  * attempt while already running (see `stores/launch.store.ts` for the
  * matching `--launch-instance` flow). */
 export const useImportAstropackStore = create<ImportAstropackStore>((set) => ({

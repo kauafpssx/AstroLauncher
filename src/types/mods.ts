@@ -1,6 +1,6 @@
 export type ModSource = 'modrinth' | 'curseforge'
 type ProjectType = 'mod' | 'modpack' | 'resourcepack' | 'shader'
-/** Installable content kinds — excludes 'modpack', which creates a whole new instance instead. */
+/** Installable content kinds: excludes 'modpack', which creates a whole new instance instead. */
 export type ContentKind = 'mod' | 'resourcepack' | 'shader'
 
 export interface ModSearchResult {

@@ -64,7 +64,7 @@ pub fn get_total_system_memory_mb() -> u64 {
     system.total_memory() / (1024 * 1024)
 }
 
-/// Output device names as the OS reports them — Minecraft's `soundDevice`
+/// Output device names as the OS reports them: Minecraft's `soundDevice`
 /// option stores the device name verbatim (empty string means "system default").
 #[tauri::command]
 pub fn list_audio_output_devices() -> Vec<String> {

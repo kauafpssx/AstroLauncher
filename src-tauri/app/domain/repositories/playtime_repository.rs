@@ -20,7 +20,7 @@ pub trait PlaytimeRepository: Send + Sync {
     /// watcher never fires and the row is orphaned. Left alone, the next
     /// `get_summary` call would treat it as still live and add however long
     /// it's been since the crash to the displayed playtime. Call once at
-    /// startup, before anything else can read playtime — `ProcessManager` is
+    /// startup, before anything else can read playtime: `ProcessManager` is
     /// always empty right after boot, so any open row at that point is
     /// necessarily stale.
     fn close_orphaned_sessions(&self) -> Result<()>;

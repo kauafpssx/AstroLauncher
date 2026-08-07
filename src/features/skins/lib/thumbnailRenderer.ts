@@ -14,7 +14,7 @@ function getViewer(): SkinViewer {
   viewer.autoRotate = false
   viewer.animation = new IdleAnimation()
 
-  // Slight 3/4 turn instead of dead-on front, arms opened a touch — matches
+  // Slight 3/4 turn instead of dead-on front, arms opened a touch: matches
   // the pose the old vzge.me renders had, instead of skinview3d's default
   // straight-on, arms-at-sides stance.
   viewer.playerObject.rotation.y = 0.55
@@ -27,7 +27,7 @@ function getViewer(): SkinViewer {
 
 /** Renders a skin to a static PNG data URL with skinview3d, offscreen.
  * `dataUrl` must already be a same-origin `data:` URI (fetch it server-side
- * first) — loading a cross-origin image without a guaranteed CORS-clean
+ * first): loading a cross-origin image without a guaranteed CORS-clean
  * response taints the canvas and makes `toDataURL` throw.
  *
  * Every call goes through ONE shared viewer/WebGL context, queued strictly
@@ -42,7 +42,7 @@ export function renderStaticThumbnail(
     const v = getViewer()
     await v.loadSkin(dataUrl, { model })
     // loadSkin resolves before skinview3d has actually painted the new
-    // texture — give it a couple of frames before reading the canvas back.
+    // texture: give it a couple of frames before reading the canvas back.
     await new Promise((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(resolve)),
     )

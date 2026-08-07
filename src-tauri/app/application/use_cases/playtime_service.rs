@@ -73,7 +73,7 @@ impl PlaytimeService {
             .find_open_by_instance(instance_id)?;
 
         // While a session is active, the denormalized total doesn't include it
-        // yet — surface it live so the UI can tick up in real time.
+        // yet: surface it live so the UI can tick up in real time.
         let total_seconds = match open.as_ref() {
             Some(session) => {
                 let started_at = DateTime::parse_from_rfc3339(&session.started_at)

@@ -81,7 +81,7 @@ pub async fn search(
 }
 
 /// Fetches a skin's detail, including every player profile currently wearing
-/// it — used to let the user copy a specific in-game name for a skin they like.
+/// it: used to let the user copy a specific in-game name for a skin they like.
 pub async fn get_skin(client: &reqwest::Client, hash: &str) -> anyhow::Result<SkinDetail> {
     let response = client
         .get(format!("{}/skins/{hash}", base_url()))

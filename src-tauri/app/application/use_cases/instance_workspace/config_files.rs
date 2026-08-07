@@ -16,7 +16,7 @@ impl InstanceWorkspaceService {
     }
 
     /// `options.txt`/`optionsof.txt` (Minecraft's own settings) plus every
-    /// file under `config/` (where mods keep theirs) — the practical surface
+    /// file under `config/` (where mods keep theirs): the practical surface
     /// a "config editor" needs, without special-casing individual mods.
     pub fn list_config_files(&self, id: &str) -> Result<Vec<ConfigFileDTO>, InstanceError> {
         let instance_dir = self.instance_dir(id)?;

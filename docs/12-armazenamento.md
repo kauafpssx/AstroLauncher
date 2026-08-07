@@ -102,7 +102,9 @@ CREATE TABLE IF NOT EXISTS meta (
 
 ## 12.3 JSON — Configurações do Usuário
 
-Só existe **um** arquivo de config JSON: **`<app_data_dir>/settings.json`**, via `infrastructure/persistence/config/json_settings_repository.rs`. Não existem `java.json` ou `ui.json` — Java é detectado/gerenciado direto no disco (sem tracking em JSON), e não há persistência de preferências de UI separada.
+Só existe **um** arquivo de config JSON: **`<app_data_dir>/settings.json`**, via `infrastructure/persistence/config/json_settings_repository.rs`. Não existem `java.json` ou `ui.json` — Java é detectado/gerenciado direto no disco (sem tracking em JSON).
+
+**`<app_data_dir>/window-state.json` (v0.5.2+):** persistência da janela principal (posição, tamanho, maximizado, monitor) — salvo no `CloseRequested` e restaurado no boot por `infrastructure/window_state.rs`. Implementação própria, não usa `tauri-plugin-window-state` (bug conhecido de restauração em monitor errado com DPI diferente — tauri-apps/plugins-workspace#244). Formato interno: offsets relativos ao monitor + nome do monitor; aplica posição antes do tamanho em unidades físicas.
 
 ```json
 {
@@ -201,11 +203,12 @@ Sem subpasta `cache/`.
 
 ## 12.10 Resumo das Decisões
 
-| Decisão           | Escolha                       | Motivo                                                      |
-| ----------------- | ----------------------------- | ----------------------------------------------------------- |
-| Banco principal   | SQLite (`rusqlite`, bundled)  | Queries, relações, ACID, sem dependência externa de binário |
-| Config de usuário | JSON (`settings.json`)        | Editável, simples — schema hoje é mínimo                    |
-| ORM/Query Builder | Nenhum (SQL raw)              | Projeto pequeno, controle total                             |
-| Migrações         | Function-pointer table manual | Sem dependência de `sqlx-cli`/`rusqlite_migration`          |
-| Async no banco    | Não — repositórios síncronos  | Banco local, sem necessidade de I/O assíncrono              |
-| Cache             | Não implementado              | Lacuna conhecida, não decisão deliberada                    |
+| Decisão           | Escolha                       | Motivo                                                         |
+| ----------------- | ----------------------------- | -------------------------------------------------------------- |
+| Banco principal   | SQLite (`rusqlite`, bundled)  | Queries, relações, ACID, sem dependência externa de binário    |
+| Config de usuário | JSON (`settings.json`)        | Editável, simples — schema hoje é mínimo                       |
+| ORM/Query Builder | Nenhum (SQL raw)              | Projeto pequeno, controle total                                |
+| Migrações         | Function-pointer table manual | Sem dependência de `sqlx-cli`/`rusqlite_migration`             |
+| Async no banco    | Não — repositórios síncronos  | Banco local, sem necessidade de I/O assíncrono                 |
+| Cache             | Não implementado              | Lacuna conhecida, não decisão deliberada                       |
+| Estado da janela  | JSON (`window-state.json`)    | Implementação própria em `window_state.rs`, sem plugin oficial |

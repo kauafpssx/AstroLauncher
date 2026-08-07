@@ -54,6 +54,7 @@ Padrão "um struct por ação" para CRUD simples:
 | Account  | `CreateAccountUseCase`, `UpdateAccountUseCase`, `DeleteAccountUseCase`, `ListAccountsUseCase`, `SetDefaultAccountUseCase`, `ReorderAccountsUseCase`                                                                                         |
 | Folder   | `CreateFolderUseCase`, `UpdateFolderUseCase`, `DeleteFolderUseCase`, `ListFoldersUseCase`, `ReorderFoldersUseCase`                                                                                                                          |
 | Versões  | `FetchVersionManifestUseCase` (async) → `Vec<VersionDTO>`                                                                                                                                                                                   |
+| Memória  | `SuggestMemoryUseCase` (v0.5.2): `suggest_memory_mb(content_count)` → `SuggestedMemoryDTO { minMb, maxMb }` — heurística pura sem I/O, aplicada no fim da instalação de modpack e exposta via comando `get_suggested_memory`                |
 
 Features maiores usam um único "Service" com vários métodos em vez de um use case por ação:
 
@@ -65,10 +66,10 @@ Features maiores usam um único "Service" com vários métodos em vez de um use 
 - **AstroPackService**: preview, get_export_summary, export_instance, import_astropack (async) — formato próprio de export/import de instâncias
 - **CustomIconService**: list, save (base64 PNG), delete
 - **SettingsService**: get, update
-- **SkinBrowserService**: search, get_skin, download_skin (async, via PlayerMC)
+- **SkinBrowserService**: search, get_skin, download_skin, fetch_skin_texture_base64 (async, via PlayerMC/MCStat)
 
 ## 4.6 DTOs (`application/dto/`)
 
-Um arquivo por domínio: `account_dto.rs`, `folder_dto.rs`, `instance_dto.rs`, `mod_dto.rs`, `playtime_dto.rs`, `settings_dto.rs`, `astropack_dto.rs`, além de DTOs sem entidade de domínio (derivados de filesystem): `NoteDTO`, `WorldDTO`, `ScreenshotDTO`, `ServerEntryDTO`, `ConfigFileDTO`, `CustomIconDTO`, `LaunchEventDTO`, `VersionDTO`, `SkinPlayerDTO`/`SkinSummaryDTO`/`SkinDetailDTO`.
+Um arquivo por domínio: `account_dto.rs`, `folder_dto.rs`, `instance_dto.rs` (inclui `SuggestedMemoryDTO` desde v0.5.2), `mod_dto.rs`, `playtime_dto.rs`, `settings_dto.rs`, `astropack_dto.rs`, além de DTOs sem entidade de domínio (derivados de filesystem): `NoteDTO`, `WorldDTO`, `ScreenshotDTO`, `ServerEntryDTO`, `ConfigFileDTO`, `CustomIconDTO`, `LaunchEventDTO`, `VersionDTO`, `SkinPlayerDTO`/`SkinSummaryDTO`/`SkinDetailDTO`.
 
 Mappers (`application/mappers/`) só fazem entidade → DTO: `account_mapper`, `folder_mapper`, `instance_mapper`.

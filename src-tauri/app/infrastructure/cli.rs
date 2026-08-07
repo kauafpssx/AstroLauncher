@@ -19,7 +19,7 @@ pub fn parse_launch_instance_arg<S: AsRef<str>>(args: &[S]) -> Option<String> {
     None
 }
 
-/// Finds a plain `.astropack` file path in a process argument list — how
+/// Finds a plain `.astropack` file path in a process argument list: how
 /// Windows passes the double-clicked file when it launches us through the
 /// `.astropack` file association (registered via `bundle.fileAssociations`
 /// in `tauri.conf.json`), as opposed to the `--launch-instance` flag a

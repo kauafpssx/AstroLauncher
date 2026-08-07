@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { useLinkPreviewStore } from '@/stores/link-preview.store'
 
 // Modrinth/CurseForge descriptions often mix raw HTML into the markdown
-// (centered images, anchor ids on headings, <sup> footnotes) — extend the
+// (centered images, anchor ids on headings, <sup> footnotes): extend the
 // default sanitize schema instead of dropping it, so it renders instead of
 // vanishing.
 const markdownSchema = {
@@ -38,7 +38,7 @@ export function MarkdownBody({ children, className }: MarkdownBodyProps) {
 
   return (
     // Some project descriptions embed raw HTML/blockquotes styled for a
-    // light background — force blockquote text to the theme's own color
+    // light background: force blockquote text to the theme's own color
     // instead of trusting the source's (often invisible-on-dark) styling.
     <div
       className={cn(

@@ -41,10 +41,13 @@ infrastructure/minecraft/
 ├── manifest.rs     # fetch do version manifest da Mojang
 ├── rules.rs        # avaliação de regras (OS/arch/features) para libraries
 ├── servers_dat.rs  # leitura/escrita de servers.dat (NBT)
-└── version_meta.rs # VersionMeta — modelo parseado do JSON de versão
+├── version_meta.rs # VersionMeta — modelo parseado do JSON de versão
+└── language.rs     # (v0.5.2) ensure_default_language: detecta locale do Windows e grava `lang:` no options.txt
 ```
 
 Boa parte da lógica de baixo nível (download de client jar, resolução de libraries, comando de launch para Forge/NeoForge) vive na crate externa `mc-launcher-core` (v0.1.2), não em arquivos locais — não existem `assets.rs`/`libraries.rs`/`client.rs`/`old_versions.rs`/`version_type.rs` no código. Download de assets fica em `downloader/asset_downloader.rs`.
+
+`language.rs::ensure_default_language(instance_dir)` grava `lang:pt_br` no `options.txt` da instância no primeiro launch (locale do SO via `GetUserDefaultLocaleName`, Win32 FFI). **Nunca sobrescreve** um `options.txt` existente — respeita o que o usuário/modpack já configurou. Chamado no launch vanilla e no `run_forge_like`. Best-effort: falha nunca bloqueia o launch.
 
 ## 8.5 Modloader
 
@@ -59,7 +62,7 @@ infrastructure/modloader/
 Dois pipelines distintos:
 
 - **Fabric/Quilt**: consomem API REST (`meta.fabricmc.net/v2`, `meta.quiltmc.org/v3`) que já devolve um `LoaderProfile` pronto (main class + libraries), sem precisar rodar instalador.
-- **Forge/NeoForge**: baixam e executam o jar instalador oficial do loader (`java -jar installer.jar --installClient <dir>`) via `mc_launcher_core`, exigindo o JSON da versão vanilla já em disco (`ensure_vanilla_json_on_disk`) para o merge `inheritsFrom` funcionar. Usa `mc_launcher_core::command::builder::build_launch_command` para o comando final, não `process/launcher.rs`.
+- **Forge/NeoForge**: baixam e executam o jar instalador oficial do loader (`java -jar installer.jar --installClient <dir>`) via `mc_launcher_core`, exigindo o JSON da versão vanilla já em disco (`ensure_vanilla_json_on_disk`) para o merge `inheritsFrom` funcionar. Desde v0.5.2 também exige o stub `launcher_profiles.json` (`ensure_launcher_profile_stub`) — o instalador aborta com "There is no minecraft launcher profile" se o arquivo não existir no diretório de dados (herança do launcher vanilla da Mojang). Usa `mc_launcher_core::command::builder::build_launch_command` para o comando final, não `process/launcher.rs`. O progresso da instalação vem de `mc_launcher_core::progress::ProgressEvent` e é mapeado para labels PT-BR + progresso real de bibliotecas em `launch_instance.rs::run_forge_like`.
 
 ## 8.6 Filesystem
 
@@ -130,3 +133,7 @@ Fonte de skins adicionada na v0.4.0 (`mcstat.org`), usada na busca/detalhe de sk
 ## 8.13 Bootstrap
 
 `src-tauri/app/bootstrap/setup.rs::build_app_state(app_data_dir, discord_client_id, discord_logo_asset_key)` é o único ponto de DI: abre SQLite, roda migrations, monta os 5 repositórios (`Arc<dyn Trait>` compartilhando uma `Arc<Mutex<Connection>>`), monta um `reqwest::Client` (`User-Agent: AstroLauncher/0.1.0`) e retorna o `AppState`. Chamado uma vez em `src-tauri/src/lib.rs` no setup do Tauri.
+
+## 8.14 Window State
+
+`infrastructure/window_state.rs` (v0.5.2): salva posição/tamanho/maximizado/monitor da janela principal em `<app_data_dir>/window-state.json` no `CloseRequested` e restaura no boot. Implementação própria que contorna o bug do `tauri-plugin-window-state` (tauri-apps/plugins-workspace#244: janela maximizada restaurada no monitor errado com DPIs diferentes) armazenando offsets relativos ao monitor + nome do monitor, e sempre aplicando posição antes do tamanho em unidades físicas. Best-effort: falha nunca bloqueia fechar/abrir o app.

@@ -100,7 +100,7 @@ struct VersionFilesRequest<'a> {
     algorithm: &'a str,
 }
 
-/// Resolves many files at once by their sha1 hash — used to recover each
+/// Resolves many files at once by their sha1 hash: used to recover each
 /// modpack file's project/version metadata after downloading it, since the
 /// `.mrpack` manifest only lists hashes, not names.
 pub async fn get_versions_by_hashes(
@@ -126,7 +126,7 @@ pub async fn get_versions_by_hashes(
     Ok(versions)
 }
 
-/// Resolves many projects' icons at once — used to fetch every modpack mod's
+/// Resolves many projects' icons at once: used to fetch every modpack mod's
 /// icon up front instead of one call per project.
 pub async fn get_projects_by_ids(
     client: &reqwest::Client,
