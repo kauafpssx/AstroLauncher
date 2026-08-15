@@ -60,8 +60,9 @@ Não há `flate2` no Cargo.toml.
 | `dirs`     | 6.0.0  | Diretórios padrão (uso pontual — o app data dir principal vem do resolver do Tauri, não desta crate) |
 | `walkdir`  | 2.5.0  | Iteração recursiva em diretórios                                                                     |
 | `sysinfo`  | 0.39.6 | Info de memória/sistema (`get_total_system_memory_mb`)                                               |
+| `windows`  | 0.61   | FFI Win32 (v0.6.0): reposicionar janela do jogo em `window_placement.rs` + locale em `language.rs`   |
 
-`tempfile` virou **dev-dependency** (só testes) e `fs_extra`/`path-clean` foram **removidos** na v0.5.2.
+`tempfile` virou **dev-dependency** (só testes) e `fs_extra`/`path-clean` foram **removidos** na v0.5.2. `wiremock` é **dev-dependency** (tests de infra, v0.6.0).
 
 ### Processos e Áudio
 
@@ -130,20 +131,21 @@ Nenhuma — `toml` e `jsonwebtoken` foram **removidos** na v0.5.2 (sem uso real)
 
 ### Core
 
-| Pacote                                 | Versão | Finalidade                    |
-| -------------------------------------- | ------ | ----------------------------- |
-| `react` / `react-dom`                  | 19.2.7 | UI Library                    |
-| `react-router-dom`                     | 7.18.2 | Roteamento SPA (`HashRouter`) |
-| `typescript`                           | ~6.0.2 | Type safety                   |
-| `vite`                                 | 8.2.0  | Bundler e dev server          |
-| `@vitejs/plugin-react`                 | 6.0.5  | Plugin Vite para React        |
-| `@tauri-apps/api`                      | 2.11.1 | API IPC Tauri                 |
-| `@tauri-apps/plugin-dialog`            | 2.7.2  | Diálogos nativos              |
-| `@tauri-apps/plugin-fs`                | 2.5.1  | Acesso a arquivos             |
-| `@tauri-apps/plugin-shell`             | 2.3.5  | Shell/processos               |
-| `@tauri-apps/plugin-clipboard-manager` | 2.3.2  | Clipboard                     |
-| `@tauri-apps/plugin-process`           | 2.3.1  | Controle do processo do app   |
-| `@tauri-apps/plugin-updater`           | 2.10.1 | Auto-update                   |
+| Pacote                                 | Versão | Finalidade                        |
+| -------------------------------------- | ------ | --------------------------------- |
+| `react` / `react-dom`                  | 19.2.7 | UI Library                        |
+| `react-router-dom`                     | 7.18.2 | Roteamento SPA (`HashRouter`)     |
+| `typescript`                           | ~6.0.2 | Type safety                       |
+| `vite`                                 | 8.2.0  | Bundler e dev server              |
+| `@vitejs/plugin-react`                 | 6.0.5  | Plugin Vite para React            |
+| `@tauri-apps/api`                      | 2.11.1 | API IPC Tauri                     |
+| `@tauri-apps/plugin-dialog`            | 2.7.2  | Diálogos nativos                  |
+| `@tauri-apps/plugin-fs`                | 2.5.1  | Acesso a arquivos                 |
+| `@tauri-apps/plugin-shell`             | 2.3.5  | Shell/processos                   |
+| `@tauri-apps/plugin-clipboard-manager` | 2.3.2  | Clipboard                         |
+| `@tauri-apps/plugin-process`           | 2.3.1  | Controle do processo do app       |
+| `@tauri-apps/plugin-updater`           | 2.10.1 | Auto-update                       |
+| `zod`                                  | 4.4.3  | Validação de input/forms (v0.6.0) |
 
 ### UI (shadcn/ui)
 

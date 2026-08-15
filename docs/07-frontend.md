@@ -45,6 +45,9 @@ Stores reais em `src/stores/`:
 - **launch.store.ts** — `useLaunchStore`: estado de progresso do launch (`ProgressState { stage, currentItem, stageCurrent, stageTotal }`), ouve `launch://event`, dispara toasts
 - **link-preview.store.ts** — `useLinkPreviewStore`: abre links externos via `@tauri-apps/plugin-shell`
 - **modpack-install.store.ts** — `useModpackInstallStore`: `{ isInstalling, setInstalling }`
+- **context-menu.store.ts**, **tooltip.store.ts** — estado de menus de contexto e tooltips
+- **import-astropack.store.ts** — associação `.astropack` pendente (usada pelo `AstropackFileAssociationBridge`)
+- **zerotier.store.ts** (v0.6.0) — `useZeroTierStore`: status/rede ZeroTier
 
 Não existem `java.store.ts`, `download.store.ts` ou `settings.store.ts`.
 
@@ -63,12 +66,12 @@ Não existem `java.store.ts`, `download.store.ts` ou `settings.store.ts`.
 | `/instances/:id/edit` | EditInstancePage   |
 | `/skins`              | SkinsPage          |
 
-Não existem `/settings`, `/java`, `/downloads`, `/console`, `/modpacks`, `/stats` — settings/mods/versões são dialogs/sheets/tabs dentro das páginas de instância, não rotas próprias. `LaunchProgressDialog` e `Toaster` renderizam fora de `<Routes>` como overlays globais.
+Não existem `/settings`, `/java`, `/downloads`, `/console`, `/modpacks`, `/stats` — settings/mods/versões são dialogs/sheets/tabs dentro das páginas de instância, não rotas próprias. `LaunchProgressDialog`, `Toaster`, `CursorTooltip` e `AstropackFileAssociationBridge` renderizam fora de `<Routes>` como overlays globais.
 
 Há dois entry points de Vite: `src/main.tsx` (app principal) e `src/splash-main.tsx` (janela de splash, usa `components/splash/SplashScreen.tsx`).
 
 ## 7.6 Outros
 
-- `src/hooks/useDiscordPresence.ts` — único hook global (fora de features), atualiza Discord RPC
+- Hooks globais em `src/hooks/`: `useDiscordPresence.ts` (Rich Presence), `useInfiniteScroll.ts` (v0.6.0), `useBlockBrowserNavigation.ts`, `useBlockNativeContextMenu.ts`
 - `src/lib/`: além de `api/client.ts` e `utils.ts`, existem `content-kind.ts`, `format.ts`, `icon-src.ts`, `keybind-utils.ts`, `log-utils.ts`, `minecraft-options.ts` — sem `constants.ts`
 - `src/types/`: interfaces TS mantidas manualmente em sincronia com os DTOs Rust — sem geração automática (nenhuma ferramenta de codegen tipo `ts-rs`/`specta` está em uso)
