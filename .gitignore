@@ -63,3 +63,6 @@ src-tauri/gen
 .keys
 *.key
 *.sig
+
+# Claude Code local worktrees
+.claude/

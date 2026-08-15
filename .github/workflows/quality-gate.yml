@@ -1,18 +1,18 @@
-# CI de testes — roda em todo commit/PR.
-# Mantém apenas os jobs de teste do projeto (frontend + Rust + build do binário).
-# Review de PR é feito pelo CodeRabbit (ver .coderabbit.yaml).
+# Test CI — runs on every commit/PR.
+# Keeps only the project's test jobs (frontend + Rust + binary build).
+# PR review is handled by CodeRabbit (see .coderabbit.yaml).
 
 name: Testes
 
 on:
-  # push só na main e tags (evita rodar 2x em PR da própria repo)
+  # push only on main and tags (avoids running twice on the repo's own PRs)
   push:
     branches: [main]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
 
-# Cancela runs antigas do mesmo ref quando um novo commit chega.
+# Cancels old runs for the same ref when a new commit arrives.
 concurrency:
   group: quality-gate-${{ github.ref }}
   cancel-in-progress: true
@@ -71,7 +71,7 @@ jobs:
         with:
           workspaces: src-tauri
 
-      # Deps de sistema p/ compilar Tauri no Linux (webkit, etc.)
+      # System deps needed to compile Tauri on Linux (webkit, etc.)
       - name: System deps (tauri)
         run: |
           sudo apt-get update
@@ -86,7 +86,7 @@ jobs:
         working-directory: src-tauri
         run: cargo check --all-targets
 
-      # -D warnings faz clippy pegar dead_code, unused imports/vars, etc.
+      # -D warnings makes clippy catch dead_code, unused imports/vars, etc.
       - name: cargo clippy (-D warnings)
         working-directory: src-tauri
         run: cargo clippy --all-targets -- -D warnings
@@ -102,7 +102,7 @@ jobs:
         run: cargo doc --no-deps
 
   # ────────────────────────────────────────────────────────────────
-  # 🚀 BUILD TAURI (Windows) — garante que o binário compila
+  # 🚀 BUILD TAURI (Windows) — ensures the binary compiles
   # ────────────────────────────────────────────────────────────────
   tauri-build:
     name: 🚀 Tauri build (Windows binary)
@@ -125,7 +125,7 @@ jobs:
         run: npm ci
 
       - name: Build Tauri (no signing)
-        # tauri.ci.conf.json desliga createUpdaterArtifacts → não exige signing key.
+        # tauri.ci.conf.json disables createUpdaterArtifacts → no signing key required.
         run: npm run tauri build -- --bundles nsis --config src-tauri/tauri.ci.conf.json
 
       - name: Verify binary exists

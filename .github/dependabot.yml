@@ -1,11 +1,11 @@
 # ═══════════════════════════════════════════════════════════════════
 # Dependabot — AstroLauncher
-# PRs automáticos de atualização de dependências (npm + cargo + actions)
+# Automated dependency update PRs (npm + cargo + actions)
 # ═══════════════════════════════════════════════════════════════════
 
 version: 2
 updates:
-  # ── Frontend: dependências npm ────────────────────────────────────
+  # ── Frontend: npm dependencies ────────────────────────────────────
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
@@ -31,7 +31,7 @@ updates:
           - '@types/react'
           - '@types/react-dom'
 
-  # ── Backend: dependências cargo ───────────────────────────────────
+  # ── Backend: cargo dependencies ───────────────────────────────────
   - package-ecosystem: 'cargo'
     directory: '/src-tauri'
     schedule:

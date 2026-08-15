@@ -20,34 +20,50 @@
   <img src="https://visitor-badge.laobi.icu/badge?page_id=kauafpssx.AstroLauncher&style=flat&color=f43f5e" alt="Visualizações" />
 </p>
 
+<br />
+
+## 📥 Download
+
+O **AstroLauncher** é gratuito e open source. Baixe a versão mais recente direto do GitHub:
+
 <p align="center">
   <a href="https://github.com/kauafpssx/AstroLauncher/releases/latest">
     <img src="https://img.shields.io/github/v/release/kauafpssx/AstroLauncher?style=for-the-badge&label=Baixar%20AstroLauncher&color=8b5cf6" alt="Baixar AstroLauncher" />
   </a>
 </p>
 
+| O que vem no pacote             | Como funciona                                                     |
+| ------------------------------- | ----------------------------------------------------------------- |
+| 🖥️ **Instalador `.exe` (NSIS)** | Instala por usuário, sem precisar de admin, com WebView2 embutido |
+| 🔄 **Auto-update**              | A splash verifica e instala novas versões automaticamente         |
+| 📦 **Arquivos `.astropack`**    | Duplo clique importa a instância direto no launcher               |
+
+> [!TIP]
+> Novas versões saem pelo **GitHub Releases**. O botão acima sempre aponta para a mais recente.
+
+<br />
+
 ## 📖 Índice
 
-* [🚀 Sobre o projeto](#-sobre-o-projeto)
-* [✨ Funcionalidades](#-funcionalidades)
-* [🖼️ Screenshots](#-screenshots)
-* [🧩 Loaders e versões suportadas](#-loaders-e-versões-suportadas)
-* [🧱 Stack de tecnologias](#-stack-de-tecnologias)
-* [📐 Arquitetura](#-arquitetura)
-* [📂 Estrutura do projeto](#-estrutura-do-projeto)
-* [🔧 Desenvolvimento](#-desenvolvimento)
-* [📦 Build e distribuição](#-build-e-distribuição)
-* [⚖️ Aviso legal](#-aviso-legal)
-* [🤝 Contribuindo](#-contribuindo)
-* [📄 Licença](#-licença)
+- [📥 Download](#-download)
+- [🚀 Sobre o projeto](#-sobre-o-projeto)
+- [✨ Funcionalidades](#-funcionalidades)
+- [🖼️ Screenshots](#-screenshots)
+- [🧩 Loaders e versões suportadas](#-loaders-e-versões-suportadas)
+- [🧱 Stack de tecnologias](#-stack-de-tecnologias)
+- [📐 Arquitetura](#-arquitetura)
+- [📂 Estrutura do projeto](#-estrutura-do-projeto)
+- [🔧 Desenvolvimento](#-desenvolvimento)
+- [📦 Build e distribuição](#-build-e-distribuição)
+- [⚖️ Aviso legal](#-aviso-legal)
+- [🤝 Contribuindo](#-contribuindo)
+- [📄 Licença](#-licença)
 
 ## 🚀 Sobre o projeto
 
 **AstroLauncher** é um launcher de Minecraft construído do zero, inspirado no [PrismLauncher](https://prismlauncher.org/), com foco em arquitetura limpa e facilidade de manutenção. A interface usa [shadcn/ui](https://ui.shadcn.com/), com componentes Radix UI e Tailwind CSS. Do grid de instâncias ao visualizador de skins 3D, cada tela foi pensada para ser rápida e agradável de usar.
 
-Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases e snapshots mais recentes, com os principais loaders (**Fabric, Quilt, Forge, NeoForge e LiteLoader**). Num único lugar você tem instalação de mods e modpacks via **Modrinth e CurseForge**, contas offline, download automático de Java, playtime, atalhos de desktop e exportação de instâncias completas em `.astropack`.
-
-![Demo](docs/screenshots/demo.gif)
+Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases e snapshots mais recentes, com os principais loaders (**Fabric, Quilt, Forge, NeoForge e LiteLoader**). Num único lugar você tem instalação de mods e modpacks via **Modrinth e CurseForge**, contas offline, download automático de Java, playtime, atalhos de desktop, **rede entre amigos via ZeroTier**, ajustes de janela e Java por instância e exportação de instâncias completas em `.astropack`.
 
 > 🎯 **Público-alvo:** jogadores que precisam de contas offline (crackeado) e suporte a múltiplas versões e loaders num único launcher.
 
@@ -57,44 +73,57 @@ Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases 
 | --- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | 🪐  | **Splash screen**         | Tela de abertura com checagem automática de atualização                                                        |
 | 🧊  | **Instâncias**            | Criar, editar, excluir e organizar instâncias em **pastas** com drag & drop                                    |
-| 🕰️ | **Todas as versões**      | Releases, snapshots, alphas, betas, infdev, classic e indev (desde 2009!)                                      |
+| 🕰️  | **Todas as versões**      | Releases, snapshots, alphas, betas, infdev, classic e indev (desde 2009!)                                      |
 | 🧩  | **Multi-loader**          | Fabric, Quilt, Forge, NeoForge e LiteLoader                                                                    |
 | 👤  | **Contas offline**        | Modo crackeado com gerenciador de contas e reordenação por drag & drop                                         |
-| ☕   | **Java Manager**          | Detecção e download automático de runtimes (Adoptium Temurin)                                                  |
+| 🎭  | **Avatares de contas**    | Cabeça de uma skin escolhida como avatar da conta, com busca (PlayerMC) e recorte                              |
+| ☕  | **Java Manager**          | Detecção e download automático de runtimes (Adoptium Temurin)                                                  |
+| 🛠️  | **Java por instância**    | Instalação Java específica por instância (path próprio) com detecção de versão, fornecedor e tamanho em disco  |
 | ⏱️  | **Playtime**              | Tempo de jogo por instância, sessões e estatísticas                                                            |
-| 🧪  | **Mod Browser**           | Busca e instalação de mods via **Modrinth** e **CurseForge**                                                   |
+| 📊  | **Estatísticas**          | Tamanho em disco, tempo jogado e datas de cada instância, com botão de abrir pasta                             |
+| 🧪  | **Mod Browser**           | Busca e instalação de mods via **Modrinth** e **CurseForge**, com **infinite scroll** nas buscas               |
 | 📦  | **Modpacks**              | Instalação direta de modpacks (.mrpack e manifest do CurseForge)                                               |
 | ⚙️  | **Editor de Config**      | `options.txt` tipado, arquivos de `config/` e **Keybinds** com detecção de conflito                            |
-| 📝  | **Notas**                 | Múltiplas notas por instância, exportadas no `.astropack`                                                      |
-| 🖼️ | **Ícones customizados**   | Presets de blocos/itens ou upload com recorte (crop)                                                           |
+| ⚡  | **Ações rápidas**         | Sidebar do editor de instância: iniciar/encerrar, abrir pasta, exportar e excluir                              |
+| 📝  | **Notas**                 | Múltiplas notas por instância com inserção de screenshots, exportadas no `.astropack`                          |
+| 🖼️  | **Ícones customizados**   | Presets de blocos/itens ou upload com recorte (crop)                                                           |
 | 👕  | **Galeria de skins**      | Fontes **PlayerMC + MCStat**, filtro Classic/Slim e preview 3D (skinview3d)                                    |
 | 💬  | **Discord RPC**           | Status do jogo exibido no perfil do Discord                                                                    |
 | 📜  | **Console**               | Log do Minecraft em tempo real                                                                                 |
 | 🪄  | **AstroPack**             | Exportar/importar instâncias completas (`.astropack`)                                                          |
-| 🖱️ | **Atalhos de desktop**    | Criar atalho da instância na área de trabalho, com ícone customizado                                           |
+| 🖱️  | **Atalhos de desktop**    | Criar atalho da instância na área de trabalho, com ícone customizado                                           |
 | 📂  | **Arquivos `.astropack`** | Duplo clique importa instâncias; atalhos abrem o jogo direto                                                   |
 | 📋  | **Duplicar instância**    | Cópia completa com mods, mundos e configurações                                                                |
-| 🌍  | **Mundos**                | Gerenciar os mundos salvos da instância                                                                        |
+| 🌍  | **Mundos**                | Gerenciar os mundos salvos da instância, com **seed extraída do `level.dat`**                                  |
 | 🔌  | **Servidores**            | Editor visual do `servers.dat` (multiplayer)                                                                   |
 | 📸  | **Screenshots**           | Visualizador das capturas da instância com zoom                                                                |
 | 🎨  | **Conteúdo instalado**    | Mods, Resource Packs e Shaders: ativar, desativar e excluir                                                    |
+| 🗑️  | **Ações em lote**         | Ativar, desativar e excluir vários itens instalados de uma vez                                                 |
+| 🖥️  | **Janela do jogo**        | Tela cheia, resolução e monitor de abertura configuráveis por instância                                        |
+| 🕸️  | **Rede (ZeroTier)**       | Jogue com amigos como se estivessem na mesma LAN: instala o ZeroTier One, entra/sai de redes e aprova membros  |
+| ✍️  | **Validação**             | Limites de caracteres nos formulários com contador em tempo real                                               |
+| 📱  | **Design responsivo**     | Telas se adaptam a janelas estreitas: cabeçalhos e barras quebram linha e painéis empilham automaticamente     |
 | 🧠  | **Sugestão de RAM**       | Recomendação de memória automática conforme a quantidade de conteúdo instalado (mods, resource packs, shaders) |
-| 🗞️ | **Changelog in-app**      | Notas de versão acessíveis direto no launcher, offline                                                         |
+| 🗞️  | **Changelog in-app**      | Notas de versão acessíveis direto no launcher, offline                                                         |
 
 ## 🖼️ Screenshots
 
-| Home (instâncias)                  | Editor de instância                                 | Galeria de skins                                |
-| ---------------------------------- | --------------------------------------------------- | ----------------------------------------------- |
-| ![Home](docs/screenshots/home.png) | ![Editor de instância](docs/screenshots/editor.png) | ![Galeria de skins](docs/screenshots/skins.png) |
+| Home (instâncias)                  | Criar instância                                          | Editor de instância                                 |
+| ---------------------------------- | -------------------------------------------------------- | --------------------------------------------------- |
+| ![Home](docs/screenshots/home.png) | ![Criar instância](docs/screenshots/create-instance.png) | ![Editor de instância](docs/screenshots/editor.png) |
+
+| Screenshots do jogo                                      | Procurar modpacks                                   | Galeria de skins                                |
+| -------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------- |
+| ![Screenshots do jogo](docs/screenshots/screenshots.jpg) | ![Procurar modpacks](docs/screenshots/modpacks.png) | ![Galeria de skins](docs/screenshots/skins.png) |
 
 ## 🧩 Loaders e versões suportadas
 
-* 🟢 **Vanilla**: qualquer versão do manifesto Mojang
-* 🟢 **Fabric**: loader leve e moderno
-* 🟢 **Quilt**: fork do Fabric com foco em comunidade
-* 🟢 **Forge**: moderno (1.13+), via instalador oficial + processors
-* 🟢 **NeoForge**: moderno (1.13+), mesmo pipeline do Forge
-* 🟢 **LiteLoader**: mecanismo tweaker (`launchwrapper`)
+- 🟢 **Vanilla**: qualquer versão do manifesto Mojang
+- 🟢 **Fabric**: loader leve e moderno
+- 🟢 **Quilt**: fork do Fabric com foco em comunidade
+- 🟢 **Forge**: moderno (1.13+), via instalador oficial + processors
+- 🟢 **NeoForge**: moderno (1.13+), mesmo pipeline do Forge
+- 🟢 **LiteLoader**: mecanismo tweaker (`launchwrapper`)
 
 > 🕹️ **Versões suportadas:** o manifesto da Mojang inclui versões desde **2009**. O AstroLauncher separa por tipo: `release`, `snapshot`, `alpha`, `beta`, `infdev`, `classic` e `indev`, e lida com a estrutura de assets de cada era (pré-1.6, pós-1.6, pós-1.7.10).
 
@@ -103,48 +132,60 @@ Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases 
 <table>
 <tr><td><b>🦀 Backend</b></td><td>
 
-<img src="https://icons.kauafpss.com.br/api/asset/rust.svg?color=ffffff&size=32&background=default" alt="Rust" width="20" valign="middle" /> Rust   <img src="https://icons.kauafpss.com.br/api/asset/tauri.svg?color=ffffff&size=32&background=default" alt="Tauri" width="20" valign="middle" /> Tauri 2   <img src="https://icons.kauafpss.com.br/api/asset/tokio.svg?color=ffffff&size=32&background=default" alt="Tokio" width="20" valign="middle" /> Tokio   <img src="https://icons.kauafpss.com.br/api/asset/sqlite.svg?color=ffffff&size=32&background=default" alt="SQLite" width="20" valign="middle" /> rusqlite (SQLite bundled)
+<img src="https://icons.kauafpss.com.br/api/asset/rust.svg?color=ffffff&size=32&background=default" alt="Rust" width="20" valign="middle" /> Rust &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/tauri.svg?color=ffffff&size=32&background=default" alt="Tauri" width="20" valign="middle" /> Tauri 2 &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/tokio.svg?color=ffffff&size=32&background=default" alt="Tokio" width="20" valign="middle" /> Tokio &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/sqlite.svg?color=ffffff&size=32&background=default" alt="SQLite" width="20" valign="middle" /> rusqlite (SQLite bundled)
 
 </td></tr>
 <tr><td><b>⚛️ Frontend</b></td><td>
 
-<img src="https://icons.kauafpss.com.br/api/asset/react.svg?color=ffffff&size=32&background=default" alt="React" width="20" valign="middle" /> React 19   <img src="https://icons.kauafpss.com.br/api/asset/typescript.svg?color=ffffff&size=32&background=default" alt="TypeScript" width="20" valign="middle" /> TypeScript   <img src="https://icons.kauafpss.com.br/api/asset/vite.svg?color=ffffff&size=32&background=default" alt="Vite" width="20" valign="middle" /> Vite   <img src="https://icons.kauafpss.com.br/api/asset/tailwindcss.svg?color=ffffff&size=32&background=default" alt="Tailwind CSS" width="20" valign="middle" /> Tailwind CSS 4
+<img src="https://icons.kauafpss.com.br/api/asset/react.svg?color=ffffff&size=32&background=default" alt="React" width="20" valign="middle" /> React 19 &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/typescript.svg?color=ffffff&size=32&background=default" alt="TypeScript" width="20" valign="middle" /> TypeScript &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/vite.svg?color=ffffff&size=32&background=default" alt="Vite" width="20" valign="middle" /> Vite &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/tailwindcss.svg?color=ffffff&size=32&background=default" alt="Tailwind CSS" width="20" valign="middle" /> Tailwind CSS 4
 
 </td></tr>
 <tr><td><b>🎨 UI</b></td><td>
 
-<img src="https://icons.kauafpss.com.br/api/asset/shadcnui.svg?color=ffffff&size=32&background=default" alt="shadcn/ui" width="20" valign="middle" /> shadcn/ui   <img src="https://icons.kauafpss.com.br/api/asset/radixui.svg?color=ffffff&size=32&background=default" alt="Radix UI" width="20" valign="middle" /> Radix UI   <img src="https://icons.kauafpss.com.br/api/asset/lucide.svg?color=ffffff&size=32&background=default" alt="Lucide" width="20" valign="middle" /> lucide-react
+<img src="https://icons.kauafpss.com.br/api/asset/shadcnui.svg?color=ffffff&size=32&background=default" alt="shadcn/ui" width="20" valign="middle" /> shadcn/ui &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/radixui.svg?color=ffffff&size=32&background=default" alt="Radix UI" width="20" valign="middle" /> Radix UI &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/lucide.svg?color=ffffff&size=32&background=default" alt="Lucide" width="20" valign="middle" /> lucide-react
 
 </td></tr>
-<tr><td><b>🗄️ Estado</b></td><td>
+<tr><td><b>🗄️ Estado & Validação</b></td><td>
 
-![Zustand](https://img.shields.io/badge/Zustand-grey?style=flat)
+![Zustand](https://img.shields.io/badge/Zustand-grey?style=flat) &nbsp;
+![Zod](https://img.shields.io/badge/Zod-grey?style=flat)
 
 </td></tr>
 <tr><td><b>🧙 Minecraft</b></td><td>
 
-![mc-launcher-core](https://img.shields.io/badge/mc--launcher--core-grey?style=flat)  
-![mc\_chat](https://img.shields.io/badge/mc__chat-grey?style=flat)
+![mc-launcher-core](https://img.shields.io/badge/mc--launcher--core-grey?style=flat)
 
 </td></tr>
 <tr><td><b>🌐 APIs</b></td><td>
 
-![Mojang launchermeta](https://img.shields.io/badge/Mojang-launchermeta-grey?style=flat)   <img src="https://icons.kauafpss.com.br/api/asset/modrinth.svg?color=ffffff&size=32&background=default" alt="Modrinth" width="20" valign="middle" /> Modrinth API v3   <img src="https://icons.kauafpss.com.br/api/asset/curseforge.svg?color=ffffff&size=32&background=default" alt="CurseForge" width="20" valign="middle" /> CurseForge Core API  
-![PlayerMC](https://img.shields.io/badge/PlayerMC-grey?style=flat)  
-![MCStat](https://img.shields.io/badge/MCStat-grey?style=flat)  
+![Mojang launchermeta](https://img.shields.io/badge/Mojang-launchermeta-grey?style=flat) &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/modrinth.svg?color=ffffff&size=32&background=default" alt="Modrinth" width="20" valign="middle" /> Modrinth API v3 &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/curseforge.svg?color=ffffff&size=32&background=default" alt="CurseForge" width="20" valign="middle" /> CurseForge Core API &nbsp;
+![PlayerMC](https://img.shields.io/badge/PlayerMC-grey?style=flat) &nbsp;
+![MCStat](https://img.shields.io/badge/MCStat-grey?style=flat) &nbsp;
 ![Adoptium Temurin](https://img.shields.io/badge/Adoptium%20Temurin-grey?style=flat)
 
 </td></tr>
 <tr><td><b>📊 Dados</b></td><td>
 
-<img src="https://icons.kauafpss.com.br/api/asset/sqlite.svg?color=ffffff&size=32&background=default" alt="SQLite" width="20" valign="middle" /> SQLite   <img src="https://icons.kauafpss.com.br/api/asset/json.svg?color=ffffff&size=32&background=default" alt="JSON" width="20" valign="middle" /> JSON  
+<img src="https://icons.kauafpss.com.br/api/asset/sqlite.svg?color=ffffff&size=32&background=default" alt="SQLite" width="20" valign="middle" /> SQLite &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/json.svg?color=ffffff&size=32&background=default" alt="JSON" width="20" valign="middle" /> JSON &nbsp;
 sem cache, dados sempre atualizados das APIs
 
 </td></tr>
 <tr><td><b>🎵 Extras</b></td><td>
 
-![cpal](https://img.shields.io/badge/cpal-grey?style=flat)   <img src="https://icons.kauafpss.com.br/api/asset/discord.svg?color=ffffff&size=32&background=default" alt="Discord" width="20" valign="middle" /> discord-rich-presence  
-![skinview3d](https://img.shields.io/badge/skinview3d-grey?style=flat)  
+![cpal](https://img.shields.io/badge/cpal-grey?style=flat) &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/discord.svg?color=ffffff&size=32&background=default" alt="Discord" width="20" valign="middle" /> discord-rich-presence &nbsp;
+![skinview3d](https://img.shields.io/badge/skinview3d-grey?style=flat) &nbsp;
 ![react-easy-crop](https://img.shields.io/badge/react--easy--crop-grey?style=flat)
 
 </td></tr>
@@ -156,7 +197,7 @@ Arquitetura **limpa**, **hexagonal** (Ports & Adapters) e **DDD Lite**, onde o d
 
 ```mermaid
 graph LR
-    A["React UI (frontend)<br/>feature-first + shadcn/ui"] -->|invoke IPC| B["Tauri Commands (Presentation)"]
+    A["React UI (frontend)<br/>feature-first + shadcn/ui"] -- "invoke() (IPC)" --> B["Tauri Commands (Presentation)"]
     B --> C["Application (Use Cases + DTOs)<br/>CQRS leve, Commands & Queries"]
     C --> D["Domain (Entities + Traits)<br/>regras de negócio, erros tipados"]
     D --> E["Infrastructure<br/>SQLite, Java, Download, Process, Minecraft, CF, Modrinth"]
@@ -166,9 +207,9 @@ graph LR
 
 | Camada                | Responsabilidade                                                  |
 | --------------------- | ----------------------------------------------------------------- |
-| 🖥️ **Presentation**  | Comandos `#[tauri::command]`, estado gerenciado, IPC              |
+| 🖥️ **Presentation**   | Comandos `#[tauri::command]`, estado gerenciado, IPC              |
 | 🧠 **Application**    | Casos de uso, commands/queries, DTOs e mappers                    |
-| 🏛️ **Domain**        | Entidades, value objects, traits de repositório, erros tipados    |
+| 🏛️ **Domain**         | Entidades, value objects, traits de repositório, erros tipados    |
 | 🔌 **Infrastructure** | SQLite, download manager, processo, Java, Minecraft, APIs de mods |
 
 **Princípios:** Dependency Inversion, Composição sobre herança, Fail fast, Repository Pattern, CQRS-lite e SOLID
@@ -185,8 +226,9 @@ AstroLauncher/
 │   ├── features/               #   feature-first: instances, mods, skins...
 │   │   ├── instances/          #     criação, edição, astropack, ícones
 │   │   ├── mods/               #     browser de mods e modpacks
-│   │   ├── accounts/           #     gerenciamento de contas
+│   │   ├── accounts/           #     gerenciamento de contas + avatares
 │   │   ├── skins/              #     skins + visualizador 3D
+│   │   ├── network/            #     rede entre amigos (ZeroTier)
 │   │   └── settings/           #     configurações do launcher
 │   ├── stores/                 #   Zustand stores
 │   ├── lib/                    #   API client, utilitários
@@ -217,9 +259,9 @@ AstroLauncher/
 
 ### ✅ Pré-requisitos
 
-* [Node.js](https://nodejs.org) **20+**
-* [Rust](https://rustup.rs) **stable** (toolchain completa)
-* [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) (Windows)
+- [Node.js](https://nodejs.org) **20+**
+- [Rust](https://rustup.rs) **stable** (toolchain completa)
+- [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) (Windows)
 
 ### 🚀 Rodando localmente
 
@@ -254,17 +296,17 @@ O **build de release** é manual, disparado via GitHub Actions (`.github/workflo
 
 ```mermaid
 graph LR
-    A["workflow_dispatch (manual)"] --> B["Setup Node e Rust"]
-    B --> C["Build Tauri assinado"]
-    C --> D["NSIS .exe"]
-    D --> F["Create tag + Release"]
-    F --> G["Generate updater manifest"]
-    G --> H["Auto-update in-app"]
+    A[workflow_dispatch (manual)] --> B[Setup Node e Rust]
+    B --> C[Build Tauri assinado]
+    C --> D[NSIS .exe]
+    D --> F[Create tag + Release]
+    F --> G[Generate updater manifest]
+    G --> H[Auto-update in-app 🪐]
 ```
 
 | Artefato                | Formato       | Uso                                  |
 | ----------------------- | ------------- | ------------------------------------ |
-| 🖥️ **NSIS Installer**  | `.exe`        | Instalador padrão                    |
+| 🖥️ **NSIS Installer**   | `.exe`        | Instalador padrão                    |
 | 🔄 **Updater manifest** | `latest.json` | Atualização automática pelo launcher |
 
 > [!IMPORTANT]
@@ -274,9 +316,9 @@ graph LR
 
 O **AstroLauncher** é um projeto **independente e open source**, sem qualquer afiliação com a **Mojang Studios** ou a **Microsoft**. "Minecraft" é uma marca registrada da Mojang Synergies AB.
 
-* No primeiro launch, o AstroLauncher baixa versões, bibliotecas e assets direto dos servidores oficiais da Mojang (e dos repositórios oficiais dos loaders). O launcher **não inclui nem distribui** arquivos do jogo.
-* O suporte a **contas offline** é apenas um mecanismo técnico de autenticação local, sem envolvimento com o sistema de contas da Mojang.
-* O uso de contas offline para jogar sem adquirir o jogo é de **inteira responsabilidade do usuário**.
+- No primeiro launch, o AstroLauncher baixa versões, bibliotecas e assets direto dos servidores oficiais da Mojang (e dos repositórios oficiais dos loaders). O launcher **não inclui nem distribui** arquivos do jogo.
+- O suporte a **contas offline** é apenas um mecanismo técnico de autenticação local, sem envolvimento com o sistema de contas da Mojang.
+- O uso de contas offline para jogar sem adquirir o jogo é de **inteira responsabilidade do usuário**.
 
 > [!IMPORTANT]
 > Adquira o Minecraft oficialmente para jogar com todo o suporte, atualizações e funcionalidades online.
@@ -299,10 +341,10 @@ git push origin feat/minha-feature
 
 > 💡 **Boas práticas do projeto:**
 >
-> * Arquivos com no máximo **200 linhas** (ideal 80 a 150)
-> * Erros tipados com `thiserror`, nunca `String`
-> * Código em **inglês**, comentários explicam o *porquê*, não o *o quê*
-> * Funções e casos de uso pequenos e com responsabilidade única
+> - Arquivos com no máximo **200 linhas** (ideal 80 a 150)
+> - Erros tipados com `thiserror`, nunca `String`
+> - Código em **inglês**, comentários explicam o _porquê_, não o _o quê_
+> - Funções e casos de uso pequenos e com responsabilidade única
 
 ## 📄 Licença
 

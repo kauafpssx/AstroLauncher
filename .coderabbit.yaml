@@ -1,6 +1,6 @@
-# CodeRabbit — review IA automático em PRs.
-# ⚠️ Requer instalar o GitHub App: https://github.com/apps/coderabbitai
-# (grátis para repos públicos). Sem o app, este arquivo é ignorado.
+# CodeRabbit — automated AI review on PRs.
+# ⚠️ Requires installing the GitHub App: https://github.com/apps/coderabbitai
+# (free for public repos). Without the app, this file is ignored.
 # Docs: https://docs.coderabbit.ai/guides/configure-coderabbit
 language: pt-BR
 reviews:

@@ -1,4 +1,4 @@
-# Configuração dos templates de issue
+# Issue templates configuration
 # https://docs.github.com/pt/communities/using-templates-to-encourage-useful-issues-and-pull-requests
 
 blank_issues_enabled: false
