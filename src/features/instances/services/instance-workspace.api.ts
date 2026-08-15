@@ -39,6 +39,9 @@ export const InstanceWorkspaceAPI = {
   openFolder(id: string): Promise<void> {
     return apiInvoke<void>('open_instance_folder', { id })
   },
+  getDiskUsage(id: string): Promise<number> {
+    return apiInvoke<number>('get_instance_disk_usage', { id })
+  },
   listShortcuts(): Promise<string[]> {
     return apiInvoke<string[]>('list_instance_shortcuts')
   },
@@ -86,6 +89,12 @@ export const InstanceWorkspaceAPI = {
   },
   readScreenshot(id: string, name: string): Promise<string> {
     return apiInvoke<string>('read_instance_screenshot', { id, name })
+  },
+  readScreenshotThumbnail(id: string, name: string): Promise<string> {
+    return apiInvoke<string>('read_instance_screenshot_thumbnail', {
+      id,
+      name,
+    })
   },
   deleteScreenshot(id: string, name: string): Promise<void> {
     return apiInvoke<void>('delete_instance_screenshot', { id, name })

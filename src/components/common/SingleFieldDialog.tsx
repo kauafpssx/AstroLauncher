@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { toast } from 'sonner'
+import type { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -12,6 +14,9 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getFirstIssue } from '@/lib/validation'
+
+import { CharacterCounter } from './CharacterCounter'
 
 interface SingleFieldDialogProps {
   open: boolean
@@ -22,6 +27,8 @@ interface SingleFieldDialogProps {
   fieldLabel: string
   placeholder?: string
   inputType?: 'text' | 'password'
+  maxLength?: number
+  schema?: z.ZodType<string, string>
   initialValue?: string
   submitLabel: string
   submitLoadingLabel?: string
@@ -40,6 +47,8 @@ export function SingleFieldDialog({
   fieldLabel,
   placeholder,
   inputType = 'text',
+  maxLength,
+  schema,
   initialValue = '',
   submitLabel,
   submitLoadingLabel,
@@ -62,6 +71,11 @@ export function SingleFieldDialog({
   const handleSubmit = async () => {
     const trimmed = value.trim()
     if (!trimmed || isSubmitting) return
+    const issue = schema ? getFirstIssue(schema, trimmed) : null
+    if (issue) {
+      toast.error(issue)
+      return
+    }
     setIsSubmitting(true)
     try {
       await onSubmit(trimmed)
@@ -90,6 +104,7 @@ export function SingleFieldDialog({
             id={fieldId}
             type={inputType}
             placeholder={placeholder}
+            maxLength={maxLength}
             value={value}
             onChange={(e) => setValue(e.target.value)}
             autoFocus
@@ -97,6 +112,11 @@ export function SingleFieldDialog({
               if (e.key === 'Enter') handleSubmit()
             }}
           />
+          {maxLength !== undefined && (
+            <div className="flex justify-end">
+              <CharacterCounter value={value} max={maxLength} />
+            </div>
+          )}
         </div>
         <DialogFooter>
           {showCancel && (

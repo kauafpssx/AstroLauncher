@@ -19,7 +19,6 @@ import { Plus, UserCircle2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { EmptyState } from '@/components/common/EmptyState'
-import { TabHeader } from '@/components/common/TabHeader'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -28,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Table,
   TableBody,
@@ -71,11 +71,11 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
     setSheetOpen(true)
   }
 
-  const handleSubmit = async (username: string) => {
+  const handleSubmit = async (username: string, iconPath: string | null) => {
     if (editingAccount) {
-      await updateAccount({ id: editingAccount.id, username })
+      await updateAccount({ id: editingAccount.id, username, iconPath })
     } else {
-      await createAccount({ username })
+      await createAccount({ username, iconPath })
     }
   }
 
@@ -98,18 +98,15 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Contas</DialogTitle>
-            <DialogDescription>Gerencie suas contas offline.</DialogDescription>
+            <div className="flex items-center justify-between gap-2">
+              <DialogDescription>
+                Gerencie suas contas offline.
+              </DialogDescription>
+              <Button size="sm" onClick={openCreate}>
+                <Plus /> Adicionar Conta
+              </Button>
+            </div>
           </DialogHeader>
-
-          <TabHeader
-            description={`${accounts.length} ${
-              accounts.length === 1 ? 'conta cadastrada' : 'contas cadastradas'
-            }`}
-          >
-            <Button size="sm" onClick={openCreate}>
-              <Plus /> Adicionar Conta
-            </Button>
-          </TabHeader>
 
           {accounts.length === 0 ? (
             <EmptyState
@@ -130,33 +127,44 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
               modifiers={[restrictToVerticalAxis, restrictToParentElement]}
               onDragEnd={handleDragEnd}
             >
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-8" />
-                    <TableHead>Username</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-10" />
-                  </TableRow>
-                </TableHeader>
-                <SortableContext
-                  items={accounts.map((a) => a.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <TableBody>
-                    {accounts.map((account) => (
-                      <AccountRow
-                        key={account.id}
-                        account={account}
-                        onSetDefault={() => setDefaultAccount(account.id)}
-                        onEdit={() => openEdit(account)}
-                        onDelete={() => handleDelete(account.id)}
-                      />
-                    ))}
-                  </TableBody>
-                </SortableContext>
-              </Table>
+              <ScrollArea type="always" className="max-h-72">
+                <Table>
+                  <TableHeader className="bg-popover sticky top-0 z-10">
+                    <TableRow>
+                      <TableHead>Usuário</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">
+                        {accounts.length}{' '}
+                        {accounts.length === 1 ? 'conta' : 'contas'}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <SortableContext
+                    items={accounts.map((a) => a.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <TableBody>
+                      {accounts.map((account) => (
+                        <AccountRow
+                          key={account.id}
+                          account={account}
+                          onSetDefault={() => setDefaultAccount(account.id)}
+                          onEdit={() => openEdit(account)}
+                          onDelete={() => handleDelete(account.id)}
+                          onUpdateIcon={(iconPath) =>
+                            updateAccount({
+                              id: account.id,
+                              username: account.username,
+                              iconPath,
+                            })
+                          }
+                        />
+                      ))}
+                    </TableBody>
+                  </SortableContext>
+                </Table>
+              </ScrollArea>
             </DndContext>
           )}
         </DialogContent>

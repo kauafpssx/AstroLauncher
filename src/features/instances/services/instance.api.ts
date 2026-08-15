@@ -5,6 +5,7 @@ import type {
   SuggestedMemoryDTO,
   UpdateInstanceInput,
 } from '@/types/instance'
+import type { JavaInfoDTO } from '@/types/java'
 
 export const InstanceAPI = {
   list(): Promise<InstanceDTO[]> {
@@ -30,6 +31,9 @@ export const InstanceAPI = {
   },
   getTotalSystemMemoryMb(): Promise<number> {
     return apiInvoke<number>('get_total_system_memory_mb')
+  },
+  getJavaInfo(path: string | null, instanceId: string): Promise<JavaInfoDTO> {
+    return apiInvoke<JavaInfoDTO>('get_java_info', { path, instanceId })
   },
   listAudioOutputDevices(): Promise<string[]> {
     return apiInvoke<string[]>('list_audio_output_devices')

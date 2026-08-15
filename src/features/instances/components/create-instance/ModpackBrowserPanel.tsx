@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react'
+import { Download, Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -20,9 +20,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ModAPI } from '@/features/mods/services/mod.api'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 import { cn } from '@/lib/utils'
 import { useModpackInstallStore } from '@/stores/modpack-install.store'
-import type { ModSearchResult, ModSortBy, ModSource } from '@/types/mods'
+import {
+  MOD_SEARCH_PAGE_SIZE,
+  type ModSearchResult,
+  type ModSortBy,
+  type ModSource,
+} from '@/types/mods'
 
 import { ModpackDetailPanel } from './ModpackDetailPanel'
 import {
@@ -42,6 +48,8 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
   const [sortBy, setSortBy] = useState<ModSortBy>('relevance')
   const [results, setResults] = useState<ModSearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
   const [selected, setSelected] = useState<ModSearchResult | null>(null)
   const isInstalling = useModpackInstallStore((s) => s.isInstalling)
   const requestIdRef = useRef(0)
@@ -53,6 +61,7 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
     setPrevSource(source)
     setSelected(null)
     setResults([])
+    setHasMore(false)
   }
 
   useEffect(() => {
@@ -60,7 +69,11 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
     const handle = setTimeout(() => {
       setIsSearching(true)
       ModAPI.search({ source, query, projectType: 'modpack', sort: sortBy })
-        .then((data) => requestIdRef.current === requestId && setResults(data))
+        .then((data) => {
+          if (requestIdRef.current !== requestId) return
+          setResults(data)
+          setHasMore(data.length >= MOD_SEARCH_PAGE_SIZE)
+        })
         .catch(
           (err) =>
             requestIdRef.current === requestId &&
@@ -72,6 +85,38 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
     }, 200)
     return () => clearTimeout(handle)
   }, [query, source, sortBy])
+
+  const loadMore = () => {
+    if (isSearching || isLoadingMore || !hasMore) return
+    const requestId = ++requestIdRef.current
+    setIsLoadingMore(true)
+    ModAPI.search({
+      source,
+      query,
+      projectType: 'modpack',
+      sort: sortBy,
+      offset: results.length,
+    })
+      .then((data) => {
+        if (requestIdRef.current !== requestId) return
+        setResults((prev) => [...prev, ...data])
+        setHasMore(data.length >= MOD_SEARCH_PAGE_SIZE)
+      })
+      .catch(
+        (err) =>
+          requestIdRef.current === requestId &&
+          toast.error(`Falha ao buscar: ${String(err)}`),
+      )
+      .finally(
+        () => requestIdRef.current === requestId && setIsLoadingMore(false),
+      )
+  }
+
+  const { viewportRef, sentinelRef } = useInfiniteScroll({
+    hasMore,
+    isLoading: isLoadingMore,
+    onLoadMore: loadMore,
+  })
 
   return (
     <div className="flex h-full min-w-0 flex-row overflow-hidden rounded-lg border">
@@ -110,7 +155,11 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
             {isSearching ? (
               <CenteredSpinner />
             ) : (
-              <ScrollArea type="always" className="min-h-0 min-w-0 flex-1">
+              <ScrollArea
+                type="always"
+                className="min-h-0 min-w-0 flex-1"
+                viewportRef={viewportRef}
+              >
                 <div className="flex min-w-0 flex-col gap-1 p-2 pr-3">
                   {results.length === 0 && (
                     <p className="text-muted-foreground p-4 text-center text-sm">
@@ -176,6 +225,13 @@ export function ModpackBrowserPanel({ source }: ModpackBrowserPanelProps) {
                       </span>
                     </button>
                   ))}
+                  {hasMore && (
+                    <div ref={sentinelRef} className="flex justify-center p-3">
+                      {isLoadingMore && (
+                        <Loader2 className="text-muted-foreground size-4 animate-spin" />
+                      )}
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             )}

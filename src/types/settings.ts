@@ -3,6 +3,7 @@ export interface SettingsDTO {
   mcstatApiKey: string | null
   rootGroupName: string | null
   rootGroupIcon: string | null
+  zerotierApiToken: string | null
 }
 
 export interface UpdateSettingsInput {
@@ -10,4 +11,5 @@ export interface UpdateSettingsInput {
   mcstatApiKey?: string | null
   rootGroupName?: string | null
   rootGroupIcon?: string | null
+  zerotierApiToken?: string | null
 }

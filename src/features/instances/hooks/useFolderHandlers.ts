@@ -22,8 +22,8 @@ interface UseFolderHandlersArgs {
   refreshInstances: () => Promise<void> | void
 }
 
-/** Estado e handlers das pastas (criar, renomear, excluir, colapsar, mover e
- * reordenar), extraídos de `useInstancesPage`. */
+/** State and handlers for folders (create, rename, delete, collapse, move
+ * and reorder), extracted from `useInstancesPage`. */
 export function useFolderHandlers({
   settings,
   setSettings,
@@ -54,8 +54,8 @@ export function useFolderHandlers({
   const handleRenameFolder = async (name: string) => {
     if (!folderDialog) return
     if (folderDialog.isRoot) {
-      // Sem settings carregado, `?? null` sobrescreveria as chaves de API
-      // persistidas com null e apagaria as credenciais do usuário.
+      // Without loaded settings, `?? null` would overwrite the persisted API
+      // keys with null and wipe the user's credentials.
       if (!settings) {
         toast.error('Configurações ainda carregando, tente novamente')
         return

@@ -57,24 +57,25 @@ export function VersionSelectionCard({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-medium">Versão do Jogo</h3>
           <p className="text-muted-foreground text-sm">
             Escolha a versão base da sua instância.
           </p>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-1 items-center gap-1.5">
           <Button
             variant="outline"
             size="icon"
+            className="shrink-0"
             {...tooltipProps('Atualizar versões')}
             onClick={onRefresh}
           >
             <RefreshCw />
           </Button>
           <SearchInput
-            containerClassName="w-64"
+            containerClassName="min-w-40 max-w-64 flex-1"
             placeholder="Pesquisar versões..."
             value={search}
             onChange={(e) => {

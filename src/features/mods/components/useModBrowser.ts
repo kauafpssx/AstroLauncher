@@ -8,6 +8,7 @@ import type {
   ModSortBy,
   ModSource,
 } from '@/types/mods'
+import { MOD_SEARCH_PAGE_SIZE } from '@/types/mods'
 
 import { ModAPI } from '../services/mod.api'
 import {
@@ -15,7 +16,11 @@ import {
   createToggleSelection,
   createUploadCustom,
 } from './mod-browser-actions'
-import { selectionKey, type SelectionMap } from './selection-utils'
+import {
+  normalizeName,
+  selectionKey,
+  type SelectionMap,
+} from './selection-utils'
 
 export { selectionKey } from './selection-utils'
 export type { SelectionMap } from './selection-utils'
@@ -30,8 +35,8 @@ interface UseModBrowserArgs {
   onInstalled: () => void
 }
 
-/** Estado e lógica do browser de mods: busca com debounce, seleção com fetch
- * de versão sob demanda e upload de arquivo customizado. */
+/** State and logic for the mod browser: debounced search, selection with
+ * on-demand version fetch, and custom file upload. */
 export function useModBrowser({
   open,
   onOpenChange,
@@ -46,6 +51,8 @@ export function useModBrowser({
   const [sortBy, setSortBy] = useState<ModSortBy>('relevance')
   const [results, setResults] = useState<ModSearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [viewing, setViewing] = useState<ModSearchResult | null>(null)
   const [selection, setSelection] = useState<SelectionMap>({})
@@ -71,6 +78,7 @@ export function useModBrowser({
     if (!open) {
       setQuery('')
       setResults([])
+      setHasMore(false)
       setViewing(null)
       setSelection({})
       setPendingKeys(new Set())
@@ -86,15 +94,20 @@ export function useModBrowser({
       .catch(() => setInstalledMods([]))
   }, [open, instanceId, kind])
 
-  // Mods already installed in this instance: matched both by exact
-  // source+projectId (reinstalling the same mod) and by jar filename
-  // (the same mod pulled from the other platform), since CurseForge and
-  // Modrinth use different project IDs for what is otherwise the same file.
+  // Mods already installed in this instance, matched three ways since
+  // CurseForge and Modrinth use different project IDs for what can be the
+  // same mod: exact source+projectId (reinstalling the same mod), name
+  // (spotting the equivalent mod on the other platform in the browse list),
+  // and jar filename (blocking an actual duplicate download at install time).
   const installedKeys = useMemo(
     () =>
       new Set(
         installedMods.map((m) => selectionKey(m.source as ModSource, m.modId)),
       ),
+    [installedMods],
+  )
+  const installedNames = useMemo(
+    () => new Set(installedMods.map((m) => normalizeName(m.name))),
     [installedMods],
   )
   const installedFileNames = useMemo(
@@ -120,6 +133,7 @@ export function useModBrowser({
         .then((data) => {
           if (requestIdRef.current !== requestId) return
           setResults(data)
+          setHasMore(data.length >= MOD_SEARCH_PAGE_SIZE)
         })
         .catch((err) => {
           if (requestIdRef.current !== requestId) return
@@ -133,6 +147,34 @@ export function useModBrowser({
 
     return () => clearTimeout(handle)
   }, [open, source, query, kind, gameVersion, effectiveLoader, sortBy])
+
+  const loadMore = () => {
+    if (isSearching || isLoadingMore || !hasMore) return
+    const requestId = ++requestIdRef.current
+    setIsLoadingMore(true)
+    ModAPI.search({
+      source,
+      query,
+      projectType: kind,
+      gameVersion: gameVersion ?? null,
+      loader: effectiveLoader,
+      sort: sortBy,
+      offset: results.length,
+    })
+      .then((data) => {
+        if (requestIdRef.current !== requestId) return
+        setResults((prev) => [...prev, ...data])
+        setHasMore(data.length >= MOD_SEARCH_PAGE_SIZE)
+      })
+      .catch((err) => {
+        if (requestIdRef.current !== requestId) return
+        setError(String(err))
+      })
+      .finally(() => {
+        if (requestIdRef.current !== requestId) return
+        setIsLoadingMore(false)
+      })
+  }
 
   const toggleSelection = createToggleSelection({
     selection,
@@ -174,6 +216,9 @@ export function useModBrowser({
     setSortBy,
     results,
     isSearching,
+    isLoadingMore,
+    hasMore,
+    loadMore,
     error,
     viewing,
     setViewing,
@@ -183,6 +228,7 @@ export function useModBrowser({
     isUploading,
     pendingKeys,
     installedKeys,
+    installedNames,
     installedFileNames,
     selectedCount,
     effectiveLoader,

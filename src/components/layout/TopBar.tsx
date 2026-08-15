@@ -1,9 +1,11 @@
-import { Download, Plus, Shirt } from 'lucide-react'
+import { useState } from 'react'
+import { Download, Network, Plus, Shirt } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { AccountDropdown } from '@/components/layout/AccountDropdown'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { ZeroTierDialog } from '@/features/network/components/ZeroTierDialog'
 import { tooltipProps } from '@/lib/tooltip'
 
 interface TopBarProps {
@@ -13,6 +15,7 @@ interface TopBarProps {
 
 export function TopBar({ onCreateInstance, onImportInstance }: TopBarProps) {
   const navigate = useNavigate()
+  const [connectionsOpen, setConnectionsOpen] = useState(false)
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-1 border-b px-3">
@@ -41,9 +44,21 @@ export function TopBar({ onCreateInstance, onImportInstance }: TopBarProps) {
       >
         <Shirt />
       </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        {...tooltipProps('Rede (ZeroTier)')}
+        onClick={() => setConnectionsOpen(true)}
+      >
+        <Network />
+      </Button>
       <div className="ml-auto flex items-center gap-1">
         <AccountDropdown />
       </div>
+      <ZeroTierDialog
+        open={connectionsOpen}
+        onOpenChange={setConnectionsOpen}
+      />
     </header>
   )
 }

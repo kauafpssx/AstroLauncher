@@ -52,6 +52,10 @@ export interface InstalledMod {
 
 export type ModSortBy = 'relevance' | 'downloads' | 'newest' | 'updated'
 
+/** Results per search page: mirrors `PAGE_SIZE` on both provider clients
+ * (backend). A page shorter than this means there's nothing left to load. */
+export const MOD_SEARCH_PAGE_SIZE = 30
+
 export interface SearchModsInput {
   source: ModSource
   query: string
@@ -59,6 +63,8 @@ export interface SearchModsInput {
   gameVersion?: string | null
   loader?: string | null
   sort?: ModSortBy | null
+  /** Pagination offset (results already loaded). Omit/0 for the first page. */
+  offset?: number | null
 }
 
 export interface GetModVersionsInput {

@@ -1,3 +1,4 @@
+import { CharacterCounter } from '@/components/common/CharacterCounter'
 import { NumberStepperInput } from '@/components/common/NumberStepperInput'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,6 +11,7 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { floatRangeForKey, type ParsedOption } from '@/lib/minecraft-options'
+import { MAX } from '@/lib/validation'
 
 const DEFAULT_DEVICE = '__default__'
 const NUMBER_MIN = -1_000_000
@@ -91,12 +93,16 @@ export function MinecraftOptionField({
   }
 
   return (
-    <Input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-8 w-40 shrink-0"
-      autoComplete="off"
-      spellCheck={false}
-    />
+    <div className="flex shrink-0 items-center gap-1">
+      <Input
+        value={value}
+        maxLength={MAX.OPTION_VALUE}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-8 w-40 shrink-0"
+        autoComplete="off"
+        spellCheck={false}
+      />
+      <CharacterCounter value={value} max={MAX.OPTION_VALUE} />
+    </div>
   )
 }

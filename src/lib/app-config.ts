@@ -15,6 +15,8 @@ interface AppApiConfig {
   liteloaderVersions: string
   liteloaderRepo: string
   mavenCentral: string
+  zerotierCentral: string
+  zerotierDownload: string
 }
 
 export interface AppEnvConfig {
@@ -23,6 +25,8 @@ export interface AppEnvConfig {
   mcstatDashboard: string
   mcstatDocs: string
   curseforgeConsole: string
+  zerotierAccount: string
+  zerotierDownloadPage: string
 }
 
 let cache: Promise<AppEnvConfig> | null = null

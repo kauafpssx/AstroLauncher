@@ -18,6 +18,11 @@ export function useInstanceIcon(instance: InstanceDTO) {
         minMemory: instance.minMemory,
         maxMemory: instance.maxMemory,
         iconPath,
+        fullscreen: instance.fullscreen,
+        windowWidth: instance.windowWidth,
+        windowHeight: instance.windowHeight,
+        javaPath: instance.javaPath,
+        windowMonitor: instance.windowMonitor,
       })
     } catch (err) {
       toast.error(`Falha ao atualizar ícone: ${String(err)}`)

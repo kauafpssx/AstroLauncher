@@ -126,9 +126,20 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
   },
 
   reorderInstances: async (orderedIds) => {
+    // `orderedIds` is only the subset being reordered (one folder/group at a
+    // time, see instance-grid-dnd.ts) — splice that new order back into the
+    // full list in place instead of replacing `instances` outright, which
+    // used to silently drop every instance outside that subset from state.
+    const idSet = new Set(orderedIds)
     const byId = new Map(get().instances.map((i) => [i.id, i]))
-    const reordered = orderedIds.map((id) => byId.get(id)!).filter(Boolean)
-    set({ instances: reordered })
+    const reorderedSubset = orderedIds
+      .map((id) => byId.get(id)!)
+      .filter(Boolean)
+    let cursor = 0
+    const instances = get().instances.map((i) =>
+      idSet.has(i.id) ? reorderedSubset[cursor++] : i,
+    )
+    set({ instances })
     await InstanceAPI.reorder(orderedIds)
   },
 

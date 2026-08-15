@@ -33,7 +33,7 @@ interface InstanceActionHandlers {
   onMoveToFolder?: (id: string, folderId: string | null) => void
 }
 
-async function openFolder(id: string) {
+export async function openFolder(id: string) {
   try {
     await InstanceWorkspaceAPI.openFolder(id)
   } catch (err) {

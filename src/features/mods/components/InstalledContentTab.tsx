@@ -1,12 +1,8 @@
-import { Plus, Puzzle, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { Plus, Puzzle } from 'lucide-react'
 
-import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { TabHeader } from '@/components/common/TabHeader'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -15,12 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { tooltipProps } from '@/lib/tooltip'
-import type { ContentKind, InstalledMod } from '@/types/mods'
+import type { ContentKind } from '@/types/mods'
 
-import { ModAPI } from '../services/mod.api'
-import { LABELS, SOURCE_LOGO } from './installed-content-tab.constants'
+import { InstalledContentBatchBar } from './InstalledContentBatchBar'
+import { InstalledContentRow } from './InstalledContentRow'
+import { LABELS } from './installed-content-tab.constants'
 import { ModBrowserDialog } from './ModBrowserDialog'
+import { useInstalledContent } from './useInstalledContent'
 
 interface InstalledContentTabProps {
   instanceId: string
@@ -35,56 +32,29 @@ export function InstalledContentTab({
   loader,
   kind,
 }: InstalledContentTabProps) {
-  const [items, setItems] = useState<InstalledMod[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchOpen, setSearchOpen] = useState(false)
   const labels = LABELS[kind]
-
-  const load = async () => {
-    try {
-      setItems(await ModAPI.listInstalled(instanceId, kind))
-    } catch (err) {
-      toast.error(`Falha ao listar: ${String(err)}`)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    let cancelled = false
-    ModAPI.listInstalled(instanceId, kind)
-      .then((data) => !cancelled && setItems(data))
-      .catch(
-        (err) => !cancelled && toast.error(`Falha ao listar: ${String(err)}`),
-      )
-      .finally(() => !cancelled && setIsLoading(false))
-    return () => {
-      cancelled = true
-    }
-  }, [instanceId, kind])
-
-  const handleToggle = async (item: InstalledMod, enabled: boolean) => {
-    setItems((prev) =>
-      prev.map((m) => (m.id === item.id ? { ...m, enabled } : m)),
-    )
-    try {
-      await ModAPI.setEnabled(instanceId, item.id, enabled)
-    } catch (err) {
-      toast.error(`Falha ao atualizar: ${String(err)}`)
-      setItems((prev) =>
-        prev.map((m) => (m.id === item.id ? { ...m, enabled: !enabled } : m)),
-      )
-    }
-  }
-
-  const handleDelete = async (item: InstalledMod) => {
-    try {
-      await ModAPI.deleteInstalled(instanceId, item.id)
-      setItems((prev) => prev.filter((m) => m.id !== item.id))
-    } catch (err) {
-      toast.error(`Falha ao remover: ${String(err)}`)
-    }
-  }
+  const content = useInstalledContent({ instanceId, kind })
+  const {
+    items,
+    isLoading,
+    searchOpen,
+    setSearchOpen,
+    load,
+    handleToggle,
+    handleDelete,
+    selectedIds,
+    selectedItems,
+    allSelected,
+    someSelected,
+    anySelectedEnabled,
+    deleteConfirmOpen,
+    setDeleteConfirmOpen,
+    isBatchPending,
+    toggleSelected,
+    toggleSelectAll,
+    handleBatchToggle,
+    handleBatchDelete,
+  } = content
 
   return (
     <div className="flex flex-col gap-3">
@@ -98,6 +68,17 @@ export function InstalledContentTab({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={
+                    allSelected ? true : someSelected ? 'indeterminate' : false
+                  }
+                  onCheckedChange={(checked) =>
+                    toggleSelectAll(checked === true)
+                  }
+                  aria-label="Selecionar todos"
+                />
+              </TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Fonte</TableHead>
               <TableHead>Versão</TableHead>
@@ -109,7 +90,7 @@ export function InstalledContentTab({
             {!isLoading && items.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="text-muted-foreground h-24 text-center"
                 >
                   <Puzzle className="mx-auto mb-2 size-6" />
@@ -118,55 +99,31 @@ export function InstalledContentTab({
               </TableRow>
             )}
             {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2.5">
-                    <EntityAvatar
-                      name={item.name}
-                      iconUrl={item.iconUrl}
-                      className="size-7"
-                      fallbackClassName="text-[10px]"
-                    />
-                    {item.name}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="capitalize">
-                    {SOURCE_LOGO[item.source] && (
-                      <img
-                        src={SOURCE_LOGO[item.source]}
-                        alt=""
-                        className="size-3"
-                      />
-                    )}
-                    {item.source}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {item.version}
-                </TableCell>
-                <TableCell>
-                  <Switch
-                    checked={item.enabled}
-                    onCheckedChange={(checked) => handleToggle(item, checked)}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handleDelete(item)}
-                    aria-label="Excluir"
-                    {...tooltipProps('Excluir')}
-                  >
-                    <Trash2 className="text-destructive" />
-                  </Button>
-                </TableCell>
-              </TableRow>
+              <InstalledContentRow
+                key={item.id}
+                item={item}
+                isSelected={selectedIds.has(item.id)}
+                onToggleSelected={toggleSelected}
+                onToggleEnabled={handleToggle}
+                onDelete={handleDelete}
+              />
             ))}
           </TableBody>
         </Table>
       </div>
+
+      <InstalledContentBatchBar
+        count={selectedIds.size}
+        pluralLabel={labels.pluralLabel}
+        itemNames={selectedItems.map((m) => m.name)}
+        anySelectedEnabled={anySelectedEnabled}
+        isPending={isBatchPending}
+        confirmOpen={deleteConfirmOpen}
+        onConfirmOpenChange={setDeleteConfirmOpen}
+        onToggle={handleBatchToggle}
+        onDelete={handleBatchDelete}
+        onClear={() => toggleSelectAll(false)}
+      />
 
       <ModBrowserDialog
         open={searchOpen}

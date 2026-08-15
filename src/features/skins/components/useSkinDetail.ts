@@ -11,8 +11,8 @@ interface UseSkinDetailArgs {
   id: string | null
 }
 
-/** Estado, dados e handlers do diálogo de detalhes de skin (fetch, cópia de
- * nome/URL e download). */
+/** State, data and handlers for the skin detail dialog (fetch, name/URL
+ * copy and download). */
 export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
   const [detail, setDetail] = useState<SkinDetail | null>(null)
   const [isLoading, setIsLoading] = useState(false)

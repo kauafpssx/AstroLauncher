@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Markdown } from 'tiptap-markdown'
 
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
+import { getFirstIssue, noteTitleSchema } from '@/lib/validation'
 import type { NoteDTO } from '@/types/note'
 
 import { ResizableImage } from './ResizableImageExtension'
@@ -17,8 +18,8 @@ function getMarkdown(editor: NonNullable<ReturnType<typeof useEditor>>) {
   ).markdown.getMarkdown()
 }
 
-/** Editor Tiptap + CRUD das notas da instância, com autosave debounced e
- * flush ao trocar de nota. */
+/** Tiptap editor + CRUD for instance notes, with debounced autosave and
+ * flush when switching notes. */
 export function useNotesEditor(instanceId: string) {
   const [notes, setNotes] = useState<NoteDTO[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -138,14 +139,24 @@ export function useNotesEditor(instanceId: string) {
 
   const commitRename = async () => {
     const note = notes.find((n) => n.id === renamingId)
-    setRenamingId(null)
-    if (!note || !renameValue.trim() || renameValue.trim() === note.title)
+    if (!note) return
+    const trimmed = renameValue.trim()
+    // Empty or unchanged: close the rename silently, like before.
+    if (!trimmed || trimmed === note.title) {
+      setRenamingId(null)
       return
+    }
+    const issue = getFirstIssue(noteTitleSchema, trimmed)
+    if (issue) {
+      toast.error(issue)
+      return
+    }
+    setRenamingId(null)
     try {
       const updated = await InstanceWorkspaceAPI.renameNote(
         instanceId,
         note.id,
-        renameValue.trim(),
+        trimmed,
       )
       setNotes((prev) =>
         prev

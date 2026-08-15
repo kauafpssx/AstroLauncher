@@ -2,10 +2,17 @@ import { Lock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+import { CharacterCounter } from '@/components/common/CharacterCounter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  MAX,
+  getFirstIssue,
+  instanceNameSchema,
+  javaArgsSchema,
+} from '@/lib/validation'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { InstanceDTO } from '@/types/instance'
 
@@ -14,12 +21,15 @@ import type { SuggestedMemoryDTO } from '@/types/instance'
 import { IconPickerButton } from '../IconPickerButton'
 import { LoaderSelectionCard } from '../create-instance/LoaderSelectionCard'
 import { InstanceAPI } from '../../services/instance.api'
+import { InstanceStatsSection } from './InstanceStatsSection'
+import { JavaSettingsSection } from './JavaSettingsSection'
 import { MemorySettingsSection } from './MemorySettingsSection'
 import {
   FALLBACK_TOTAL_MEMORY_MB,
   MIN_MEMORY_MB,
   toLoaderId,
 } from './settings-tab-utils'
+import { WindowSettingsSection } from './WindowSettingsSection'
 
 interface SettingsTabProps {
   instance: InstanceDTO
@@ -35,6 +45,11 @@ export function SettingsTab({ instance }: SettingsTabProps) {
   const [minMemory, setMinMemory] = useState(instance.minMemory)
   const [maxMemory, setMaxMemory] = useState(instance.maxMemory)
   const [javaArgs, setJavaArgs] = useState(instance.javaArgs ?? '')
+  const [fullscreen, setFullscreen] = useState(instance.fullscreen)
+  const [windowWidth, setWindowWidth] = useState(instance.windowWidth)
+  const [windowHeight, setWindowHeight] = useState(instance.windowHeight)
+  const [javaPath, setJavaPath] = useState(instance.javaPath)
+  const [windowMonitor, setWindowMonitor] = useState(instance.windowMonitor)
   const [isSaving, setIsSaving] = useState(false)
   const [totalMemoryMb, setTotalMemoryMb] = useState(FALLBACK_TOTAL_MEMORY_MB)
   const [suggestedMemory, setSuggestedMemory] =
@@ -75,10 +90,24 @@ export function SettingsTab({ instance }: SettingsTabProps) {
     iconPath !== instance.iconPath ||
     minMemory !== instance.minMemory ||
     maxMemory !== instance.maxMemory ||
-    javaArgs !== (instance.javaArgs ?? '')
+    javaArgs !== (instance.javaArgs ?? '') ||
+    fullscreen !== instance.fullscreen ||
+    windowWidth !== instance.windowWidth ||
+    windowHeight !== instance.windowHeight ||
+    javaPath !== instance.javaPath ||
+    windowMonitor !== instance.windowMonitor
 
   const handleSave = async () => {
-    if (!name.trim()) return
+    const issue = getFirstIssue(instanceNameSchema, name)
+    if (issue) {
+      toast.error(issue)
+      return
+    }
+    const argsIssue = getFirstIssue(javaArgsSchema, javaArgs)
+    if (argsIssue) {
+      toast.error(argsIssue)
+      return
+    }
     setIsSaving(true)
     try {
       await updateInstance({
@@ -91,6 +120,11 @@ export function SettingsTab({ instance }: SettingsTabProps) {
         minMemory,
         maxMemory,
         iconPath,
+        fullscreen,
+        windowWidth,
+        windowHeight,
+        javaPath,
+        windowMonitor,
       })
     } catch (err) {
       toast.error(`Falha ao salvar: ${String(err)}`)
@@ -117,11 +151,17 @@ export function SettingsTab({ instance }: SettingsTabProps) {
               <Label htmlFor="edit-name">Nome da Instância</Label>
               <Input
                 id="edit-name"
+                maxLength={MAX.INSTANCE_NAME}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
+              />
+              <CharacterCounter
+                value={name}
+                max={MAX.INSTANCE_NAME}
+                className="self-end"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -142,6 +182,25 @@ export function SettingsTab({ instance }: SettingsTabProps) {
       </div>
 
       <LoaderSelectionCard selected={loader} onSelect={() => {}} disabled />
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
+        <InstanceStatsSection instance={instance} />
+        <WindowSettingsSection
+          fullscreen={fullscreen}
+          windowWidth={windowWidth}
+          windowHeight={windowHeight}
+          windowMonitor={windowMonitor}
+          onFullscreenChange={setFullscreen}
+          onWindowWidthChange={setWindowWidth}
+          onWindowHeightChange={setWindowHeight}
+          onWindowMonitorChange={setWindowMonitor}
+        />
+        <JavaSettingsSection
+          instanceId={instance.id}
+          javaPath={javaPath}
+          onJavaPathChange={setJavaPath}
+        />
+      </div>
 
       <MemorySettingsSection
         minMemory={minMemory}
@@ -170,7 +229,7 @@ export function SettingsTab({ instance }: SettingsTabProps) {
         }}
       />
 
-      <div className="flex flex-col gap-2 border-t pt-4">
+      <div className="flex flex-col gap-2">
         <div>
           <h3 className="text-sm font-medium">Argumentos da JVM</h3>
           <p className="text-muted-foreground text-xs">
@@ -181,7 +240,13 @@ export function SettingsTab({ instance }: SettingsTabProps) {
           value={javaArgs}
           onChange={(e) => setJavaArgs(e.target.value)}
           rows={3}
+          maxLength={MAX.JAVA_ARGS}
           placeholder="Nenhum"
+        />
+        <CharacterCounter
+          value={javaArgs}
+          max={MAX.JAVA_ARGS}
+          className="self-end"
         />
       </div>
 

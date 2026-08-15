@@ -27,8 +27,8 @@ export function skinKey(skin: SkinSummary) {
   return `${skin.source}:${skin.id}`
 }
 
-/** Estado e dados da galeria de skins: galeria "popular" paginada + busca
- * sobreposta com debounce, troca de fonte (PlayerMC/MCStat) e API key. */
+/** State and data for the skin gallery: paginated "popular" gallery + search
+ * overlaid with debounce, source switching (PlayerMC/MCStat) and API key. */
 export function useSkinsBrowser() {
   const [source, setSource] = useState<SkinSource>('playermc')
   const [sortBy, setSortBy] = useState<SkinSortBy>('popular-desc')

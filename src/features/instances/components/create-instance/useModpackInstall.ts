@@ -11,6 +11,7 @@ import type {
   ModSource,
   ModVersion,
 } from '@/types/mods'
+import { getFirstIssue, instanceNameSchema } from '@/lib/validation'
 import { useLaunchStore } from '@/stores/launch.store'
 import { useModpackInstallStore } from '@/stores/modpack-install.store'
 import { useInstanceStore } from '@/stores/instance.store'
@@ -21,8 +22,8 @@ interface InstalledFile {
 }
 
 /**
- * Toda a lógica de dados/instalação do painel de modpack: fetch de projeto e
- * versões, download com progresso via evento Tauri, cancelamento e launch.
+ * All the data/installation logic for the modpack panel: project and version
+ * fetch, download with progress via Tauri events, cancellation and launch.
  */
 export function useModpackInstall(result: ModSearchResult, source: ModSource) {
   const navigate = useNavigate()
@@ -73,6 +74,7 @@ export function useModpackInstall(result: ModSearchResult, source: ModSource) {
         if (cancelled) return
         setProject(proj)
         setVersions(vers)
+        setSelectedVersion(vers[0] ?? null)
       })
       .catch(
         (err) =>
@@ -91,7 +93,11 @@ export function useModpackInstall(result: ModSearchResult, source: ModSource) {
   }, [installedFiles])
 
   const handleInstall = async () => {
-    if (!instanceName.trim()) return
+    const issue = getFirstIssue(instanceNameSchema, instanceName)
+    if (issue) {
+      toast.error(issue)
+      return
+    }
     if (!selectedVersion?.downloadUrl) {
       toast.error(
         'Esta versão não está disponível para download. Escolha outra versão.',

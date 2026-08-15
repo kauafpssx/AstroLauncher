@@ -25,8 +25,8 @@ interface UseAstropackImportArgs {
   onImported: () => void
 }
 
-/** Fluxo de importação de um `.astropack`: preview do manifest, seleção do que
- * importar e importação com progresso por evento Tauri. */
+/** Import flow for a `.astropack`: manifest preview, selection of what to
+ * import, and import with progress via Tauri events. */
 export function useAstropackImport({
   open,
   filePath,

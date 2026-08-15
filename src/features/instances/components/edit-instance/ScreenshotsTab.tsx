@@ -56,9 +56,16 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
     }
   }
 
+  // The grid only ever loads the downscaled preview — fetch the real
+  // full-resolution PNG fresh so what lands on the clipboard isn't a small
+  // JPEG.
   const handleCopy = async (shot: LoadedScreenshot) => {
     try {
-      await writeImage(dataUriToBytes(shot.dataUri))
+      const fullDataUri = await InstanceWorkspaceAPI.readScreenshot(
+        instanceId,
+        shot.info.name,
+      )
+      await writeImage(dataUriToBytes(fullDataUri))
     } catch (err) {
       toast.error(`Falha ao copiar: ${String(err)}`)
     }
@@ -97,7 +104,7 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
       </TabHeader>
 
       {isLoading ? (
-        <CenteredSpinner className="h-40" />
+        <CenteredSpinner className="min-h-[60vh]" />
       ) : shots.length === 0 ? (
         <EmptyState
           icon={ImageIcon}
@@ -117,7 +124,7 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
               className="group bg-muted relative aspect-video overflow-hidden rounded-lg border"
             >
               <img
-                src={shot.dataUri}
+                src={shot.thumbnailDataUri}
                 alt={shot.info.name}
                 className="size-full object-cover transition-transform group-hover:scale-105"
               />
@@ -130,7 +137,7 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
         <ScreenshotViewerDialog
           instanceId={instanceId}
           name={viewing.info.name}
-          dataUri={viewing.dataUri}
+          thumbnailDataUri={viewing.thumbnailDataUri}
           onOpenChange={(open) => !open && setViewing(null)}
           onDownload={() => handleDownload(viewing)}
           onCopy={() => handleCopy(viewing)}

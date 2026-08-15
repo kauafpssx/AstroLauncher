@@ -5,7 +5,10 @@ const MAX_SCALE = 8
 
 export { MIN_SCALE, MAX_SCALE }
 
-export function useScreenshotZoom(dataUri: string) {
+/** `resetKey` should identify the screenshot itself (its name), not the
+ *  image data — the viewer swaps a thumbnail for the full-resolution image
+ *  after opening, and that swap must not reset zoom/pan mid-view. */
+export function useScreenshotZoom(resetKey: string) {
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const dragRef = useRef<{
@@ -18,9 +21,9 @@ export function useScreenshotZoom(dataUri: string) {
 
   // Reset zoom/pan during render when a different screenshot opens (the
   // linter forbids synchronous setState inside effects).
-  const [prevDataUri, setPrevDataUri] = useState(dataUri)
-  if (prevDataUri !== dataUri) {
-    setPrevDataUri(dataUri)
+  const [prevResetKey, setPrevResetKey] = useState(resetKey)
+  if (prevResetKey !== resetKey) {
+    setPrevResetKey(resetKey)
     setScale(1)
     setOffset({ x: 0, y: 0 })
   }

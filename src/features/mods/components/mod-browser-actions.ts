@@ -11,7 +11,11 @@ import type {
 } from '@/types/mods'
 
 import { ModAPI } from '../services/mod.api'
-import { selectionKey, type SelectionMap } from './selection-utils'
+import {
+  normalizeName,
+  selectionKey,
+  type SelectionMap,
+} from './selection-utils'
 
 interface ToggleSelectionDeps {
   selection: SelectionMap
@@ -124,8 +128,11 @@ export function createDeleteInstalled({
 }: DeleteInstalledDeps) {
   return async (result: ModSearchResult) => {
     const key = selectionKey(result.source, result.projectId)
+    const resultName = normalizeName(result.name)
     const installed = installedMods.find(
-      (m) => selectionKey(m.source as ModSource, m.modId) === key,
+      (m) =>
+        selectionKey(m.source as ModSource, m.modId) === key ||
+        normalizeName(m.name) === resultName,
     )
     if (!installed) return
 

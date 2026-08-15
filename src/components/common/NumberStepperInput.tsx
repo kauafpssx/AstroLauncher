@@ -10,6 +10,7 @@ interface NumberStepperInputProps {
   min: number
   max: number
   step: number
+  disabled?: boolean
   className?: string
 }
 
@@ -19,6 +20,7 @@ export function NumberStepperInput({
   min,
   max,
   step,
+  disabled = false,
   className,
 }: NumberStepperInputProps) {
   const [draft, setDraft] = useState(String(value))
@@ -43,6 +45,7 @@ export function NumberStepperInput({
     <div
       className={cn(
         'flex items-stretch overflow-hidden rounded-md border',
+        disabled && 'pointer-events-none opacity-50',
         className,
       )}
     >
@@ -50,6 +53,7 @@ export function NumberStepperInput({
         type="text"
         inputMode="decimal"
         value={draft}
+        disabled={disabled}
         onFocus={() => {
           isFocused.current = true
         }}
@@ -65,7 +69,7 @@ export function NumberStepperInput({
           type="button"
           tabIndex={-1}
           onClick={() => onChange(clamp(value + step))}
-          disabled={value >= max}
+          disabled={disabled || value >= max}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-1/2 w-5 items-center justify-center transition-colors disabled:pointer-events-none disabled:opacity-40"
           aria-label="Aumentar"
           {...tooltipProps('Aumentar')}
@@ -76,7 +80,7 @@ export function NumberStepperInput({
           type="button"
           tabIndex={-1}
           onClick={() => onChange(clamp(value - step))}
-          disabled={value <= min}
+          disabled={disabled || value <= min}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-1/2 w-5 items-center justify-center border-t transition-colors disabled:pointer-events-none disabled:opacity-40"
           aria-label="Diminuir"
           {...tooltipProps('Diminuir')}

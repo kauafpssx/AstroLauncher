@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 
 import { SingleFieldDialog } from '@/components/common/SingleFieldDialog'
+import { MAX, accountUsernameSchema } from '@/lib/validation'
 import { useAccountStore } from '@/stores/account.store'
 
 interface AddAccountDialogProps {
@@ -23,6 +24,8 @@ export function AddAccountDialog({
       fieldId="first-account-username"
       fieldLabel="Username"
       placeholder="Steve"
+      maxLength={MAX.ACCOUNT_USERNAME}
+      schema={accountUsernameSchema}
       submitLabel="Adicionar"
       submitLoadingLabel="Adicionando..."
       onSubmit={async (username) => {

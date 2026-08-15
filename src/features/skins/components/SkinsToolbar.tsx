@@ -75,13 +75,13 @@ export function SkinsToolbar({
   return (
     <>
       <SearchInput
-        containerClassName="ml-4 w-full max-w-xs"
+        containerClassName="min-w-40 flex-1 basis-52"
         placeholder="Pesquisar por nome de jogador..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
       <Select value={sortBy} onValueChange={(v) => setSortBy(v as SkinSortBy)}>
-        <SelectTrigger size="sm" className="ml-auto w-40">
+        <SelectTrigger size="sm" className="w-40">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

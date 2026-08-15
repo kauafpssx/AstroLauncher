@@ -1,5 +1,6 @@
 import { SingleFieldDialog } from '@/components/common/SingleFieldDialog'
 import { useAppEnvConfig } from '@/lib/app-config'
+import { MAX, mcstatApiKeySchema } from '@/lib/validation'
 
 interface McstatApiKeyDialogProps {
   open: boolean
@@ -47,6 +48,8 @@ export function McstatApiKeyDialog({
       fieldLabel="API Key"
       placeholder="mcs_..."
       inputType="password"
+      maxLength={MAX.MCSTAT_API_KEY}
+      schema={mcstatApiKeySchema}
       initialValue={currentKey}
       submitLabel="Salvar"
       submitLoadingLabel="Verificando..."
