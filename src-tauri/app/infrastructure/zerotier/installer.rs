@@ -1,5 +1,6 @@
 use std::path::Path;
 
+#[cfg(target_os = "windows")]
 use super::cli;
 /// ZeroTier doesn't publish per-version release metadata like Adoptium does;
 /// this link always resolves to the latest stable Windows x64 build. Sourced
