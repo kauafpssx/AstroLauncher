@@ -19,13 +19,6 @@
   <img src="https://img.shields.io/github/license/kauafpssx/AstroLauncher?style=flat&color=22c55e" alt="GPL-3.0" />
   <img src="https://visitor-badge.laobi.icu/badge?page_id=kauafpssx.AstroLauncher&style=flat&color=f43f5e" alt="Visualizações" />
 </p>
-
-<br />
-
-## 📥 Download
-
-O **AstroLauncher** é gratuito e open source. Baixe a versão mais recente direto do GitHub:
-
 <p align="center">
   <a href="https://github.com/kauafpssx/AstroLauncher/releases/latest">
     <img src="https://img.shields.io/github/v/release/kauafpssx/AstroLauncher?style=for-the-badge&label=Baixar%20AstroLauncher&color=8b5cf6" alt="Baixar AstroLauncher" />
