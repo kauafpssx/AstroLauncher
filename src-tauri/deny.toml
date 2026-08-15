@@ -1,12 +1,12 @@
-# Config do cargo-deny (usado no workflow Supreme Review).
+# cargo-deny config (used in the Supreme Review workflow).
 # Docs: https://embarkstudios.github.io/cargo-deny/
 
 [advisories]
-# Falha em vulnerabilidades conhecidas (RustSec).
+# Fails on known vulnerabilities (RustSec).
 yanked = "warn"
 
 [licenses]
-# Licenças permitidas. Ajuste conforme necessário.
+# Allowed licenses. Adjust as needed.
 allow = [
   "MIT",
   "Apache-2.0",
@@ -24,7 +24,7 @@ allow = [
 confidence-threshold = 0.8
 
 [bans]
-# Avisa (não falha) em dependências duplicadas.
+# Warns (does not fail) on duplicated dependencies.
 multiple-versions = "warn"
 wildcards = "warn"
 

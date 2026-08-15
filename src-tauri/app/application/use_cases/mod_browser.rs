@@ -44,6 +44,7 @@ impl ModBrowserService {
                     input.game_version.as_deref(),
                     input.loader.as_deref(),
                     input.sort.as_deref(),
+                    input.offset,
                 )
                 .await?;
                 Ok(hits
@@ -72,6 +73,7 @@ impl ModBrowserService {
                     input.game_version.as_deref(),
                     input.loader.as_deref(),
                     input.sort.as_deref(),
+                    input.offset,
                 )
                 .await?;
                 Ok(entries

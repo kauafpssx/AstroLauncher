@@ -4,6 +4,7 @@ mod config_file_dto;
 mod custom_icon_dto;
 mod folder_dto;
 mod instance_dto;
+mod java_dto;
 mod launch_event_dto;
 mod mod_dto;
 mod note_dto;
@@ -14,6 +15,7 @@ mod settings_dto;
 mod skin_dto;
 mod version_dto;
 mod world_dto;
+mod zerotier_dto;
 
 pub use account_dto::{AccountDTO, CreateAccountInput, UpdateAccountInput};
 pub use astropack_dto::{
@@ -24,6 +26,7 @@ pub use config_file_dto::ConfigFileDTO;
 pub use custom_icon_dto::CustomIconDTO;
 pub use folder_dto::{CreateFolderInput, FolderDTO, UpdateFolderInput};
 pub use instance_dto::{CreateInstanceInput, InstanceDTO, SuggestedMemoryDTO, UpdateInstanceInput};
+pub use java_dto::JavaInfoDTO;
 pub use launch_event_dto::LaunchEventDTO;
 pub use mod_dto::{
     GetModProjectInput, GetModVersionsInput, InstallCustomModInput, InstallModInput,
@@ -38,3 +41,6 @@ pub use settings_dto::{SettingsDTO, UpdateSettingsInput};
 pub use skin_dto::{SearchSkinsInput, SkinDetailDTO, SkinPlayerDTO, SkinSource, SkinSummaryDTO};
 pub use version_dto::VersionDTO;
 pub use world_dto::WorldDTO;
+pub use zerotier_dto::{
+    CentralMemberDTO, CentralNetworkSummaryDTO, LocalNetworkDTO, NodeInfoDTO, ZeroTierStatusDTO,
+};

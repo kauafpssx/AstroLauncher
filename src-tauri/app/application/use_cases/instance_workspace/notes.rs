@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use crate::application::dto::NoteDTO;
+use crate::application::validation::MAX_NOTE_TITLE;
 use crate::domain::errors::InstanceError;
 
 use super::InstanceWorkspaceService;
@@ -104,6 +105,11 @@ impl InstanceWorkspaceService {
     }
 
     pub fn create_note(&self, id: &str, title: &str) -> Result<NoteDTO, InstanceError> {
+        if title.trim().chars().count() > MAX_NOTE_TITLE {
+            return Err(InstanceError::InvalidValue(format!(
+                "note title must be at most {MAX_NOTE_TITLE} characters"
+            )));
+        }
         let dir = self.notes_dir(id)?;
         let title = self.unique_note_title(&dir, title);
         std::fs::write(dir.join(format!("{title}.md")), "")
@@ -120,6 +126,11 @@ impl InstanceWorkspaceService {
         note_id: &str,
         new_title: &str,
     ) -> Result<NoteDTO, InstanceError> {
+        if new_title.trim().chars().count() > MAX_NOTE_TITLE {
+            return Err(InstanceError::InvalidValue(format!(
+                "note title must be at most {MAX_NOTE_TITLE} characters"
+            )));
+        }
         let source = self.note_path(id, note_id)?;
         let dir = self.notes_dir(id)?;
         let new_title = self.unique_note_title(&dir, new_title);

@@ -33,11 +33,18 @@ fn map_row(row: &Row) -> rusqlite::Result<Instance> {
         created_at: row.get("created_at")?,
         last_played: row.get("last_played")?,
         playtime_seconds: row.get("playtime_seconds")?,
+        fullscreen: row.get("fullscreen")?,
+        window_width: row.get("window_width")?,
+        window_height: row.get("window_height")?,
+        java_path: row.get("java_path")?,
+        window_monitor: row.get("window_monitor")?,
+        last_java_major: row.get("last_java_major")?,
     })
 }
 
 const SELECT_COLUMNS: &str = "id, name, version, loader, loader_version, icon_path, java_args, \
-     min_memory, max_memory, folder_id, position, created_at, last_played, playtime_seconds";
+     min_memory, max_memory, folder_id, position, created_at, last_played, playtime_seconds, \
+     fullscreen, window_width, window_height, java_path, window_monitor, last_java_major";
 
 impl InstanceRepository for SqliteInstanceRepository {
     fn find_all(&self) -> Result<Vec<Instance>> {
@@ -89,15 +96,19 @@ impl InstanceRepository for SqliteInstanceRepository {
         let conn = self.conn.lock();
         conn.execute(
             "INSERT INTO instances (id, name, version, loader, loader_version, icon_path, java_args, \
-             min_memory, max_memory, folder_id, position, created_at, last_played, playtime_seconds) \
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14) \
+             min_memory, max_memory, folder_id, position, created_at, last_played, playtime_seconds, \
+             fullscreen, window_width, window_height, java_path, window_monitor, last_java_major) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20) \
              ON CONFLICT(id) DO UPDATE SET \
              name = excluded.name, version = excluded.version, loader = excluded.loader, \
              loader_version = excluded.loader_version, icon_path = excluded.icon_path, \
              java_args = excluded.java_args, min_memory = excluded.min_memory, \
              max_memory = excluded.max_memory, folder_id = excluded.folder_id, \
              position = excluded.position, last_played = excluded.last_played, \
-             playtime_seconds = excluded.playtime_seconds",
+             playtime_seconds = excluded.playtime_seconds, fullscreen = excluded.fullscreen, \
+             window_width = excluded.window_width, window_height = excluded.window_height, \
+             java_path = excluded.java_path, window_monitor = excluded.window_monitor, \
+             last_java_major = excluded.last_java_major",
             params![
                 instance.id,
                 instance.name,
@@ -113,6 +124,12 @@ impl InstanceRepository for SqliteInstanceRepository {
                 instance.created_at,
                 instance.last_played,
                 instance.playtime_seconds,
+                instance.fullscreen,
+                instance.window_width,
+                instance.window_height,
+                instance.java_path,
+                instance.window_monitor,
+                instance.last_java_major,
             ],
         )
         .map_err(|e| InstanceError::Persistence(e.to_string()))?;
@@ -136,6 +153,20 @@ impl InstanceRepository for SqliteInstanceRepository {
             .execute(
                 "UPDATE instances SET playtime_seconds = ?1, last_played = datetime('now') WHERE id = ?2",
                 params![seconds, id],
+            )
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        if affected == 0 {
+            return Err(InstanceError::NotFound(id.to_string()));
+        }
+        Ok(())
+    }
+
+    fn update_last_java_major(&self, id: &str, major: Option<i64>) -> Result<()> {
+        let conn = self.conn.lock();
+        let affected = conn
+            .execute(
+                "UPDATE instances SET last_java_major = ?1 WHERE id = ?2",
+                params![major, id],
             )
             .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         if affected == 0 {

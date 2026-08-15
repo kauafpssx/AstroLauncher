@@ -11,5 +11,6 @@ pub trait InstanceRepository: Send + Sync {
     fn save(&self, instance: &Instance) -> Result<()>;
     fn delete(&self, id: &str) -> Result<()>;
     fn update_playtime(&self, id: &str, seconds: i64) -> Result<()>;
+    fn update_last_java_major(&self, id: &str, major: Option<i64>) -> Result<()>;
     fn reorder(&self, ordered_ids: &[String]) -> Result<()>;
 }

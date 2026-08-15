@@ -11,6 +11,7 @@ pub fn to_dto(account: &Account) -> AccountDTO {
         is_default: account.is_default,
         last_used: account.last_used.clone(),
         created_at: account.created_at.clone(),
+        icon_path: account.icon_path.clone(),
     }
 }
 

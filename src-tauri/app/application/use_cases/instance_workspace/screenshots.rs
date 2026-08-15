@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use chrono::{DateTime, Utc};
 
 use crate::application::dto::ScreenshotDTO;
+use crate::application::validation::MAX_SCREENSHOT_NAME;
 use crate::domain::errors::InstanceError;
 
 use super::InstanceWorkspaceService;
@@ -59,6 +60,34 @@ impl InstanceWorkspaceService {
         Ok(format!("data:image/png;base64,{encoded}"))
     }
 
+    /// Downscaled JPEG preview for the gallery grid — Minecraft screenshots
+    /// are lossless PNGs, often several MB each at 1920x1080+; decoding and
+    /// base64-transferring the full file for every thumbnail in the grid is
+    /// what made the tab take seconds to show anything. The full-resolution
+    /// PNG is still what `read_screenshot_data_uri` (and thus the viewer,
+    /// download and clipboard-copy) uses.
+    pub fn read_screenshot_thumbnail_data_uri(
+        &self,
+        id: &str,
+        name: &str,
+    ) -> Result<String, InstanceError> {
+        use base64::Engine;
+        const MAX_DIMENSION: u32 = 480;
+
+        let path = self.screenshot_path(id, name)?;
+        let image = image::open(&path).map_err(|e| InstanceError::Persistence(e.to_string()))?;
+        let thumbnail = image.thumbnail(MAX_DIMENSION, MAX_DIMENSION);
+
+        let mut bytes: Vec<u8> = Vec::new();
+        let mut cursor = std::io::Cursor::new(&mut bytes);
+        thumbnail
+            .write_to(&mut cursor, image::ImageFormat::Jpeg)
+            .map_err(|e| InstanceError::Persistence(e.to_string()))?;
+
+        let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
+        Ok(format!("data:image/jpeg;base64,{encoded}"))
+    }
+
     pub fn delete_screenshot(&self, id: &str, name: &str) -> Result<(), InstanceError> {
         let path = self.screenshot_path(id, name)?;
         if path.exists() {
@@ -74,6 +103,11 @@ impl InstanceWorkspaceService {
         name: &str,
         new_base_name: &str,
     ) -> Result<String, InstanceError> {
+        if new_base_name.trim().chars().count() > MAX_SCREENSHOT_NAME {
+            return Err(InstanceError::InvalidValue(format!(
+                "screenshot name must be at most {MAX_SCREENSHOT_NAME} characters"
+            )));
+        }
         if new_base_name.is_empty()
             || new_base_name.contains("..")
             || new_base_name.contains('/')

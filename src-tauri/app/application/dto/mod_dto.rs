@@ -54,6 +54,9 @@ pub struct SearchModsInput {
     /// `"relevance"`, `"downloads"`, `"newest"` or `"updated"`: mapped to
     /// each provider's own sort parameter in `ModBrowserService::search`.
     pub sort: Option<String>,
+    /// Pagination offset (results already loaded): `None`/`0` is the first
+    /// page. Used for infinite scroll in the mod/modpack browser lists.
+    pub offset: Option<u32>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

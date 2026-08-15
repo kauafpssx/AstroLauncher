@@ -16,6 +16,12 @@ pub fn to_dto(instance: &Instance) -> InstanceDTO {
         created_at: instance.created_at.clone(),
         last_played: instance.last_played.clone(),
         playtime_seconds: instance.playtime_seconds,
+        fullscreen: instance.fullscreen,
+        window_width: instance.window_width,
+        window_height: instance.window_height,
+        java_path: instance.java_path.clone(),
+        window_monitor: instance.window_monitor.clone(),
+        last_java_major: instance.last_java_major,
     }
 }
 

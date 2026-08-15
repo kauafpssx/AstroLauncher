@@ -22,6 +22,10 @@ fn search_index(sort: Option<&str>) -> &'static str {
     }
 }
 
+/// Results per page: mirrors `PAGE_SIZE` on the frontend, which uses it to
+/// tell whether a page was the last one (fewer hits than this = no more).
+pub const PAGE_SIZE: u32 = 30;
+
 pub async fn search(
     client: &reqwest::Client,
     query: &str,
@@ -29,6 +33,7 @@ pub async fn search(
     game_version: Option<&str>,
     loader: Option<&str>,
     sort: Option<&str>,
+    offset: Option<u32>,
 ) -> anyhow::Result<Vec<SearchHit>> {
     let mut facets: Vec<Vec<String>> = vec![vec![format!("project_type:{project_type}")]];
     if let Some(gv) = game_version {
@@ -44,7 +49,8 @@ pub async fn search(
         .append_pair("query", query)
         .append_pair("facets", &facets_json)
         .append_pair("index", search_index(sort))
-        .append_pair("limit", "30");
+        .append_pair("limit", &PAGE_SIZE.to_string())
+        .append_pair("offset", &offset.unwrap_or(0).to_string());
 
     let response = client
         .get(url)

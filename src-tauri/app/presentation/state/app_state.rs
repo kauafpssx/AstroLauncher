@@ -16,6 +16,7 @@ use crate::domain::repositories::{
 };
 use crate::infrastructure::discord::DiscordRpcHandle;
 use crate::infrastructure::process::manager::ProcessManager;
+use crate::infrastructure::zerotier::ZeroTierService;
 
 pub struct AppState {
     pub list_instances: ListInstancesUseCase,
@@ -35,6 +36,7 @@ pub struct AppState {
     pub delete_account: DeleteAccountUseCase,
     pub set_default_account: SetDefaultAccountUseCase,
     pub reorder_accounts: ReorderAccountsUseCase,
+    pub zerotier: ZeroTierService,
     pub list_folders: ListFoldersUseCase,
     pub create_folder: CreateFolderUseCase,
     pub update_folder: UpdateFolderUseCase,
@@ -50,10 +52,11 @@ pub struct AppState {
     pub skin_browser: SkinBrowserService,
     pub playtime: Arc<PlaytimeService>,
     pub discord: DiscordRpcHandle,
+    pub app_data_dir: PathBuf,
 }
 
 impl AppState {
-    // Construtor de injeção de dependências: muitos parâmetros é esperado aqui.
+    // Dependency-injection constructor: many parameters are expected here.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         instance_repository: Arc<dyn InstanceRepository>,
@@ -71,6 +74,7 @@ impl AppState {
             instance_repository.clone(),
             playtime_repository,
         ));
+        let zerotier_service = ZeroTierService::new(http_client.clone(), app_data_dir.clone());
         let discord = DiscordRpcHandle::spawn(discord_client_id, discord_logo_asset_key);
         discord.set_idle();
 
@@ -121,6 +125,7 @@ impl AppState {
             custom_icon: CustomIconService::new(app_data_dir.clone()),
             skin_browser: SkinBrowserService::new(http_client.clone(), app_data_dir.clone()),
             fetch_version_manifest: FetchVersionManifestUseCase::new(http_client.clone()),
+            app_data_dir: app_data_dir.clone(),
             launch_instance: LaunchInstanceUseCase::new(
                 instance_repository,
                 account_repository.clone(),
@@ -140,6 +145,7 @@ impl AppState {
             delete_account: DeleteAccountUseCase::new(account_repository.clone()),
             set_default_account: SetDefaultAccountUseCase::new(account_repository.clone()),
             reorder_accounts: ReorderAccountsUseCase::new(account_repository),
+            zerotier: zerotier_service,
             list_folders: ListFoldersUseCase::new(folder_repository.clone()),
             create_folder: CreateFolderUseCase::new(folder_repository.clone()),
             update_folder: UpdateFolderUseCase::new(folder_repository.clone()),

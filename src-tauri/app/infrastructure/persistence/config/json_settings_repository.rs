@@ -12,6 +12,8 @@ pub struct LauncherSettings {
     pub root_group_name: Option<String>,
     #[serde(default)]
     pub root_group_icon: Option<String>,
+    #[serde(default)]
+    pub zerotier_api_token: Option<String>,
 }
 
 fn settings_path(app_data_dir: &Path) -> PathBuf {
@@ -63,5 +65,13 @@ pub fn resolve_mcstat_api_key(app_data_dir: &Path) -> Option<String> {
 fn build_time_mcstat_api_key() -> Option<String> {
     option_env!("MCSTAT_API_KEY")
         .map(str::to_string)
+        .filter(|k| !k.trim().is_empty())
+}
+
+/// Resolves the ZeroTier Central personal API token: user-configured only,
+/// no build-time fallback (this is a per-user secret, not a build secret).
+pub fn resolve_zerotier_api_token(app_data_dir: &Path) -> Option<String> {
+    read(app_data_dir)
+        .zerotier_api_token
         .filter(|k| !k.trim().is_empty())
 }

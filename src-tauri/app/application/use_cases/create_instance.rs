@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::application::dto::{CreateInstanceInput, InstanceDTO};
 use crate::application::mappers::instance_mapper;
+use crate::application::validation::{validate_required, MAX_INSTANCE_NAME};
 use crate::domain::entities::Instance;
 use crate::domain::errors::InstanceError;
 use crate::domain::repositories::InstanceRepository;
@@ -16,11 +17,10 @@ impl CreateInstanceUseCase {
     }
 
     pub fn execute(&self, input: CreateInstanceInput) -> Result<InstanceDTO, InstanceError> {
-        if input.name.trim().is_empty() {
-            return Err(InstanceError::InvalidName(input.name));
-        }
+        let name = validate_required(&input.name, MAX_INSTANCE_NAME)
+            .map_err(InstanceError::InvalidName)?;
 
-        let mut instance = Instance::new(input.name, input.version);
+        let mut instance = Instance::new(name, input.version);
         instance.loader = input.loader;
         instance.loader_version = input.loader_version;
         instance.folder_id = input.folder_id;

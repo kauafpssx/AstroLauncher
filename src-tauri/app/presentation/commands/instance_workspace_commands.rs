@@ -34,3 +34,11 @@ pub fn open_instance_folder(state: State<AppState>, id: String) -> Result<(), St
         .open_folder(&id)
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+pub fn get_instance_disk_usage(state: State<AppState>, id: String) -> Result<u64, String> {
+    state
+        .instance_workspace
+        .disk_usage_bytes(&id)
+        .map_err(|e| e.to_string())
+}

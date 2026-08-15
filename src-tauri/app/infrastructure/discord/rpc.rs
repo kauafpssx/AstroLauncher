@@ -10,8 +10,14 @@ use discord_rich_presence::{DiscordIpc, DiscordIpcClient};
 const RETRY_INTERVAL: Duration = Duration::from_secs(15);
 
 /// Shown as a Rich Presence button on every state: Discord only renders
-/// buttons for other people viewing the activity, not the local user.
-const REPO_URL: &str = "https://github.com/kauafpssx/AstroLauncher";
+/// buttons for other people viewing the activity, not the local user. The
+/// repo path comes from `plugins.env` in `tauri.conf.json` (`githubRepo`).
+fn repo_url() -> String {
+    format!(
+        "https://github.com/{}",
+        crate::infrastructure::config::env().github_repo
+    )
+}
 
 enum PresenceState {
     /// Fallback shown only before the frontend has reported a screen, and
@@ -158,7 +164,7 @@ fn apply(
         .details(&details)
         .state(&state_text)
         .assets(assets)
-        .buttons(vec![Button::new("Ver repositório", REPO_URL)]);
+        .buttons(vec![Button::new("Ver repositório", repo_url())]);
     if let Some(timestamps) = timestamps {
         activity = activity.timestamps(timestamps);
     }

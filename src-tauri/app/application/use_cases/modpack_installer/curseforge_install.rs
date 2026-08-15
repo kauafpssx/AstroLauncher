@@ -6,6 +6,7 @@ use futures::stream::{self, StreamExt};
 use crate::application::dto::{AstroPackEventDTO, InstallModpackInput, InstanceDTO};
 use crate::application::mappers::instance_mapper;
 use crate::application::use_cases::suggest_memory_mb;
+use crate::application::validation::{validate_required, MAX_INSTANCE_NAME};
 use crate::domain::entities::{InstalledMod, Instance};
 use crate::infrastructure::curseforge;
 use crate::infrastructure::downloader::file_downloader;
@@ -25,9 +26,11 @@ impl ModpackInstallerService {
         on_event: Arc<dyn Fn(AstroPackEventDTO) + Send + Sync>,
     ) -> anyhow::Result<InstanceDTO> {
         self.cancelled.store(false, Ordering::SeqCst);
+        let instance_name = validate_required(&input.instance_name, MAX_INSTANCE_NAME)
+            .map_err(anyhow::Error::msg)?;
         let _presence = self
             .discord
-            .guard("Instalando modpack", input.instance_name.clone());
+            .guard("Instalando modpack", instance_name.clone());
 
         let api_key = json_settings_repository::resolve_curseforge_api_key(&self.app_data_dir)
             .ok_or_else(|| {
@@ -73,7 +76,7 @@ impl ModpackInstallerService {
             .map(|(id, v)| (Some(id), Some(v)))
             .unwrap_or((None, None));
 
-        let mut instance = Instance::new(input.instance_name, mc_version);
+        let mut instance = Instance::new(instance_name, mc_version);
         instance.loader = loader;
         instance.loader_version = loader_version;
         instance.folder_id = input.folder_id;
