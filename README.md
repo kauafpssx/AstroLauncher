@@ -25,17 +25,6 @@
   </a>
 </p>
 
-| O que vem no pacote             | Como funciona                                                     |
-| ------------------------------- | ----------------------------------------------------------------- |
-| 🖥️ **Instalador `.exe` (NSIS)** | Instala por usuário, sem precisar de admin, com WebView2 embutido |
-| 🔄 **Auto-update**              | A splash verifica e instala novas versões automaticamente         |
-| 📦 **Arquivos `.astropack`**    | Duplo clique importa a instância direto no launcher               |
-
-> [!TIP]
-> Novas versões saem pelo **GitHub Releases**. O botão acima sempre aponta para a mais recente.
-
-<br />
-
 ## 📖 Índice
 
 - [📥 Download](#-download)
