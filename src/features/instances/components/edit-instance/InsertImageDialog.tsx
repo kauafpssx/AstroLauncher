@@ -1,5 +1,6 @@
 import { Image as ImageIcon } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -11,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useInstanceScreenshots } from '@/features/instances/hooks/useInstanceScreenshots'
+import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 
 interface InsertImageDialogProps {
   instanceId: string
@@ -60,15 +62,26 @@ export function InsertImageDialog({
               <button
                 key={shot.info.name}
                 type="button"
-                onClick={() => {
-                  onSelect(shot.dataUri, shot.info.name)
-                  onOpenChange(false)
+                onClick={async () => {
+                  // The grid only ever loaded a downscaled preview — fetch
+                  // the real PNG before handing it to the note editor.
+                  try {
+                    const fullDataUri =
+                      await InstanceWorkspaceAPI.readScreenshot(
+                        instanceId,
+                        shot.info.name,
+                      )
+                    onSelect(fullDataUri, shot.info.name)
+                    onOpenChange(false)
+                  } catch (err) {
+                    toast.error(`Falha ao carregar imagem: ${String(err)}`)
+                  }
                 }}
                 className="group hover:border-primary flex flex-col gap-1 overflow-hidden rounded-lg border text-left transition-colors"
               >
                 <div className="bg-muted aspect-video overflow-hidden">
                   <img
-                    src={shot.dataUri}
+                    src={shot.thumbnailDataUri}
                     alt={shot.info.name}
                     className="size-full object-cover transition-transform group-hover:scale-105"
                   />

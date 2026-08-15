@@ -1,18 +1,25 @@
 import {
   Boxes,
+  Download,
   FileCog,
   FileText,
+  FolderOpen,
   Globe,
   Image,
+  Map,
+  Play,
   Puzzle,
   ScrollText,
   Server,
   Settings,
   Sparkles,
+  Square,
+  Trash2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 import { SidebarNav, type SidebarNavItem } from '@/components/common/SidebarNav'
+import { Button } from '@/components/ui/button'
 
 export type EditInstanceTab =
   | 'settings'
@@ -22,6 +29,7 @@ export type EditInstanceTab =
   | 'shader-packs'
   | 'notes'
   | 'worlds'
+  | 'seed-map'
   | 'servers'
   | 'screenshots'
   | 'config-editor'
@@ -43,6 +51,7 @@ const tabs: TabItem[] = [
     available: true,
   },
   { id: 'worlds', label: 'Mundos', icon: Globe, available: true },
+  { id: 'seed-map', label: 'Mapa de Seed', icon: Map, available: false },
   { id: 'notes', label: 'Notas', icon: FileText, available: true },
   { id: 'mods', label: 'Mods', icon: Puzzle, available: true },
   {
@@ -66,6 +75,12 @@ interface EditInstanceSidebarProps {
   active: EditInstanceTab
   onChange: (tab: EditInstanceTab) => void
   onBack: () => void
+  isRunning: boolean
+  onLaunch: () => void
+  onStop: () => void
+  onOpenFolder: () => void
+  onExport: () => void
+  onDelete: () => void
 }
 
 export function EditInstanceSidebar({
@@ -73,6 +88,12 @@ export function EditInstanceSidebar({
   active,
   onChange,
   onBack,
+  isRunning,
+  onLaunch,
+  onStop,
+  onOpenFolder,
+  onExport,
+  onDelete,
 }: EditInstanceSidebarProps) {
   return (
     <SidebarNav<EditInstanceTab>
@@ -86,6 +107,34 @@ export function EditInstanceSidebar({
           disabled: !available,
         }),
       )}
+      footer={
+        <div className="mt-auto flex flex-col gap-1 border-t pt-3">
+          <Button
+            variant={isRunning ? 'destructive' : 'default'}
+            onClick={isRunning ? onStop : onLaunch}
+          >
+            {isRunning ? <Square /> : <Play />}
+            {isRunning ? 'Encerrar' : 'Iniciar'}
+          </Button>
+          <Button
+            variant="ghost"
+            className="justify-start"
+            onClick={onOpenFolder}
+          >
+            <FolderOpen /> Abrir Pasta
+          </Button>
+          <Button variant="ghost" className="justify-start" onClick={onExport}>
+            <Download /> Exportar
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-destructive hover:text-destructive justify-start"
+            onClick={onDelete}
+          >
+            <Trash2 /> Excluir
+          </Button>
+        </div>
+      }
     />
   )
 }

@@ -1,11 +1,11 @@
-use std::path::Path;
-
 use chrono::{DateTime, Utc};
 
 use crate::application::dto::WorldDTO;
 use crate::domain::errors::InstanceError;
+use crate::infrastructure::filesystem::size::dir_size;
 
 use super::InstanceWorkspaceService;
+use crate::infrastructure::minecraft::world_seed::world_seed;
 
 impl InstanceWorkspaceService {
     pub fn list_worlds(&self, id: &str) -> Result<Vec<WorldDTO>, InstanceError> {
@@ -33,6 +33,7 @@ impl InstanceWorkspaceService {
                 name,
                 size_bytes,
                 last_modified,
+                seed: world_seed(&path),
             });
         }
         Ok(worlds)
@@ -54,14 +55,4 @@ impl InstanceWorkspaceService {
         }
         Ok(())
     }
-}
-
-fn dir_size(path: &Path) -> u64 {
-    walkdir::WalkDir::new(path)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file())
-        .filter_map(|e| e.metadata().ok())
-        .map(|m| m.len())
-        .sum()
 }

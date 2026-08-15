@@ -18,7 +18,7 @@ impl SqliteAccountRepository {
 }
 
 const SELECT_COLUMNS: &str =
-    "id, username, type, uuid, position, is_default, last_used, created_at";
+    "id, username, type, uuid, position, is_default, last_used, created_at, icon_path";
 
 fn map_row(row: &Row) -> rusqlite::Result<Account> {
     Ok(Account {
@@ -30,6 +30,7 @@ fn map_row(row: &Row) -> rusqlite::Result<Account> {
         is_default: row.get::<_, i64>("is_default")? != 0,
         last_used: row.get("last_used")?,
         created_at: row.get("created_at")?,
+        icon_path: row.get("icon_path")?,
     })
 }
 
@@ -63,11 +64,12 @@ impl AccountRepository for SqliteAccountRepository {
     fn save(&self, account: &Account) -> Result<()> {
         let conn = self.conn.lock();
         conn.execute(
-            "INSERT INTO accounts (id, username, type, uuid, position, is_default, last_used, created_at) \
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) \
+            "INSERT INTO accounts (id, username, type, uuid, position, is_default, last_used, created_at, icon_path) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) \
              ON CONFLICT(id) DO UPDATE SET \
              username = excluded.username, type = excluded.type, uuid = excluded.uuid, \
-             position = excluded.position, is_default = excluded.is_default, last_used = excluded.last_used",
+             position = excluded.position, is_default = excluded.is_default, last_used = excluded.last_used, \
+             icon_path = excluded.icon_path",
             params![
                 account.id,
                 account.username,
@@ -77,6 +79,7 @@ impl AccountRepository for SqliteAccountRepository {
                 account.is_default as i64,
                 account.last_used,
                 account.created_at,
+                account.icon_path,
             ],
         )
         .map_err(|e| AccountError::Persistence(e.to_string()))?;

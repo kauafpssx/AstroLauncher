@@ -129,6 +129,11 @@ fn sort_field(sort: Option<&str>) -> &'static str {
     }
 }
 
+/// Results per page: mirrors `PAGE_SIZE` on the frontend, which uses it to
+/// tell whether a page was the last one (fewer hits than this = no more).
+pub const PAGE_SIZE: u32 = 30;
+
+#[allow(clippy::too_many_arguments)]
 pub async fn search(
     client: &reqwest::Client,
     api_key: &str,
@@ -137,6 +142,7 @@ pub async fn search(
     game_version: Option<&str>,
     loader: Option<&str>,
     sort: Option<&str>,
+    offset: Option<u32>,
 ) -> anyhow::Result<Vec<ModEntry>> {
     let mut url = reqwest::Url::parse(&format!("{}/mods/search", base_url()))?;
     {
@@ -145,7 +151,8 @@ pub async fn search(
             .append_pair("gameId", &MINECRAFT_GAME_ID.to_string())
             .append_pair("classId", &class_id.to_string())
             .append_pair("searchFilter", query)
-            .append_pair("pageSize", "30")
+            .append_pair("pageSize", &PAGE_SIZE.to_string())
+            .append_pair("index", &offset.unwrap_or(0).to_string())
             .append_pair("sortField", sort_field(sort))
             .append_pair("sortOrder", "desc");
         if let Some(gv) = game_version {

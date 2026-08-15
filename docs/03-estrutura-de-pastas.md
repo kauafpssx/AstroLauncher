@@ -42,9 +42,10 @@ src-tauri/
 │   │   ├── modrinth/           # client, mrpack
 │   │   ├── playermc/           # client — texturas de skins (api.playermc.site)
 │   │   ├── mcstat/             # client — busca/detalhe de skins (mcstat.org)
+│   │   ├── zerotier/           # ZeroTier (v0.6.0) — via reqwest + CLI local
 │   │   └── persistence/
 │   │       ├── sqlite/         # connection.rs
-│   │       ├── migrations/     # v1..v6 (function-pointer table)
+│   │       ├── migrations/     # v1..v10 (function-pointer table; sem v7)
 │   │       ├── repositories/   # Sqlite*Repository (implementações)
 │   │       └── config/         # json_settings_repository.rs (settings.json)
 │   │
@@ -80,12 +81,17 @@ src/
 │   ├── mods/                # Mod Browser + gerenciamento de mods instalados
 │   ├── accounts/            # contas offline (CRUD, sheet, dialog)
 │   ├── skins/                # busca e preview 3D de skins
+│   ├── network/              # ZeroTier (v0.6.0) — dialogs (sem pages/)
 │   └── settings/             # página de configurações
-│   (não existem features "launcher/", "java/" ou "download/" — launch fica em stores/launch.store.ts
-│    + components/layout/LaunchProgressDialog.tsx; java/download não têm UI dedicada)
+│   (não existem features "launcher/" ou "download/" — launch fica em stores/launch.store.ts
+│    + components/layout/LaunchProgressDialog.tsx; download é interno às features; java/window
+│    por instância têm UI em edit-instance/ — JavaSettingsSection, WindowSettingsSection)
 │
 ├── hooks/
-│   └── useDiscordPresence.ts  # único hook global
+│   ├── useDiscordPresence.ts     # Rich Presence
+│   ├── useInfiniteScroll.ts      # scroll infinito (v0.6.0)
+│   ├── useBlockBrowserNavigation.ts
+│   └── useBlockNativeContextMenu.ts
 │
 ├── data/
 │   └── mc-icons.ts
@@ -106,7 +112,11 @@ src/
 │   ├── instance.store.ts
 │   ├── launch.store.ts
 │   ├── link-preview.store.ts
-│   └── modpack-install.store.ts
+│   ├── modpack-install.store.ts
+│   ├── context-menu.store.ts
+│   ├── import-astropack.store.ts
+│   ├── tooltip.store.ts
+│   └── zerotier.store.ts (v0.6.0)
 │
 ├── types/                  # Tipos TS espelhando os DTOs Rust manualmente (sem codegen)
 ├── main.tsx                 # Entry point do app principal

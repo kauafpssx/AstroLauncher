@@ -88,15 +88,18 @@ CREATE TABLE IF NOT EXISTS meta (
 );
 ```
 
-### 12.2.2 Migrações posteriores (v2–v6, aplicadas via `ALTER TABLE`)
+### 12.2.2 Migrações posteriores (v2–v10, aplicadas via `ALTER TABLE`; não há v7)
 
-| Versão | Arquivo                   | Mudança                                                                                          |
-| ------ | ------------------------- | ------------------------------------------------------------------------------------------------ |
-| v2     | `v2_account_ordering.rs`  | `accounts` ganha `position INTEGER NOT NULL DEFAULT 0` e `is_default INTEGER NOT NULL DEFAULT 0` |
-| v3     | `v3_mod_icon.rs`          | `instance_mods` ganha `icon_url TEXT`                                                            |
-| v4     | `v4_mod_kind.rs`          | `instance_mods` ganha `kind TEXT NOT NULL DEFAULT 'mod'` (`mod`/`resourcepack`/`shader`)         |
-| v5     | `v5_instance_position.rs` | `instances` ganha `position INTEGER NOT NULL DEFAULT 0`                                          |
-| v6     | `v6_folder_icon.rs`       | `folders` ganha `icon_path TEXT`                                                                 |
+| Versão | Arquivo                          | Mudança                                                                                          |
+| ------ | -------------------------------- | ------------------------------------------------------------------------------------------------ |
+| v2     | `v2_account_ordering.rs`         | `accounts` ganha `position INTEGER NOT NULL DEFAULT 0` e `is_default INTEGER NOT NULL DEFAULT 0` |
+| v3     | `v3_mod_icon.rs`                 | `instance_mods` ganha `icon_url TEXT`                                                            |
+| v4     | `v4_mod_kind.rs`                 | `instance_mods` ganha `kind TEXT NOT NULL DEFAULT 'mod'` (`mod`/`resourcepack`/`shader`)         |
+| v5     | `v5_instance_position.rs`        | `instances` ganha `position INTEGER NOT NULL DEFAULT 0`                                          |
+| v6     | `v6_folder_icon.rs`              | `folders` ganha `icon_path TEXT`                                                                 |
+| v8     | `v8_account_icon.rs`             | `accounts` ganha `icon_path TEXT` (v0.6.0)                                                       |
+| v9     | `v9_instance_window_java.rs`     | `instances` ganha `fullscreen`/`window_width`/`window_height`/`java_path` (v0.6.0)               |
+| v10    | `v10_instance_window_monitor.rs` | `instances` ganha `window_monitor TEXT` (v0.6.0)                                                 |
 
 `installed_modpacks` existe no schema desde v1, mas não há repositório dedicado para ela na camada de domínio (repos ativos cobrem instance/folder/account/mod/playtime).
 
@@ -104,13 +107,15 @@ CREATE TABLE IF NOT EXISTS meta (
 
 Config de usuário fica em **`<app_data_dir>/settings.json`**, via `infrastructure/persistence/config/json_settings_repository.rs`. Não existem `java.json` ou `ui.json` — Java é detectado/gerenciado direto no disco (sem tracking em JSON). Há também `window-state.json` (v0.5.2), mas é estado de janela, não config de usuário — ver `infrastructure/window_state.rs`.
 
-**`<app_data_dir>/window-state.json` (v0.5.2+):** persistência da janela principal (posição, tamanho, maximizado, monitor) — salvo no `CloseRequested` e restaurado no boot por `infrastructure/window_state.rs`. Implementação própria, não usa `tauri-plugin-window-state` (bug conhecido de restauração em monitor errado com DPI diferente — tauri-apps/plugins-workspace#244). Formato interno: offsets relativos ao monitor + nome do monitor; aplica posição antes do tamanho em unidades físicas.
+**`<app_data_dir>/window-state.json` (v0.5.2+):** persistência da janela principal (posição, tamanho, maximizado, monitor) — salvo no `CloseRequested` e restaurado no boot por `infrastructure/window_state.rs`. Implementação própria, não usa `tauri-plugin-window-state` (bug conhecido de restauração em monitor errado com DPI diferente — tauri-apps/plugins-workspace#244). Formato interno: offsets relativos ao monitor + nome do monitor; aplica posição antes do tamanho em unidades físicas. Distinto de `infrastructure/process/window_placement.rs` (v0.6.0), que reposiciona a janela do processo Minecraft num monitor escolhido por instância após o launch.
 
 ```json
 {
   "curseforge_api_key": null,
+  "mcstat_api_key": null,
   "root_group_name": null,
-  "root_group_icon": null
+  "root_group_icon": null,
+  "zerotier_api_token": null
 }
 ```
 
@@ -142,6 +147,9 @@ pub const MIGRATIONS: &[(u32, fn(&Connection) -> rusqlite::Result<()>)] = &[
     (4, v4_mod_kind::up),
     (5, v5_instance_position::up),
     (6, v6_folder_icon::up),
+    (8, v8_account_icon::up),
+    (9, v9_instance_window_java::up),
+    (10, v10_instance_window_monitor::up),
 ];
 ```
 

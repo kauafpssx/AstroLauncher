@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowDown } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
@@ -40,6 +41,15 @@ export function SkinsPage() {
     combined,
   } = useSkinsBrowser()
 
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Searching overlays matches on top of the gallery in place: without this,
+  // typing a query while scrolled down leaves the matches out of view above
+  // the fold instead of jumping the list back to the top.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 })
+  }, [query])
+
   return (
     <div className="flex h-screen flex-col">
       <PageHeader title="Skins" onBack={() => navigate('/')}>
@@ -56,7 +66,7 @@ export function SkinsPage() {
         />
       </PageHeader>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
         {isLoading ? (
           <CenteredSpinner className="h-full" />
         ) : combined.length === 0 ? (

@@ -1,5 +1,7 @@
 import { type Dispatch, type SetStateAction } from 'react'
+import { toast } from 'sonner'
 
+import { CharacterCounter } from '@/components/common/CharacterCounter'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -10,6 +12,12 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  MAX,
+  getFirstIssue,
+  serverIpSchema,
+  serverNameSchema,
+} from '@/lib/validation'
 
 import type { EditingState } from './server-editing'
 
@@ -26,6 +34,21 @@ export function ServerEditDialog({
   onEditingChange,
   onSave,
 }: ServerEditDialogProps) {
+  const handleSave = () => {
+    if (!editing) return
+    const nameIssue = getFirstIssue(serverNameSchema, editing.name)
+    if (nameIssue) {
+      toast.error(nameIssue)
+      return
+    }
+    const ipIssue = getFirstIssue(serverIpSchema, editing.ip)
+    if (ipIssue) {
+      toast.error(ipIssue)
+      return
+    }
+    onSave()
+  }
+
   return (
     <Dialog
       open={!!editing}
@@ -42,6 +65,7 @@ export function ServerEditDialog({
             <Label htmlFor="server-name">Nome</Label>
             <Input
               id="server-name"
+              maxLength={MAX.SERVER_NAME}
               value={editing?.name ?? ''}
               onChange={(e) =>
                 onEditingChange((prev) =>
@@ -50,18 +74,29 @@ export function ServerEditDialog({
               }
               autoFocus
             />
+            <CharacterCounter
+              value={editing?.name ?? ''}
+              max={MAX.SERVER_NAME}
+              className="self-end"
+            />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="server-ip">Endereço (IP:porta)</Label>
             <Input
               id="server-ip"
               placeholder="play.exemplo.com"
+              maxLength={MAX.SERVER_IP}
               value={editing?.ip ?? ''}
               onChange={(e) =>
                 onEditingChange((prev) =>
                   prev ? { ...prev, ip: e.target.value } : prev,
                 )
               }
+            />
+            <CharacterCounter
+              value={editing?.ip ?? ''}
+              max={MAX.SERVER_IP}
+              className="self-end"
             />
           </div>
         </div>
@@ -71,7 +106,7 @@ export function ServerEditDialog({
           </Button>
           <Button
             disabled={!editing?.name.trim() || !editing?.ip.trim() || isSaving}
-            onClick={onSave}
+            onClick={handleSave}
           >
             Salvar
           </Button>

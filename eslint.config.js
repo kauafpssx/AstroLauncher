@@ -7,8 +7,10 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import eslintConfigPrettier from 'eslint-config-prettier/flat'
 
 export default defineConfig([
-  // dist and Rust build artifacts are generated — never lint them.
-  globalIgnores(['dist', 'src-tauri/target']),
+  // dist and Rust build artifacts are generated — never lint them. Worktrees
+  // under .claude/worktrees are separate git checkouts for parallel work and
+  // must stay out of this repo's own tsconfig root resolution.
+  globalIgnores(['dist', 'src-tauri/target', '.claude/worktrees']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -21,7 +23,7 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
-  // O Prettier é o dono da formatação: desliga regras de estilo conflitantes do ESLint.
+  // Prettier owns formatting: disable ESLint rules that would conflict with it.
   {
     files: ['**/*.{ts,tsx}'],
     ...eslintConfigPrettier,

@@ -13,8 +13,8 @@ import { useFolderHandlers } from './useFolderHandlers'
 import { useInstances } from './useInstances'
 import { useLaunchInstance } from './useLaunchInstance'
 
-/** Estado, dados e handlers da página de instâncias (CRUD de instâncias e
- * pastas, import/export, ícone e nome do grupo raiz). */
+/** State, data and handlers for the instances page (instances and folders
+ * CRUD, import/export, root group icon and name). */
 export function useInstancesPage() {
   const navigate = useNavigate()
   const { instances, deleteInstance, refresh } = useInstances()

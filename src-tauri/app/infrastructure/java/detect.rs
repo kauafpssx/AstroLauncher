@@ -7,7 +7,7 @@ use std::os::windows::process::CommandExt;
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 fn silent_command(bin: &str) -> Command {
-    // `mut` só é necessário no Windows (creation_flags); noutros SO fica sem uso.
+    // `mut` is only needed on Windows (creation_flags); on other OSes it goes unused.
     #[cfg_attr(not(target_os = "windows"), allow(unused_mut))]
     let mut cmd = Command::new(bin);
     #[cfg(target_os = "windows")]

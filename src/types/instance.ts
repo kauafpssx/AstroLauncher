@@ -12,6 +12,12 @@ export interface InstanceDTO {
   createdAt: string
   lastPlayed: string | null
   playtimeSeconds: number
+  fullscreen: boolean
+  windowWidth: number | null
+  windowHeight: number | null
+  javaPath: string | null
+  windowMonitor: string | null
+  lastJavaMajor: number | null
 }
 
 export interface CreateInstanceInput {
@@ -38,4 +44,9 @@ export interface UpdateInstanceInput {
   minMemory: number
   maxMemory: number
   iconPath: string | null
+  fullscreen: boolean
+  windowWidth: number | null
+  windowHeight: number | null
+  javaPath: string | null
+  windowMonitor: string | null
 }

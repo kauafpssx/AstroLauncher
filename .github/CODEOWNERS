@@ -1,12 +1,12 @@
 # ═══════════════════════════════════════════════════════════════════
 # CODEOWNERS — AstroLauncher
-# Define quem é automaticamente solicitado para revisar mudanças.
+# Defines who is automatically requested to review changes.
 # ═══════════════════════════════════════════════════════════════════
 
-# Dono padrão do repositório
+# Default repository owner
 * @kauafpssx
 
-# Áreas específicas (descomente e ajuste quando houver mais mantenedores)
+# Specific areas (uncomment and adjust when there are more maintainers)
 # /src-tauri/ @kauafpssx
 # /src/       @kauafpssx
 # /docs/      @kauafpssx

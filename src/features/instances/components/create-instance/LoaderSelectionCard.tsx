@@ -68,7 +68,7 @@ export function LoaderSelectionCard({
   disabled,
 }: LoaderSelectionCardProps) {
   return (
-    <div className="flex flex-col gap-1.5 border-t pt-4">
+    <div className="flex flex-col gap-1.5">
       <h3 className="text-sm font-medium">Mod Loader</h3>
       <div className="flex flex-wrap gap-3">
         {LOADERS.map((loader) => {

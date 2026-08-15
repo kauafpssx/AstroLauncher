@@ -11,12 +11,14 @@ pub struct AccountDTO {
     pub is_default: bool,
     pub last_used: Option<String>,
     pub created_at: String,
+    pub icon_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateAccountInput {
     pub username: String,
+    pub icon_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -24,4 +26,5 @@ pub struct CreateAccountInput {
 pub struct UpdateAccountInput {
     pub id: String,
     pub username: String,
+    pub icon_path: Option<String>,
 }

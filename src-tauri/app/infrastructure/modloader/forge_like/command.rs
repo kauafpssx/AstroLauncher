@@ -23,6 +23,7 @@ pub fn build_command(
     natives_dir: &Path,
     username: &str,
     uuid: &str,
+    resolution: Option<(u32, u32)>,
 ) -> anyhow::Result<BuiltCommand> {
     let options = LaunchOptions {
         account: Account::Offline {
@@ -32,8 +33,12 @@ pub fn build_command(
         java_executable: Some(java_bin.to_path_buf()),
         game_directory: Some(game_dir.to_path_buf()),
         natives_directory: Some(natives_dir.to_path_buf()),
+        custom_resolution: resolution,
         ..Default::default()
     };
+    // Fullscreen has no launch-argument equivalent (see `options_file` in
+    // `infrastructure::minecraft`) — it's applied by writing `options.txt`
+    // before spawning, same as the vanilla/Fabric/Quilt/LiteLoader path.
     let command = build_launch_command(version, minecraft_dir.to_path_buf(), options)?;
     Ok(BuiltCommand {
         executable: command.executable,

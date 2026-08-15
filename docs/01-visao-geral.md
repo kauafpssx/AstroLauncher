@@ -44,6 +44,9 @@ Jogadores de Minecraft que desejam um launcher leve, rápido e visualmente moder
 - **Sugestão de memória:** RAM mín/máx estimada conforme conteúdo instalado, aplicada em modpacks e editável na UI (v0.5.2)
 - **Idioma automático:** instâncias novas abrem no locale do Windows (`lang:` no `options.txt`) (v0.5.2)
 - **Persistência de janela:** posição/tamanho/maximizado restaurados no próximo launch (v0.5.2)
+- **Rede ZeroTier (v0.6.0):** instalação do serviço, entrar/sair de redes, aprovar/desautorizar membros via ZeroTier Central
+- **Janela do jogo configurável + Java por instância + avatares de conta (v0.6.0):** fullscreen, dimensões e monitor por instância; Java específico por instância; avatar (skin head) por conta
+- **Auto-update:** atualizações automáticas via `tauri-plugin-updater`
 - **Console de log:** saída do jogo em tempo real
 - **Interface moderna:** shadcn/ui com tema escuro
 

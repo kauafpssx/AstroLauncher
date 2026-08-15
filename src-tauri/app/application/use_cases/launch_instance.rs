@@ -13,12 +13,14 @@ use crate::infrastructure::downloader::{asset_downloader, file_downloader};
 use crate::infrastructure::filesystem::paths;
 use crate::infrastructure::java;
 use crate::infrastructure::minecraft::language as minecraft_language;
+use crate::infrastructure::minecraft::options_file;
 use crate::infrastructure::minecraft::rules::rules_allow;
 use crate::infrastructure::minecraft::{manifest, version_meta};
 use crate::infrastructure::modloader::profile::library_download_url;
 use crate::infrastructure::modloader::{fabric_like, forge_like, liteloader};
 use crate::infrastructure::process::launcher;
 use crate::infrastructure::process::manager::ProcessManager;
+use crate::infrastructure::process::window_placement;
 
 /// Fabric/Quilt/LiteLoader libraries have no advertised size: used only to
 /// keep the overall progress bar moving sensibly before they're downloaded.
@@ -29,6 +31,23 @@ const ESTIMATED_LOADER_LIBRARY_BYTES: u64 = 300_000;
 /// `asset_downloader`'s 16 (thousands of tiny asset files vs. dozens of
 /// jars), so it stays polite to Maven-style hosts.
 const LIBRARY_CONCURRENCY: usize = 8;
+
+/// Builds `--width`/`--height` game args from the instance's window
+/// settings. These are real, documented Minecraft launch arguments (see
+/// `custom_resolution` in `mc-launcher-core`) — unlike fullscreen, which has
+/// no CLI equivalent and is applied via `options.txt` instead (see
+/// `options_file::set_option`, called right before spawning).
+fn resolution_args(width: Option<i64>, height: Option<i64>) -> Vec<String> {
+    match (width, height) {
+        (Some(w), Some(h)) => vec![
+            "--width".to_string(),
+            w.to_string(),
+            "--height".to_string(),
+            h.to_string(),
+        ],
+        _ => Vec::new(),
+    }
+}
 
 pub struct LaunchInstanceUseCase {
     instance_repository: Arc<dyn InstanceRepository>,
@@ -48,7 +67,7 @@ pub struct LaunchInstanceUseCase {
 }
 
 impl LaunchInstanceUseCase {
-    // Construtor de injeção de dependências: muitos parâmetros é esperado aqui.
+    // Dependency-injection constructor: many parameters are expected here.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         instance_repository: Arc<dyn InstanceRepository>,
@@ -142,23 +161,50 @@ impl LaunchInstanceUseCase {
         (*on_event)(LaunchEventDTO::Stage {
             label: "Verificando Java".to_string(),
         });
-        let required_major = meta
-            .java_version
-            .as_ref()
-            .map(|v| v.major_version)
-            .unwrap_or(8);
-        let on_event_for_java = on_event.clone();
-        let java_bin = java::manager::ensure_java(
-            &self.app_data_dir,
-            required_major,
-            &self.http_client,
-            |label| {
-                (*on_event_for_java)(LaunchEventDTO::Stage {
-                    label: label.to_string(),
-                });
-            },
-        )
-        .await?;
+        // A custom Java path (set in the instance's settings) always wins over
+        // the auto-managed JRE, but only when it still points at something on
+        // disk — otherwise silently fall back instead of failing the launch.
+        let custom_java = instance
+            .java_path
+            .as_deref()
+            .filter(|p| std::path::Path::new(p).exists());
+        let java_bin = if let Some(custom) = custom_java {
+            custom.to_string()
+        } else {
+            let required_major = meta
+                .java_version
+                .as_ref()
+                .map(|v| v.major_version)
+                .unwrap_or(8);
+            let on_event_for_java = on_event.clone();
+            java::manager::ensure_java(
+                &self.app_data_dir,
+                required_major,
+                &self.http_client,
+                |label| {
+                    (*on_event_for_java)(LaunchEventDTO::Stage {
+                        label: label.to_string(),
+                    });
+                },
+            )
+            .await?
+        };
+
+        // Best-effort bookkeeping: remembers which Java major actually ran
+        // this instance, so the Settings tab can show the real answer
+        // instead of guessing (see `get_java_info` in `minecraft_commands`)
+        // — a failure here must never affect the launch itself.
+        let detected_major = java::detect::detect_major_version(&java_bin)
+            .ok()
+            .map(i64::from);
+        if detected_major != instance.last_java_major {
+            let repository = self.instance_repository.clone();
+            let instance_id = instance.id.clone();
+            let _ = tokio::task::spawn_blocking(move || {
+                repository.update_last_java_major(&instance_id, detected_major)
+            })
+            .await;
+        }
 
         self.check_cancelled()?;
         if instance
@@ -395,6 +441,11 @@ impl LaunchInstanceUseCase {
 
         self.check_cancelled()?;
         minecraft_language::ensure_default_language(&instance_dir);
+        options_file::set_option(
+            &instance_dir,
+            "fullscreen",
+            if instance.fullscreen { "true" } else { "false" },
+        );
         (*on_event)(LaunchEventDTO::Stage {
             label: "Iniciando jogo".to_string(),
         });
@@ -407,6 +458,11 @@ impl LaunchInstanceUseCase {
             .as_ref()
             .map(|p| &p.extra_game_args)
             .unwrap_or(&no_extra_args);
+        let mut game_args = extra_game_args.clone();
+        game_args.extend(resolution_args(
+            instance.window_width,
+            instance.window_height,
+        ));
         let classpath = launcher::build_classpath(&library_paths, &client_jar);
         let log_path = instance_dir.join("logs").join("latest.log");
 
@@ -424,11 +480,15 @@ impl LaunchInstanceUseCase {
                 min_memory_mb: instance.min_memory,
                 max_memory_mb: instance.max_memory,
                 extra_jvm_args: &no_extra_args,
-                extra_game_args,
+                extra_game_args: &game_args,
             },
             &classpath,
             &log_path,
         )?;
+
+        if let Some(monitor) = instance.window_monitor.clone() {
+            window_placement::place_window_on_monitor(child.id(), monitor);
+        }
 
         self.register_with_playtime(instance.id.clone(), instance.name.clone(), child, on_exit)
             .await;
@@ -525,6 +585,10 @@ impl LaunchInstanceUseCase {
         let uuid = account.uuid.clone();
         let on_event_blocking = on_event.clone();
         let instance_dir_for_build = instance_dir.clone();
+        let resolution = match (instance.window_width, instance.window_height) {
+            (Some(w), Some(h)) => Some((w as u32, h as u32)),
+            _ => None,
+        };
 
         let command =
             tokio::task::spawn_blocking(move || -> anyhow::Result<forge_like::BuiltCommand> {
@@ -617,11 +681,17 @@ impl LaunchInstanceUseCase {
                     &natives_dir,
                     &username,
                     &uuid,
+                    resolution,
                 )
             })
             .await??;
 
         minecraft_language::ensure_default_language(&instance_dir);
+        options_file::set_option(
+            &instance_dir,
+            "fullscreen",
+            if instance.fullscreen { "true" } else { "false" },
+        );
         (*on_event)(LaunchEventDTO::Stage {
             label: "Iniciando jogo".to_string(),
         });
@@ -632,6 +702,11 @@ impl LaunchInstanceUseCase {
             &command.working_dir,
             &log_path,
         )?;
+
+        if let Some(monitor) = instance.window_monitor.clone() {
+            window_placement::place_window_on_monitor(child.id(), monitor);
+        }
+
         self.register_with_playtime(instance.id.clone(), instance.name.clone(), child, on_exit)
             .await;
         Ok(())

@@ -136,7 +136,7 @@ Abra um Pull Request no GitHub contra a branch `main`, preenchendo o [template d
 
 - Componentes feature-first, organizados por domínio
 - UI construída com shadcn/ui (Radix + Tailwind)
-- Estados globais com Zustand, dados remotos com TanStack Query
+- Estados globais com Zustand, dados remotos via hooks → actions do store → API services (sem TanStack Query)
 
 ### Geral
 

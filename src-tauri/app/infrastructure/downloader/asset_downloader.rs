@@ -53,11 +53,14 @@ pub async fn download_assets(
     tokio::fs::write(&index_path, index_bytes).await?;
 
     let objects_dir = assets_dir.join("objects");
-    let objects: Vec<AssetObject> = index.objects.values().cloned().collect();
+    // Keep the human-readable path (e.g. `minecraft/textures/gui/...`) for
+    // progress display — the hash is only what Mojang's CDN actually keys
+    // objects by, not something a user should have to look at.
+    let objects: Vec<(String, AssetObject)> = index.objects.clone().into_iter().collect();
     let total = objects.len() as u64;
     let completed = Arc::new(AtomicU64::new(0));
 
-    let downloads = objects.into_iter().map(|object| {
+    let downloads = objects.into_iter().map(|(path, object)| {
         let client = client.clone();
         let objects_dir = objects_dir.clone();
         let reporter = reporter.clone();
@@ -77,7 +80,7 @@ pub async fn download_assets(
             );
             download_to_file(&client, &url, &dest, Some(&hash)).await?;
             let done = completed.fetch_add(1, Ordering::Relaxed) + 1;
-            reporter.report_item("Assets", &hash, size, done, total);
+            reporter.report_item("Assets", &path, size, done, total);
             Ok::<(), anyhow::Error>(())
         }
     });

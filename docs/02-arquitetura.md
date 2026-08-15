@@ -44,7 +44,7 @@ React UI → src/features/*/services/*.api.ts (apiInvoke) → #[tauri::command]
 
 ### 2.3.4 Infrastructure Layer
 
-`src-tauri/app/infrastructure/`: `minecraft/` (manifest, rules, servers.dat, version meta, language), `java/` (detect, download, manager), `downloader/` (file + asset downloader, progress — sem retry, reqwest puro), `process/` (manager + launcher), `filesystem/` (paths), `discord/` (RPC), `modloader/` (fabric_like, forge_like, liteloader, profile), `curseforge/`, `modrinth/`, `playermc/` + `mcstat/` (skins), `persistence/` (sqlite, migrations, repositories, config), `window_state.rs` (v0.5.2, persistência da janela principal). Forge/NeoForge delegam boa parte do trabalho para a crate externa `mc-launcher-core`.
+`src-tauri/app/infrastructure/`: `minecraft/` (manifest, rules, servers.dat, version meta, language, options_file), `java/` (detect, download, manager), `downloader/` (file + asset downloader, progress — sem retry, reqwest puro), `process/` (manager + launcher + window_placement), `filesystem/` (paths, explorer, size), `discord/` (RPC), `modloader/` (fabric_like, forge_like, liteloader, profile), `curseforge/`, `modrinth/`, `playermc/` + `mcstat/` (skins), `zerotier/` (v0.6.0), `persistence/` (sqlite, migrations, repositories, config), `window_state.rs` (v0.5.2, persistência da janela principal). Forge/NeoForge delegam boa parte do trabalho para a crate externa `mc-launcher-core`.
 
 ### 2.3.5 Bootstrap
 

@@ -16,6 +16,12 @@ pub struct InstanceDTO {
     pub created_at: String,
     pub last_played: Option<String>,
     pub playtime_seconds: i64,
+    pub fullscreen: bool,
+    pub window_width: Option<i64>,
+    pub window_height: Option<i64>,
+    pub java_path: Option<String>,
+    pub window_monitor: Option<String>,
+    pub last_java_major: Option<i64>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -48,4 +54,9 @@ pub struct UpdateInstanceInput {
     pub min_memory: i64,
     pub max_memory: i64,
     pub icon_path: Option<String>,
+    pub fullscreen: bool,
+    pub window_width: Option<i64>,
+    pub window_height: Option<i64>,
+    pub java_path: Option<String>,
+    pub window_monitor: Option<String>,
 }

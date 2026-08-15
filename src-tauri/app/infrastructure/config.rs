@@ -19,6 +19,10 @@ pub struct ApiConfig {
     pub liteloader_versions: String,
     pub liteloader_repo: String,
     pub maven_central: String,
+    /// ZeroTier Central API base URL (network/member management).
+    pub zerotier_central: String,
+    /// Official ZeroTier One installer (MSI) for Windows.
+    pub zerotier_download: String,
 }
 
 impl Default for ApiConfig {
@@ -37,6 +41,8 @@ impl Default for ApiConfig {
             liteloader_versions: "https://dl.liteloader.com/versions/versions.json".into(),
             liteloader_repo: "https://repo.liteloader.com/".into(),
             maven_central: "https://repo1.maven.org/maven2/".into(),
+            zerotier_central: "https://api.zerotier.com/api/v1".into(),
+            zerotier_download: "https://download.zerotier.com/dist/ZeroTier%20One.msi".into(),
         }
     }
 }
@@ -49,6 +55,10 @@ pub struct ExternalConfig {
     pub mcstat_dashboard: String,
     pub mcstat_docs: String,
     pub curseforge_console: String,
+    /// ZeroTier Central account page where users generate their API token.
+    pub zerotier_account: String,
+    /// ZeroTier download page (manual install fallback).
+    pub zerotier_download_page: String,
 }
 
 impl Default for ExternalConfig {
@@ -59,6 +69,8 @@ impl Default for ExternalConfig {
             mcstat_dashboard: "https://mcstat.org/dashboard/api-keys".into(),
             mcstat_docs: "https://mcstat.org/api-docs".into(),
             curseforge_console: "https://console.curseforge.com/".into(),
+            zerotier_account: "https://my.zerotier.com/account".into(),
+            zerotier_download_page: "https://www.zerotier.com/download/".into(),
         }
     }
 }

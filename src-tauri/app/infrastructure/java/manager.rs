@@ -49,3 +49,25 @@ pub async fn ensure_java(
     }
     Ok(bundled.display().to_string())
 }
+
+/// Major versions of every portable JRE the launcher has already downloaded
+/// under `<app_data_dir>/java/`, sorted ascending. Used to show the user
+/// which Java is actually in play when no system Java is picked up — the
+/// portable one is otherwise invisible to `detect::find_java`, which only
+/// looks at `JAVA_HOME`/`PATH`.
+pub fn list_bundled_javas(app_data_dir: &Path) -> Vec<u32> {
+    let Ok(entries) = std::fs::read_dir(app_data_dir.join("java")) else {
+        return Vec::new();
+    };
+    let mut majors: Vec<u32> = entries
+        .flatten()
+        .filter_map(|entry| {
+            let major: u32 = entry.file_name().to_string_lossy().parse().ok()?;
+            bundled_java_bin(app_data_dir, major)
+                .exists()
+                .then_some(major)
+        })
+        .collect();
+    majors.sort_unstable();
+    majors
+}

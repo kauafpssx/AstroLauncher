@@ -10,11 +10,11 @@ Apenas 5 entidades de domínio existem hoje. Tudo o que não está na lista abai
 
 ### `Instance` (instance.rs)
 
-id, name, version, loader, loader_version, icon_path, java_args, min_memory, max_memory, folder_id, position, created_at, last_played, playtime_seconds.
+id, name, version, loader, loader_version, icon_path, java_args, min_memory, max_memory, folder_id, position, created_at, last_played, playtime_seconds, fullscreen, window_width, window_height, java_path, window_monitor (v0.6.0).
 
 ### `Account` (account.rs)
 
-id, username, account_type, uuid, position, is_default, last_used, created_at. Construtor `Account::new_offline(username, position)`.
+id, username, account_type, uuid, position, is_default, icon_path (v0.6.0), last_used, created_at. Construtor `Account::new_offline(username, position)`.
 
 ### `Folder` (folder.rs)
 

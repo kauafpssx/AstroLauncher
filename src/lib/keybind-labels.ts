@@ -64,7 +64,7 @@ const ACTION_CATEGORY: Record<string, KeybindCategory> = {
   toggleSpectatorShaderEffects: 'Interface',
 }
 
-/** Anything under `key_key.debug.*` goes to Depuração; anything from an unrecognized namespace (mods add their own `key_<modid>.*` entries) falls back to Mods. */
+/** Anything under `key_key.debug.*` goes to the `Depuração` (Debug) category; anything from an unrecognized namespace (mods add their own `key_<modid>.*` entries) falls back to Mods. */
 export function categoryForAction(action: string): KeybindCategory {
   if (ACTION_CATEGORY[action]) return ACTION_CATEGORY[action]
   if (action.startsWith('debug.')) return 'Depuração'

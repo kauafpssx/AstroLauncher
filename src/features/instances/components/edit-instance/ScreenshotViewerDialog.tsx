@@ -1,12 +1,14 @@
 import { Check, Clipboard, Download, Pencil, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+import { CharacterCounter } from '@/components/common/CharacterCounter'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 import { tooltipProps } from '@/lib/tooltip'
+import { MAX, getFirstIssue, screenshotNameSchema } from '@/lib/validation'
 import { cn } from '@/lib/utils'
 
 import { splitExtension } from './screenshot-name'
@@ -16,7 +18,7 @@ import { MIN_SCALE, useScreenshotZoom } from './useScreenshotZoom'
 interface ScreenshotViewerDialogProps {
   instanceId: string
   name: string
-  dataUri: string
+  thumbnailDataUri: string
   onOpenChange: (open: boolean) => void
   onDownload: () => void
   onCopy: () => void
@@ -26,12 +28,38 @@ interface ScreenshotViewerDialogProps {
 export function ScreenshotViewerDialog({
   instanceId,
   name,
-  dataUri,
+  thumbnailDataUri,
   onOpenChange,
   onDownload,
   onCopy,
   onRenamed,
 }: ScreenshotViewerDialogProps) {
+  // The grid only ever loaded a downscaled preview; fetch the real PNG once
+  // the viewer opens and swap it in — the thumbnail renders immediately in
+  // the meantime instead of a blank dialog.
+  const [fullDataUri, setFullDataUri] = useState<string | null>(null)
+
+  // Clears the stale full-res image during render when a different
+  // screenshot opens (the linter forbids synchronous setState in effects).
+  const [prevName, setPrevName] = useState(name)
+  if (prevName !== name) {
+    setPrevName(name)
+    setFullDataUri(null)
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    InstanceWorkspaceAPI.readScreenshot(instanceId, name)
+      .then((uri) => {
+        if (!cancelled) setFullDataUri(uri)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [instanceId, name])
+
+  const displayedDataUri = fullDataUri ?? thumbnailDataUri
   const {
     scale,
     offset,
@@ -43,7 +71,7 @@ export function ScreenshotViewerDialog({
     handleMouseDown,
     handleMouseMove,
     stopDragging,
-  } = useScreenshotZoom(dataUri)
+  } = useScreenshotZoom(name)
   const [isRenaming, setIsRenaming] = useState(false)
   const [draftName, setDraftName] = useState('')
   const [isSavingName, setIsSavingName] = useState(false)
@@ -59,6 +87,11 @@ export function ScreenshotViewerDialog({
     const trimmed = draftName.trim()
     if (!trimmed || trimmed === currentBase) {
       setIsRenaming(false)
+      return
+    }
+    const issue = getFirstIssue(screenshotNameSchema, trimmed)
+    if (issue) {
+      toast.error(issue)
       return
     }
     setIsSavingName(true)
@@ -99,7 +132,7 @@ export function ScreenshotViewerDialog({
           onMouseLeave={stopDragging}
         >
           <img
-            src={dataUri}
+            src={displayedDataUri}
             alt={name}
             draggable={false}
             className="max-h-full max-w-full object-contain select-none"
@@ -121,6 +154,7 @@ export function ScreenshotViewerDialog({
             <div className="flex min-w-0 flex-1 items-center gap-1.5">
               <Input
                 autoFocus
+                maxLength={MAX.SCREENSHOT_NAME}
                 value={draftName}
                 onChange={(e) => setDraftName(e.target.value)}
                 onKeyDown={(e) => {
@@ -133,6 +167,11 @@ export function ScreenshotViewerDialog({
               <span className="text-muted-foreground shrink-0 text-sm">
                 {currentExt}
               </span>
+              <CharacterCounter
+                value={draftName}
+                max={MAX.SCREENSHOT_NAME}
+                className="shrink-0"
+              />
               <Button
                 variant="ghost"
                 size="icon-sm"

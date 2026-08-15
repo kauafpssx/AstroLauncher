@@ -11,6 +11,7 @@ import type { ContentKind } from '@/types/mods'
 import { ModBrowserList } from './ModBrowserList'
 import { ModDetailPanel } from './ModDetailPanel'
 import { ModReviewPanel } from './ModReviewPanel'
+import { normalizeName } from './selection-utils'
 import { selectionKey, useModBrowser } from './useModBrowser'
 
 interface ModBrowserDialogProps {
@@ -48,6 +49,7 @@ export function ModBrowserDialog({
     setView,
     pendingKeys,
     installedKeys,
+    installedNames,
     installedFileNames,
     effectiveLoader,
     kindLabel,
@@ -107,7 +109,10 @@ export function ModBrowserDialog({
                   isSelected={
                     !!selection[viewingKey] || pendingKeys.has(viewingKey)
                   }
-                  isInstalled={installedKeys.has(viewingKey)}
+                  isInstalled={
+                    installedKeys.has(viewingKey) ||
+                    installedNames.has(normalizeName(viewing.name))
+                  }
                   installedFileNames={installedFileNames}
                   onToggleSelect={(version) =>
                     toggleSelection(viewing, version)

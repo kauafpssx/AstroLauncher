@@ -11,3 +11,4 @@ pub mod playtime_commands;
 pub mod settings_commands;
 pub mod skin_commands;
 pub mod splash_commands;
+pub mod zerotier_commands;

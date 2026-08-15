@@ -90,6 +90,7 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>Seed</TableHead>
               <TableHead>Tamanho</TableHead>
               <TableHead>Última modificação</TableHead>
               <TableHead className="w-10" />
@@ -99,7 +100,7 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
             {!isLoading && worlds.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="text-muted-foreground h-24 text-center"
                 >
                   <Globe className="mx-auto mb-2 size-6" />
@@ -110,6 +111,9 @@ export function WorldsTab({ instanceId }: WorldsTabProps) {
             {worlds.map((world) => (
               <TableRow key={world.name}>
                 <TableCell className="font-medium">{world.name}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {world.seed ?? '—'}
+                </TableCell>
                 <TableCell className="text-muted-foreground">
                   {formatBytes(world.sizeBytes)}
                 </TableCell>

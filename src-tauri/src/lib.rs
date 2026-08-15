@@ -20,7 +20,7 @@ pub mod presentation;
 use presentation::commands::{
     account_commands, astropack_commands, custom_icon_commands, discord_commands, folder_commands,
     instance_commands, instance_workspace_commands, minecraft_commands, mod_commands,
-    playtime_commands, settings_commands, skin_commands, splash_commands,
+    playtime_commands, settings_commands, skin_commands, splash_commands, zerotier_commands,
 };
 use tauri::{Emitter, Manager};
 
@@ -153,6 +153,7 @@ pub fn run() {
             instance_workspace_commands::read_instance_config_file,
             instance_workspace_commands::write_instance_config_file,
             instance_workspace_commands::open_instance_folder,
+            instance_workspace_commands::get_instance_disk_usage,
             instance_workspace_commands::list_instance_worlds,
             instance_workspace_commands::delete_instance_world,
             instance_workspace_commands::list_instance_servers,
@@ -161,6 +162,7 @@ pub fn run() {
             instance_workspace_commands::delete_instance_server,
             instance_workspace_commands::list_instance_screenshots,
             instance_workspace_commands::read_instance_screenshot,
+            instance_workspace_commands::read_instance_screenshot_thumbnail,
             instance_workspace_commands::delete_instance_screenshot,
             instance_workspace_commands::save_instance_screenshot_as,
             instance_workspace_commands::rename_instance_screenshot,
@@ -174,6 +176,7 @@ pub fn run() {
             minecraft_commands::take_pending_launch,
             discord_commands::discord_set_presence,
             minecraft_commands::get_total_system_memory_mb,
+            minecraft_commands::get_java_info,
             minecraft_commands::list_audio_output_devices,
             playtime_commands::get_playtime_summary,
             account_commands::list_accounts,
@@ -182,6 +185,15 @@ pub fn run() {
             account_commands::delete_account,
             account_commands::set_default_account,
             account_commands::reorder_accounts,
+            zerotier_commands::zerotier_status,
+            zerotier_commands::zerotier_install,
+            zerotier_commands::zerotier_join,
+            zerotier_commands::zerotier_leave,
+            zerotier_commands::zerotier_list_networks,
+            zerotier_commands::zerotier_list_owned_networks,
+            zerotier_commands::zerotier_list_pending_members,
+            zerotier_commands::zerotier_approve_member,
+            zerotier_commands::zerotier_deauthorize_member,
             settings_commands::get_settings,
             settings_commands::update_settings,
             mod_commands::search_mods,

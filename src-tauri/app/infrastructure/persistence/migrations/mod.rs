@@ -1,9 +1,13 @@
+mod v10_instance_window_monitor;
+mod v11_instance_last_java_major;
 mod v1_initial;
 mod v2_account_ordering;
 mod v3_mod_icon;
 mod v4_mod_kind;
 mod v5_instance_position;
 mod v6_folder_icon;
+mod v8_account_icon;
+mod v9_instance_window_java;
 
 use rusqlite::{Connection, Result};
 
@@ -16,6 +20,19 @@ const MIGRATIONS: &[(u32, MigrationFn)] = &[
     (v4_mod_kind::VERSION, v4_mod_kind::up),
     (v5_instance_position::VERSION, v5_instance_position::up),
     (v6_folder_icon::VERSION, v6_folder_icon::up),
+    (v8_account_icon::VERSION, v8_account_icon::up),
+    (
+        v9_instance_window_java::VERSION,
+        v9_instance_window_java::up,
+    ),
+    (
+        v10_instance_window_monitor::VERSION,
+        v10_instance_window_monitor::up,
+    ),
+    (
+        v11_instance_last_java_major::VERSION,
+        v11_instance_last_java_major::up,
+    ),
 ];
 
 pub fn run(conn: &Connection) -> Result<()> {

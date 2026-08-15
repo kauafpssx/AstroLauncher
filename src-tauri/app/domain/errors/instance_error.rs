@@ -6,6 +6,8 @@ pub enum InstanceError {
     AlreadyExists(String),
     #[error("Invalid instance name: {0}")]
     InvalidName(String),
+    #[error("Invalid value: {0}")]
+    InvalidValue(String),
     #[error("Instance '{0}' is currently running")]
     AlreadyRunning(String),
     #[error("Persistence error: {0}")]

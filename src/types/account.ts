@@ -7,13 +7,16 @@ export interface AccountDTO {
   isDefault: boolean
   lastUsed: string | null
   createdAt: string
+  iconPath: string | null
 }
 
 export interface CreateAccountInput {
   username: string
+  iconPath?: string | null
 }
 
 export interface UpdateAccountInput {
   id: string
   username: string
+  iconPath?: string | null
 }

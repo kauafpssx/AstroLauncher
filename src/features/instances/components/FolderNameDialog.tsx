@@ -1,4 +1,5 @@
 import { SingleFieldDialog } from '@/components/common/SingleFieldDialog'
+import { MAX, folderNameSchema } from '@/lib/validation'
 
 interface FolderNameDialogProps {
   open: boolean
@@ -28,6 +29,8 @@ export function FolderNameDialog({
       fieldId="folder-name"
       fieldLabel="Nome da pasta"
       placeholder="Ex.: Modpacks, Survival, Testes"
+      maxLength={MAX.FOLDER_NAME}
+      schema={folderNameSchema}
       initialValue={initialName}
       submitLabel={submitLabel}
       submitLoadingLabel="Salvando..."

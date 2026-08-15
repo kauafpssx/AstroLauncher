@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { MC_ICONS } from '@/data/mc-icons'
 import { useDiscordPresence } from '@/hooks/useDiscordPresence'
+import { getFirstIssue, instanceNameSchema } from '@/lib/validation'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { VersionDTO, VersionType } from '@/types/version'
 
@@ -79,6 +80,11 @@ export function CreateInstancePage() {
 
   const handleSubmit = async () => {
     if (!version || !loader) return
+    const issue = getFirstIssue(instanceNameSchema, name)
+    if (issue) {
+      toast.error(issue)
+      return
+    }
     setIsSubmitting(true)
     try {
       await createInstance({
@@ -115,8 +121,8 @@ export function CreateInstancePage() {
                   folders={folders}
                 />
 
-                <div className="flex min-h-0 flex-1 gap-6">
-                  <div className="flex min-h-0 min-w-0 flex-[2] flex-col">
+                <div className="flex min-h-0 flex-1 flex-wrap gap-6">
+                  <div className="flex min-h-0 min-w-[380px] flex-[2] flex-col">
                     <VersionSelectionCard
                       versions={versions}
                       isLoading={isLoading}

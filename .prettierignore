@@ -22,3 +22,6 @@ package-lock.json
 # GitHub issue/feature templates (YAML com sintaxe própria que o Prettier não
 # consegue parsear — ex.: mappings compactos aninhados)
 .github/ISSUE_TEMPLATE/
+
+# Worktrees paralelos (checkouts git separados, não fazem parte deste repo)
+.claude/worktrees

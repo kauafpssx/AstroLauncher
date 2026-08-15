@@ -7,6 +7,7 @@ import { MarkdownBody } from '@/components/common/MarkdownBody'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { MAX } from '@/lib/validation'
 import type { ModSearchResult, ModSource } from '@/types/mods'
 
 import { ModpackDetailHeader } from './ModpackDetailHeader'
@@ -89,6 +90,7 @@ export function ModpackDetailPanel({
               <Label htmlFor="modpack-instance-name">Nome da Instância</Label>
               <Input
                 id="modpack-instance-name"
+                maxLength={MAX.INSTANCE_NAME}
                 value={instanceName}
                 onChange={(e) => setInstanceName(e.target.value)}
               />

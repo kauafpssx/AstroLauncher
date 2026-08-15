@@ -1,5 +1,7 @@
+import { CharacterCounter } from '@/components/common/CharacterCounter'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { MAX } from '@/lib/validation'
 import {
   Select,
   SelectContent,
@@ -44,15 +46,23 @@ export function InstanceInfoCard({
           <Label htmlFor="instance-name" className="text-muted-foreground">
             Nome da Instância
           </Label>
-          <Input
-            id="instance-name"
-            placeholder="Nome da Instância"
-            value={name}
-            onChange={(e) => onNameChange(e.target.value)}
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-          />
+          <div className="flex flex-col gap-1">
+            <Input
+              id="instance-name"
+              placeholder="Nome da Instância"
+              maxLength={MAX.INSTANCE_NAME}
+              value={name}
+              onChange={(e) => onNameChange(e.target.value)}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+            <CharacterCounter
+              value={name}
+              max={MAX.INSTANCE_NAME}
+              className="self-end"
+            />
+          </div>
         </div>
         <div className="grid grid-cols-[110px_1fr] items-center gap-4">
           <Label htmlFor="instance-group" className="text-muted-foreground">

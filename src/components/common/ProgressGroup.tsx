@@ -21,7 +21,7 @@ export function ProgressGroup({
   children,
 }: ProgressGroupProps) {
   return (
-    <div className={cn('flex flex-col gap-1.5', className)}>
+    <div className={cn('flex min-w-0 flex-col gap-1.5', className)}>
       <div className="text-muted-foreground flex items-center justify-between text-xs">
         <span>{label}</span>
         {rightLabel && <span>{rightLabel}</span>}

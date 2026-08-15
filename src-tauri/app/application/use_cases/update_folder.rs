@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::application::dto::{FolderDTO, UpdateFolderInput};
 use crate::application::mappers::folder_mapper;
+use crate::application::validation::{validate_required, MAX_FOLDER_NAME};
 use crate::domain::errors::FolderError;
 use crate::domain::repositories::FolderRepository;
 
@@ -15,10 +16,8 @@ impl UpdateFolderUseCase {
     }
 
     pub fn execute(&self, input: UpdateFolderInput) -> Result<FolderDTO, FolderError> {
-        let name = input.name.trim().to_string();
-        if name.is_empty() {
-            return Err(FolderError::InvalidName(name));
-        }
+        let name =
+            validate_required(&input.name, MAX_FOLDER_NAME).map_err(FolderError::InvalidName)?;
 
         let mut folder = self.repository.find_by_id(&input.id)?;
         folder.name = name;

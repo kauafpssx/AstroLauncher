@@ -50,7 +50,7 @@ export function LaunchProgressDialog() {
             <Button onClick={close}>Fechar</Button>
           </div>
         ) : (
-          <div className="flex flex-col gap-5">
+          <div className="flex min-w-0 flex-col gap-5">
             <ProgressGroup
               label="Progresso geral"
               value={overallPercent}

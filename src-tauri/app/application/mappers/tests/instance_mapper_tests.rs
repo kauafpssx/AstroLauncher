@@ -10,6 +10,12 @@ fn to_dto_copies_every_dto_field() {
     instance.folder_id = Some("folder-1".to_string());
     instance.last_played = Some("2024-01-01T00:00:00Z".to_string());
     instance.playtime_seconds = 3600;
+    instance.fullscreen = true;
+    instance.window_width = Some(1920);
+    instance.window_height = Some(1080);
+    instance.java_path = Some("C:/Java/bin/java.exe".to_string());
+    instance.window_monitor = Some("\\\\.\\DISPLAY2".to_string());
+    instance.last_java_major = Some(21);
 
     let dto = to_dto(&instance);
 
@@ -26,4 +32,10 @@ fn to_dto_copies_every_dto_field() {
     assert_eq!(dto.created_at, instance.created_at);
     assert_eq!(dto.last_played, instance.last_played);
     assert_eq!(dto.playtime_seconds, instance.playtime_seconds);
+    assert_eq!(dto.fullscreen, instance.fullscreen);
+    assert_eq!(dto.window_width, instance.window_width);
+    assert_eq!(dto.window_height, instance.window_height);
+    assert_eq!(dto.java_path, instance.java_path);
+    assert_eq!(dto.window_monitor, instance.window_monitor);
+    assert_eq!(dto.last_java_major, instance.last_java_major);
 }

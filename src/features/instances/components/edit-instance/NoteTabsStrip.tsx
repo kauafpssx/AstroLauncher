@@ -1,9 +1,11 @@
 import { Pencil, Plus, X } from 'lucide-react'
 
+import { CharacterCounter } from '@/components/common/CharacterCounter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
+import { MAX } from '@/lib/validation'
 import type { NoteDTO } from '@/types/note'
 
 interface NoteTabsStripProps {
@@ -53,17 +55,21 @@ export function NoteTabsStrip({
             )}
           >
             {renamingId === note.id ? (
-              <Input
-                autoFocus
-                value={renameValue}
-                onChange={(e) => setRenameValue(e.target.value)}
-                onBlur={onCommitRename}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') onCommitRename()
-                  if (e.key === 'Escape') setRenamingId(null)
-                }}
-                className="h-6 w-28 px-1 text-sm"
-              />
+              <>
+                <Input
+                  autoFocus
+                  maxLength={MAX.NOTE_TITLE}
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onBlur={onCommitRename}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') onCommitRename()
+                    if (e.key === 'Escape') setRenamingId(null)
+                  }}
+                  className="h-6 w-28 px-1 text-sm"
+                />
+                <CharacterCounter value={renameValue} max={MAX.NOTE_TITLE} />
+              </>
             ) : (
               <button
                 type="button"

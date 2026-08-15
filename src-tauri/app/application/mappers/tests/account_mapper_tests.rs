@@ -5,6 +5,7 @@ fn to_dto_copies_every_field() {
     let mut account = Account::new_offline("Steve".to_string(), 2);
     account.is_default = true;
     account.last_used = Some("2024-01-01T00:00:00Z".to_string());
+    account.icon_path = Some("/path/to/icon.png".to_string());
 
     let dto = to_dto(&account);
 
@@ -16,4 +17,5 @@ fn to_dto_copies_every_field() {
     assert_eq!(dto.is_default, account.is_default);
     assert_eq!(dto.last_used, account.last_used);
     assert_eq!(dto.created_at, account.created_at);
+    assert_eq!(dto.icon_path, account.icon_path);
 }

@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { SearchInput } from '@/components/common/SearchInput'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ import type { ModSortBy, ModSource } from '@/types/mods'
 
 import { SORT_OPTIONS, SOURCES } from './mod-browser-list.constants'
 import { ModBrowserListItem } from './ModBrowserListItem'
+import { normalizeName } from './selection-utils'
 import type { useModBrowser } from './useModBrowser'
 import { selectionKey } from './useModBrowser'
 
@@ -36,6 +38,9 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
     setSortBy,
     results,
     isSearching,
+    isLoadingMore,
+    hasMore,
+    loadMore,
     error,
     viewing,
     setViewing,
@@ -44,12 +49,19 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
     isUploading,
     pendingKeys,
     installedKeys,
+    installedNames,
     selectedCount,
     kindLabel,
     toggleSelection,
     handleUploadCustom,
     handleDeleteInstalled,
   } = browser
+
+  const { viewportRef, sentinelRef } = useInfiniteScroll({
+    hasMore,
+    isLoading: isLoadingMore,
+    onLoadMore: loadMore,
+  })
 
   return (
     <div className="flex h-full min-w-0 flex-col border-r">
@@ -85,7 +97,11 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
       {isSearching ? (
         <CenteredSpinner />
       ) : (
-        <ScrollArea type="always" className="min-h-0 flex-1">
+        <ScrollArea
+          type="always"
+          className="min-h-0 flex-1"
+          viewportRef={viewportRef}
+        >
           <div className="flex flex-col gap-0.5 p-2">
             {!error && results.length === 0 && (
               <EmptyState title="Nenhum resultado." className="p-4" />
@@ -93,7 +109,9 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
             {results.map((result) => {
               const key = selectionKey(result.source, result.projectId)
               const isSelected = !!selection[key] || pendingKeys.has(key)
-              const isInstalled = installedKeys.has(key)
+              const isInstalled =
+                installedKeys.has(key) ||
+                installedNames.has(normalizeName(result.name))
               const isViewing =
                 !!viewing &&
                 selectionKey(viewing.source, viewing.projectId) === key
@@ -110,6 +128,13 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
                 />
               )
             })}
+            {hasMore && (
+              <div ref={sentinelRef} className="flex justify-center p-3">
+                {isLoadingMore && (
+                  <Loader2 className="text-muted-foreground size-4 animate-spin" />
+                )}
+              </div>
+            )}
           </div>
         </ScrollArea>
       )}

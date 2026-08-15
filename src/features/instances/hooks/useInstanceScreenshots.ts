@@ -7,7 +7,9 @@ import { InstanceWorkspaceAPI } from '../services/instance-workspace.api'
 
 export interface LoadedScreenshot {
   info: ScreenshotDTO
-  dataUri: string
+  /** Downscaled JPEG preview — fast to fetch, good enough for the grid.
+   *  The viewer dialog fetches the full-resolution PNG itself on open. */
+  thumbnailDataUri: string
 }
 
 export function useInstanceScreenshots(instanceId: string) {
@@ -22,10 +24,11 @@ export function useInstanceScreenshots(instanceId: string) {
         const loaded = await Promise.all(
           list.map(async (info) => ({
             info,
-            dataUri: await InstanceWorkspaceAPI.readScreenshot(
-              instanceId,
-              info.name,
-            ),
+            thumbnailDataUri:
+              await InstanceWorkspaceAPI.readScreenshotThumbnail(
+                instanceId,
+                info.name,
+              ),
           })),
         )
         if (requestIdRef.current === requestId) setShots(loaded)

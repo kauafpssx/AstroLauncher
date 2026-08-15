@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "AstroLauncher",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "identifier": "com.astrolauncher.app",
   "build": {
     "frontendDist": "../dist",
@@ -68,6 +68,9 @@
       "debugApplicationIdSuffix": ".debug"
     },
     "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      },
       "nsis": {
         "installMode": "currentUser",
         "languages": ["PortugueseBR"],
@@ -92,9 +95,13 @@
         "quiltMeta": "https://meta.quiltmc.org/v3",
         "liteloaderVersions": "https://dl.liteloader.com/versions/versions.json",
         "liteloaderRepo": "https://repo.liteloader.com/",
-        "mavenCentral": "https://repo1.maven.org/maven2/"
+        "mavenCentral": "https://repo1.maven.org/maven2/",
+        "zerotierCentral": "https://api.zerotier.com/api/v1",
+        "zerotierDownload": "https://download.zerotier.com/dist/ZeroTier%20One.msi"
       },
       "githubRepo": "kauafpssx/AstroLauncher",
+      "zerotierAccount": "https://my.zerotier.com/account",
+      "zerotierDownloadPage": "https://www.zerotier.com/download/",
       "mcstatDashboard": "https://mcstat.org/dashboard/api-keys",
       "mcstatDocs": "https://mcstat.org/api-docs",
       "curseforgeConsole": "https://console.curseforge.com/"

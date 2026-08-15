@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use crate::application::dto::ServerEntryDTO;
+use crate::application::validation::{validate_required, MAX_SERVER_IP, MAX_SERVER_NAME};
 use crate::domain::errors::InstanceError;
 use crate::infrastructure::minecraft::servers_dat::{self, ServerEntry};
 
@@ -27,13 +28,12 @@ impl InstanceWorkspaceService {
     }
 
     pub fn add_server(&self, id: &str, name: &str, ip: &str) -> Result<(), InstanceError> {
+        let name = validate_required(name, MAX_SERVER_NAME).map_err(InstanceError::InvalidValue)?;
+        let ip = validate_required(ip, MAX_SERVER_IP).map_err(InstanceError::InvalidValue)?;
         let path = self.servers_dat_path(id)?;
         let mut servers = servers_dat::read_servers(&path)
             .map_err(|e| InstanceError::Persistence(e.to_string()))?;
-        servers.push(ServerEntry {
-            name: name.to_string(),
-            ip: ip.to_string(),
-        });
+        servers.push(ServerEntry { name, ip });
         servers_dat::write_servers(&path, &servers)
             .map_err(|e| InstanceError::Persistence(e.to_string()))
     }
@@ -45,14 +45,16 @@ impl InstanceWorkspaceService {
         name: &str,
         ip: &str,
     ) -> Result<(), InstanceError> {
+        let name = validate_required(name, MAX_SERVER_NAME).map_err(InstanceError::InvalidValue)?;
+        let ip = validate_required(ip, MAX_SERVER_IP).map_err(InstanceError::InvalidValue)?;
         let path = self.servers_dat_path(id)?;
         let mut servers = servers_dat::read_servers(&path)
             .map_err(|e| InstanceError::Persistence(e.to_string()))?;
         let entry = servers
             .get_mut(index)
             .ok_or_else(|| InstanceError::InvalidName(index.to_string()))?;
-        entry.name = name.to_string();
-        entry.ip = ip.to_string();
+        entry.name = name;
+        entry.ip = ip;
         servers_dat::write_servers(&path, &servers)
             .map_err(|e| InstanceError::Persistence(e.to_string()))
     }
