@@ -579,7 +579,6 @@ impl LaunchInstanceUseCase {
         let requested_version = instance.loader_version.clone();
         let app_data_dir = self.app_data_dir.clone();
         let instance_dir = paths::instance_dir(&self.app_data_dir, &instance.id);
-        let natives_dir = instance_dir.join("natives");
         let java_bin_path: PathBuf = java_bin.into();
         let username = account.username.clone();
         let uuid = account.uuid.clone();
@@ -678,7 +677,6 @@ impl LaunchInstanceUseCase {
                     &merged,
                     &java_bin_path,
                     &instance_dir_for_build,
-                    &natives_dir,
                     &username,
                     &uuid,
                     resolution,
