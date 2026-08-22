@@ -34,6 +34,8 @@ pub fn build_command(
     username: &str,
     uuid: &str,
     resolution: Option<(u32, u32)>,
+    min_memory_mb: i64,
+    max_memory_mb: i64,
 ) -> anyhow::Result<BuiltCommand> {
     let options = LaunchOptions {
         account: Account::Offline {
@@ -49,9 +51,23 @@ pub fn build_command(
     // `infrastructure::minecraft`) — it's applied by writing `options.txt`
     // before spawning, same as the vanilla/Fabric/Quilt/LiteLoader path.
     let command = build_launch_command(version, minecraft_dir.to_path_buf(), options)?;
+    // `LaunchOptions` (mc-launcher-core) has no memory field at all — without
+    // this, Forge/NeoForge launches got no `-Xmx`/`-Xms` whatsoever and fell
+    // back to the JVM's own heap heuristic, which reads as "stuck at 4096"
+    // on machines where that heuristic lands there. Vanilla/Fabric/Quilt/
+    // LiteLoader build their own JVM args in `launcher::spawn_game` (see
+    // `LaunchOptions::min_memory_mb`/`max_memory_mb` there) and are unaffected.
+    let mut args = command.args;
+    args.splice(
+        0..0,
+        [
+            format!("-Xms{min_memory_mb}M"),
+            format!("-Xmx{max_memory_mb}M"),
+        ],
+    );
     Ok(BuiltCommand {
         executable: command.executable,
-        args: command.args,
+        args,
         working_dir: command.working_dir,
     })
 }
