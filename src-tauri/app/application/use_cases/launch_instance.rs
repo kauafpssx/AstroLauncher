@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use futures::stream::{self, StreamExt};
 
@@ -31,6 +32,19 @@ const ESTIMATED_LOADER_LIBRARY_BYTES: u64 = 300_000;
 /// `asset_downloader`'s 16 (thousands of tiny asset files vs. dozens of
 /// jars), so it stays polite to Maven-style hosts.
 const LIBRARY_CONCURRENCY: usize = 8;
+
+/// Ceiling on the whole Forge/NeoForge preparation step (installer run +
+/// library/asset download + native extraction). That entire sequence is
+/// delegated to `mc-launcher-core` (see `forge_like`), whose blocking HTTP
+/// client has no request timeout configured anywhere — a single stalled
+/// connection to a Maven-style host hangs the sequential download loop
+/// forever, freezing the launch dialog with no way to recover (observed in
+/// practice, repeatedly, on `com.mojang:text2speech`). `tokio::time::timeout`
+/// can't actually abort the blocked OS thread — the crate offers no
+/// injection point for a client with its own timeout — so this only bounds
+/// how long the *user* waits before seeing a retryable error instead of an
+/// infinite spinner; the leaked thread quietly finishes or dies on its own.
+const FORGE_PREPARE_TIMEOUT: Duration = Duration::from_secs(180);
 
 /// Builds `--width`/`--height` game args from the instance's window
 /// settings. These are real, documented Minecraft launch arguments (see
@@ -575,11 +589,11 @@ impl LaunchInstanceUseCase {
         on_exit: Arc<dyn Fn(&str) + Send + Sync>,
     ) -> anyhow::Result<()> {
         let loader = instance.loader.clone().unwrap();
+        let loader_for_timeout = loader.clone();
         let mc_version = instance.version.clone();
         let requested_version = instance.loader_version.clone();
         let app_data_dir = self.app_data_dir.clone();
         let instance_dir = paths::instance_dir(&self.app_data_dir, &instance.id);
-        let natives_dir = instance_dir.join("natives");
         let java_bin_path: PathBuf = java_bin.into();
         let username = account.username.clone();
         let uuid = account.uuid.clone();
@@ -589,8 +603,11 @@ impl LaunchInstanceUseCase {
             (Some(w), Some(h)) => Some((w as u32, h as u32)),
             _ => None,
         };
+        let min_memory_mb = instance.min_memory;
+        let max_memory_mb = instance.max_memory;
 
-        let command =
+        let command = tokio::time::timeout(
+            FORGE_PREPARE_TIMEOUT,
             tokio::task::spawn_blocking(move || -> anyhow::Result<forge_like::BuiltCommand> {
                 (*on_event_blocking)(LaunchEventDTO::Stage {
                     label: format!("Preparando {loader}"),
@@ -678,13 +695,22 @@ impl LaunchInstanceUseCase {
                     &merged,
                     &java_bin_path,
                     &instance_dir_for_build,
-                    &natives_dir,
                     &username,
                     &uuid,
                     resolution,
+                    min_memory_mb,
+                    max_memory_mb,
                 )
-            })
-            .await??;
+            }),
+        )
+        .await
+        .map_err(|_| {
+            anyhow::anyhow!(
+                "Preparação do {loader_for_timeout} travou por mais de {} minutos (provável \
+                 travamento de download/conexão) — tente iniciar de novo.",
+                FORGE_PREPARE_TIMEOUT.as_secs() / 60
+            )
+        })???;
 
         minecraft_language::ensure_default_language(&instance_dir);
         options_file::set_option(
