@@ -1,6 +1,8 @@
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use mc_launcher_core::core::version::VersionJson;
+use mc_launcher_core::core::maven::MavenCoordinate;
+use mc_launcher_core::core::version::{Library, VersionJson};
 use mc_launcher_core::install::client::{
     fetch_vanilla_version, install_version_files, load_version_json, write_version_json,
 };
@@ -88,8 +90,43 @@ pub fn run_installer(
 
 /// Loads the merged version JSON (Forge/NeoForge profile + inherited vanilla
 /// metadata): main class, full library set, and JVM/game argument templates.
+///
+/// The crate's own merge (`VersionJson::merge_child`) concatenates the
+/// parent's and child's `libraries` with no de-dup by Maven coordinate — if
+/// both declare the same artifact (e.g. `log4j-core`, at different
+/// versions), both jars end up on the classpath and the JVM's classloader
+/// resolves whichever it finds first, which can silently be the
+/// vanilla-declared version instead of the one Forge/NeoForge actually
+/// needs. Observed in practice as `NoSuchMethodError` inside Forge's own
+/// log4j integration classes (`TransformingThrowablePatternConverter`,
+/// `ThrowableProxy`) right after mod loading finishes. De-duped here by
+/// group:artifact:classifier via `dedupe_libraries`.
 pub fn load_merged_version(minecraft_dir: &Path, version_id: &str) -> anyhow::Result<VersionJson> {
-    Ok(load_version_json(minecraft_dir, version_id)?)
+    let mut version = load_version_json(minecraft_dir, version_id)?;
+    version.libraries = dedupe_libraries(version.libraries);
+    Ok(version)
+}
+
+/// Keeps the last-declared library per group:artifact:classifier. Vanilla's
+/// libraries are always first in the list (`merge_child` appends the
+/// loader's on top), so keeping the last occurrence of a duplicate always
+/// prefers what Forge/NeoForge itself declared — which is the whole reason
+/// it re-declares that artifact in the first place. Overall relative order
+/// is otherwise preserved (only the earlier duplicate entries are dropped).
+fn dedupe_libraries(libraries: Vec<Library>) -> Vec<Library> {
+    let mut seen = HashSet::new();
+    let mut kept: Vec<Library> = libraries
+        .into_iter()
+        .rev()
+        .filter(|library| {
+            let key = MavenCoordinate::parse(&library.name)
+                .map(|c| (c.group, c.artifact, c.classifier))
+                .unwrap_or_else(|_| (library.name.clone(), String::new(), None));
+            seen.insert(key)
+        })
+        .collect();
+    kept.reverse();
+    kept
 }
 
 /// Downloads the client jar, merged libraries, assets, and extracts natives
