@@ -222,7 +222,7 @@ dependencies = [
  "tracing",
  "uuid 1.26.0",
  "walkdir",
- "windows 0.61.3",
+ "windows 0.62.2",
  "wiremock",
  "zip 2.4.2",
 ]
