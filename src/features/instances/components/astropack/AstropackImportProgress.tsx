@@ -52,17 +52,20 @@ export function AstropackImportProgress({
         <CenteredSpinner className="py-6" iconClassName="size-5" />
       ) : (
         <ScrollArea className="max-h-72">
-          <div className="flex flex-col gap-3">
+          <div className="flex w-full min-w-0 flex-col gap-3">
             {[...groupByContentKind(entries), ...groupOtherKinds(entries)].map(
               (group) => (
-                <div key={group.kind} className="flex flex-col gap-1">
+                <div
+                  key={group.kind}
+                  className="flex w-full min-w-0 flex-col gap-1"
+                >
                   <p className="text-muted-foreground px-2 text-xs font-medium">
                     {group.label}
                   </p>
                   {group.items.map((entry) => (
                     <div
                       key={entry.name}
-                      className="hover:bg-accent flex items-center gap-3 rounded-lg p-2"
+                      className="hover:bg-accent flex w-full min-w-0 items-center gap-3 overflow-hidden rounded-lg p-2"
                     >
                       <EntityAvatar
                         name={entry.name}
@@ -70,8 +73,13 @@ export function AstropackImportProgress({
                         className="size-7 shrink-0"
                         fallbackClassName="text-[10px]"
                       />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm">{entry.name}</p>
+                      <div className="min-w-0 flex-1 overflow-hidden">
+                        <p
+                          className="truncate text-sm"
+                          title={entry.name}
+                        >
+                          {entry.name}
+                        </p>
                       </div>
                       {entry.status === 'pending' && (
                         <div className="size-4 shrink-0" />
