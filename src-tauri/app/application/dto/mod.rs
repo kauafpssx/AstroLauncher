@@ -10,10 +10,12 @@ mod mod_dto;
 mod note_dto;
 mod playtime_dto;
 mod screenshot_dto;
+mod seed_map_dto;
 mod server_dto;
 mod settings_dto;
 mod skin_dto;
 mod version_dto;
+mod waypoint_dto;
 mod world_dto;
 mod zerotier_dto;
 
@@ -36,10 +38,16 @@ pub use mod_dto::{
 pub use note_dto::NoteDTO;
 pub use playtime_dto::PlaytimeSummaryDTO;
 pub use screenshot_dto::ScreenshotDTO;
+pub use seed_map_dto::{
+    BiomePaletteEntryDTO, BiomeTileDTO, ColumnInfoDTO, ColumnInfoInput, GenerateBiomeTileInput,
+    ListStructuresInput, SlimeChunkDTO, SlimeChunksInput, SpawnPointDTO, SpawnPointInput,
+    StructurePositionDTO, StructureVariantDTO, StructureVariantInput,
+};
 pub use server_dto::{SaveServerInput, ServerEntryDTO};
 pub use settings_dto::{SettingsDTO, UpdateSettingsInput};
 pub use skin_dto::{SearchSkinsInput, SkinDetailDTO, SkinPlayerDTO, SkinSource, SkinSummaryDTO};
 pub use version_dto::VersionDTO;
+pub use waypoint_dto::{CreateWaypointInput, UpdateWaypointInput, WaypointDTO};
 pub use world_dto::WorldDTO;
 pub use zerotier_dto::{
     CentralMemberDTO, CentralNetworkSummaryDTO, LocalNetworkDTO, NodeInfoDTO, ZeroTierStatusDTO,

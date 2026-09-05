@@ -8,7 +8,6 @@
     "@fontsource-variable/geist",
     "@tailwindcss/typography",
     "shadcn",
-    "cmdk",
     "tw-animate-css"
   ]
 }

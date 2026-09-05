@@ -88,12 +88,12 @@ infrastructure/discord/rpc.rs
 ```
 infrastructure/persistence/
 ├── sqlite/connection.rs          # open(db_path), pragma foreign_keys
-├── migrations/mod.rs             # tabela de function pointers, v1..v10 (sem v7)
+├── migrations/mod.rs             # tabela de function pointers, v1..v12 (sem v7)
 ├── repositories/                 # Sqlite{Instance,Folder,Playtime,Account,Mod}Repository
 └── config/json_settings_repository.rs   # LauncherSettings (settings.json)
 ```
 
-**Decisão:** SQLite para dados estruturados (instâncias, pastas, playtime, contas, mods), em `<app_data_dir>/data/launcher.db` (resolvido via `app.path().app_data_dir()` do Tauri, não a crate `dirs`). JSON só para `settings.json`, com schema pequeno: `curseforge_api_key`, `mcstat_api_key`, `root_group_name`, `root_group_icon`, `zerotier_api_token`. Não existe `java.json`/`ui.json`, nem uma pasta `cache/` dentro de persistence — nenhum subsistema de cache com TTL está implementado hoje (manifests e resultados de busca não são cacheados). Migrações v8/v9/v10 (v0.6.0) adicionam `accounts.icon_path` e `instances.fullscreen/window_width/window_height/java_path/window_monitor`.
+**Decisão:** SQLite para dados estruturados (instâncias, pastas, playtime, contas, mods, waypoints), em `<app_data_dir>/data/launcher.db` (resolvido via `app.path().app_data_dir()` do Tauri, não a crate `dirs`). JSON só para `settings.json`, com schema pequeno: `curseforge_api_key`, `mcstat_api_key`, `root_group_name`, `root_group_icon`, `zerotier_api_token`. Não existe `java.json`/`ui.json`, nem uma pasta `cache/` dentro de persistence — nenhum subsistema de cache com TTL está implementado hoje (manifests e resultados de busca não são cacheados). Migrações v8/v9/v10 (v0.6.0) adicionam `accounts.icon_path` e `instances.fullscreen/window_width/window_height/java_path/window_monitor`; v11 (`last_java_major`, v0.6.0) e v12 (tabela `waypoints`, v1.0.0).
 
 Ver [documento 12 — Armazenamento](12-armazenamento.md) para o schema completo.
 
@@ -144,3 +144,7 @@ Fonte de skins adicionada na v0.4.0 (`mcstat.org`), usada na busca/detalhe de sk
 ## 8.15 ZeroTier (v0.6.0)
 
 `infrastructure/zerotier/` — implementação própria (sem crate dedicado) sobre o `reqwest::Client` existente + CLI local (`zerotier-cli`). Token via `settings.json` (`zerotier_api_token`); URLs em `plugins.env` (`zerotierCentral` = API Central, `zerotierDownload` = instalador `.msi`). Serviço `ZeroTierService` em `app/application/use_cases/`; comandos em `zerotier_commands.rs` (status, install, join, leave, list networks/owned/pending, approve/deauthorize member). Frontend: feature `src/features/network/` (dialogs ZeroTierDialog/ZeroTierTokenDialog) + `src/stores/zerotier.store.ts`.
+
+## 8.16 Seed Map / Worldgen (v1.0.0)
+
+`infrastructure/worldgen/` — engine Cubiomes (C, MIT) vendorizada do fork https://github.com/xpple/cubiomes (commit `0a3db3a`, 2026-09-03) e compilada pelo `build.rs` via `cc` (clang-cl no Windows). Integração por FFI manual (`ffi.rs` + `cubiomes_provider.rs`, sem os crates `cubiomes`/`cubiomes-sys`); tiles calculados em paralelo com `rayon`. Use cases em `application/use_cases/` (tile de bioma, paleta, spawn, slime chunks, estruturas, strongholds, coluna, variante); comandos em `seed_map_commands.rs` (+ subpasta); frontend em `src/features/instances/components/edit-instance/seed-map/` (OpenLayers, pacote `ol`). Ver [11](11-dependencias-e-libs.md) (build/Cubiomes) e [13](13-seed-map-spec.md) (especificação).

@@ -1,11 +1,8 @@
 import { toast } from 'sonner'
-
 import { useInstanceStore } from '@/stores/instance.store'
 import type { InstanceDTO } from '@/types/instance'
-
 export function useInstanceIcon(instance: InstanceDTO) {
   const updateInstance = useInstanceStore((s) => s.updateInstance)
-
   const handleIconSelect = async (iconPath: string) => {
     try {
       await updateInstance({
@@ -28,6 +25,5 @@ export function useInstanceIcon(instance: InstanceDTO) {
       toast.error(`Falha ao atualizar ícone: ${String(err)}`)
     }
   }
-
   return { handleIconSelect }
 }

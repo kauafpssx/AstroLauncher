@@ -1,9 +1,3 @@
-// Flags any [dependencies] entry in Cargo.toml never referenced by a `use`
-// anywhere in this crate — cargo check/clippy already catch dead code inside
-// used crates, but not a whole crate nobody imports. Native rustc lint, no
-// extra tool needed (main.rs stays a thin `app_lib::run()` shim and doesn't
-// use most deps directly, so it opts out below instead of firing false
-// positives).
 #![warn(unused_crate_dependencies)]
 
 #[path = "../app/application/mod.rs"]
@@ -20,19 +14,14 @@ pub mod presentation;
 use presentation::commands::{
     account_commands, astropack_commands, custom_icon_commands, discord_commands, folder_commands,
     instance_commands, instance_workspace_commands, minecraft_commands, mod_commands,
-    playtime_commands, settings_commands, skin_commands, splash_commands, zerotier_commands,
+    playtime_commands, seed_map_commands, settings_commands, skin_commands, splash_commands,
+    waypoint_commands, zerotier_commands,
 };
 use tauri::{Emitter, Manager};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        // Must be the first plugin registered. A second launch (e.g. via a
-        // desktop shortcut's `--launch-instance <id>`, or double-clicking a
-        // `.astropack` file, while the app is already running) forwards its
-        // argv here instead of spawning a second process: this is also
-        // what enforces the single-instance limit, since Tauri exits that
-        // second process right after this callback runs.
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             if let Some(id) = infrastructure::cli::parse_launch_instance_arg(&argv) {
                 let _ = app.emit("shortcut://launch-instance", id);
@@ -87,11 +76,6 @@ pub fn run() {
             );
             app.manage(state);
 
-            // Windows can pick up a launching shortcut's own icon for the
-            // taskbar button instead of the exe's (relevant now that
-            // per-instance desktop shortcuts carry their own icon): force
-            // the window icon back to the app's own regardless of how the
-            // process was started.
             if let Some(icon) = app.default_window_icon() {
                 let icon = icon.clone();
                 if let Some(main) = app.get_webview_window("main") {
@@ -100,10 +84,6 @@ pub fn run() {
             }
 
             if let Some(main) = app.get_webview_window("main") {
-                // Only registers the close-time save here — applying the
-                // saved state itself happens in `finish_splash` (and the
-                // ASTRO_DEV_NO_SPLASH branch below), right before `main`
-                // actually becomes visible. See the comment there.
                 let app_data_dir_for_close = app_data_dir.clone();
                 let main_for_close = main.clone();
                 main.on_window_event(move |event| {
@@ -185,6 +165,10 @@ pub fn run() {
             account_commands::delete_account,
             account_commands::set_default_account,
             account_commands::reorder_accounts,
+            waypoint_commands::list_waypoints,
+            waypoint_commands::create_waypoint,
+            waypoint_commands::update_waypoint,
+            waypoint_commands::delete_waypoint,
             zerotier_commands::zerotier_status,
             zerotier_commands::zerotier_install,
             zerotier_commands::zerotier_join,
@@ -220,6 +204,15 @@ pub fn run() {
             custom_icon_commands::list_custom_icons,
             custom_icon_commands::save_custom_icon,
             custom_icon_commands::delete_custom_icon,
+            seed_map_commands::generate_biome_tile,
+            seed_map_commands::list_biome_palette,
+            seed_map_commands::filter_supported_seed_map_versions,
+            seed_map_commands::get_spawn_point,
+            seed_map_commands::list_slime_chunks,
+            seed_map_commands::list_structures,
+            seed_map_commands::get_structure_variant,
+            seed_map_commands::list_strongholds,
+            seed_map_commands::get_column_info,
             splash_commands::finish_splash,
             infrastructure::config::get_app_env_config,
         ])

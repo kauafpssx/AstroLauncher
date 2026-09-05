@@ -46,15 +46,10 @@ impl DuplicateInstanceUseCase {
         copy.min_memory = source.min_memory;
         copy.max_memory = source.max_memory;
         copy.folder_id = source.folder_id.clone();
-        // Same position so the copy sits right next to the original; the
-        // next drag-reorder normalizes positions anyway.
         copy.position = source.position;
 
         let source_dir = paths::instance_dir(&self.app_data_dir, id);
         let copy_dir = paths::instance_dir(&self.app_data_dir, &copy.id);
-        // Files first: a failed folder copy leaves only an orphan directory
-        // (invisible), while a failed row save would leave a broken instance
-        // that shows up on the next refresh with a partial folder.
         if source_dir.exists() {
             copy_dir_all(&source_dir, &copy_dir)
                 .map_err(|e| InstanceError::Persistence(e.to_string()))?;
@@ -62,11 +57,6 @@ impl DuplicateInstanceUseCase {
 
         self.instance_repository.save(&copy)?;
 
-        // Mod metadata rows reference absolute paths inside the source
-        // instance dir: duplicate them with paths rewritten to the copy.
-        // Rows whose file is not under the source dir are skipped: they were
-        // not copied, and keeping them would cross-link the copy to the
-        // source's files (toggling/deleting would hit the original).
         let mods = self.mod_repository.find_by_instance(id)?;
         for m in &mods {
             let Some(file_path) = rewrite_to_copy_dir(&source_dir, &copy_dir, &m.file_path) else {
@@ -93,8 +83,6 @@ fn duplicate_name(name: &str) -> String {
     format!("{name} (cópia)")
 }
 
-/// Recursive folder copy (walkdir avoids std's symlink-following surprises
-/// and lets each entry map 1:1 from source to destination).
 fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
     std::fs::create_dir_all(dst)?;
     for entry in walkdir::WalkDir::new(src).min_depth(1) {
@@ -116,9 +104,6 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Re-points an absolute file path stored in the DB (e.g.
-/// `.../instances/<old>/mods/x.jar`) at the copied instance's directory.
-/// `None` when the path lives outside the source dir (see the caller).
 fn rewrite_to_copy_dir(source_dir: &Path, copy_dir: &Path, file_path: &str) -> Option<String> {
     Path::new(file_path)
         .strip_prefix(source_dir)

@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
-
 import { apiInvoke } from '@/lib/api/client'
-
 interface AppApiConfig {
   curseforge: string
   mcstat: string
@@ -18,9 +16,9 @@ interface AppApiConfig {
   zerotierCentral: string
   zerotierDownload: string
 }
-
 export interface AppEnvConfig {
   api: AppApiConfig
+  githubBase: string
   githubRepo: string
   mcstatDashboard: string
   mcstatDocs: string
@@ -28,21 +26,13 @@ export interface AppEnvConfig {
   zerotierAccount: string
   zerotierDownloadPage: string
 }
-
 let cache: Promise<AppEnvConfig> | null = null
-
-/**
- * External URLs/links, read from `plugins.env` in `tauri.conf.json` so the
- * frontend never hardcodes them. Resolved once and cached for the app's life.
- */
 export function getAppEnvConfig(): Promise<AppEnvConfig> {
   cache ??= apiInvoke<AppEnvConfig>('get_app_env_config')
   return cache
 }
-
 export function useAppEnvConfig(): AppEnvConfig | undefined {
   const [config, setConfig] = useState<AppEnvConfig | undefined>(undefined)
-
   useEffect(() => {
     let active = true
     getAppEnvConfig().then((cfg) => {
@@ -52,6 +42,5 @@ export function useAppEnvConfig(): AppEnvConfig | undefined {
       active = false
     }
   }, [])
-
   return config
 }

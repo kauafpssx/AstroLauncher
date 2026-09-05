@@ -10,9 +10,6 @@ fn base_url() -> &'static str {
     crate::infrastructure::config::api().modrinth.as_str()
 }
 
-/// Maps our unified sort key to Modrinth's `index` values. Modrinth also
-/// supports `"follows"`, but there's no equivalent on CurseForge's side, so
-/// it's left out to keep the two providers' sort options symmetric.
 fn search_index(sort: Option<&str>) -> &'static str {
     match sort {
         Some("downloads") => "downloads",
@@ -22,8 +19,6 @@ fn search_index(sort: Option<&str>) -> &'static str {
     }
 }
 
-/// Results per page: mirrors `PAGE_SIZE` on the frontend, which uses it to
-/// tell whether a page was the last one (fewer hits than this = no more).
 pub const PAGE_SIZE: u32 = 30;
 
 pub async fn search(
@@ -106,9 +101,6 @@ struct VersionFilesRequest<'a> {
     algorithm: &'a str,
 }
 
-/// Resolves many files at once by their sha1 hash: used to recover each
-/// modpack file's project/version metadata after downloading it, since the
-/// `.mrpack` manifest only lists hashes, not names.
 pub async fn get_versions_by_hashes(
     client: &reqwest::Client,
     sha1_hashes: &[String],
@@ -132,8 +124,6 @@ pub async fn get_versions_by_hashes(
     Ok(versions)
 }
 
-/// Resolves many projects' icons at once: used to fetch every modpack mod's
-/// icon up front instead of one call per project.
 pub async fn get_projects_by_ids(
     client: &reqwest::Client,
     project_ids: &[String],

@@ -14,7 +14,6 @@ impl CustomIconService {
         Self { app_data_dir }
     }
 
-    /// Lists previously uploaded custom instance icons, newest first.
     pub fn list(&self) -> anyhow::Result<Vec<CustomIconDTO>> {
         let dir = paths::custom_icons_dir(&self.app_data_dir);
         if !dir.exists() {
@@ -47,7 +46,6 @@ impl CustomIconService {
         Ok(entries.into_iter().map(|(_, dto)| dto).collect())
     }
 
-    /// Decodes a base64-encoded PNG and persists it under the app's data directory.
     pub fn save(&self, base64_png: &str) -> anyhow::Result<CustomIconDTO> {
         let bytes = base64::engine::general_purpose::STANDARD.decode(base64_png.trim())?;
         let dir = paths::custom_icons_dir(&self.app_data_dir);

@@ -27,8 +27,6 @@ impl ZeroTierService {
         })
     }
 
-    /// Tolerant of the CLI being unreachable: callers use `installed` to
-    /// decide whether to show a "not installed" state instead of an error.
     pub fn status(&self) -> ZeroTierStatus {
         if !cli::is_installed() {
             return ZeroTierStatus {
@@ -44,8 +42,6 @@ impl ZeroTierService {
         }
     }
 
-    /// Downloads and runs the official ZeroTier One installer (elevated,
-    /// `/quiet`). Windows-only: no driverless portable build exists.
     pub async fn install(&self) -> anyhow::Result<()> {
         installer::download_and_install(&self.http, &self.app_data_dir).await
     }

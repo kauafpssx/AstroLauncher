@@ -1,5 +1,4 @@
 import { Check, Copy, Link2, UserX, Users } from 'lucide-react'
-
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,16 +12,13 @@ import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { tooltipProps } from '@/lib/tooltip'
 import type { SkinSource } from '@/types/skins'
-
 import { SkinViewer3D } from './SkinViewer3D'
 import { useSkinDetail } from './useSkinDetail'
-
 interface SkinDetailDialogProps {
   source: SkinSource | null
   id: string | null
   onOpenChange: (open: boolean) => void
 }
-
 export function SkinDetailDialog({
   source,
   id,
@@ -42,7 +38,6 @@ export function SkinDetailDialog({
     copySkinUrlCommand,
     downloadSkin,
   } = useSkinDetail({ source, id })
-
   return (
     <Dialog open={id !== null} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">

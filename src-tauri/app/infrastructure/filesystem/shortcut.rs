@@ -8,16 +8,12 @@ mod powershell;
 use icon::write_icon;
 use powershell::{ps_single, run_powershell};
 
-/// Flag used in the shortcut's Arguments so we can later map a `.lnk` back to
-/// the instance it launches (`--launch-instance <id>`).
 const LAUNCH_FLAG: &str = "--launch-instance";
 
 fn desktop_dir() -> anyhow::Result<PathBuf> {
     dirs::desktop_dir().context("failed to resolve desktop directory")
 }
 
-/// The `.lnk` filename is derived from the instance name (Windows forbids a
-/// handful of characters in filenames), so those are swapped for underscores.
 fn sanitized_name(name: &str) -> String {
     let cleaned: String = name
         .chars()
@@ -48,8 +44,6 @@ fn parse_shortcut_instance_id(args: &str) -> Option<String> {
     None
 }
 
-/// Enumerates the desktop `.lnk` files that target this launcher (identified
-/// by the `--launch-instance` flag), returning `(path, instance_id)` pairs.
 fn list_shortcuts() -> anyhow::Result<Vec<(PathBuf, String)>> {
     let dir = desktop_dir()?;
     if !dir.exists() {
@@ -84,9 +78,6 @@ pub fn list_instance_ids() -> anyhow::Result<Vec<String>> {
     Ok(ids)
 }
 
-/// Creates (or refreshes) the desktop shortcut for an instance. Any previous
-/// shortcut for the same instance is removed first so a rename never leaves a
-/// stale duplicate behind.
 pub fn create(
     instance_id: &str,
     name: &str,
@@ -124,29 +115,18 @@ pub fn create(
         ps_single(&working_dir)
     ));
     if let Some(icon) = &icon_path {
-        // The `,0` (icon index) must be part of the same quoted string: a
-        // bare `'path',0` is PowerShell's array-construction operator, not
-        // string concatenation, so assigning it to IconLocation silently
-        // sets a 2-element array instead and the COM property write no-ops.
         script.push_str(&format!(
             "$sc.IconLocation = {}\n",
             ps_single(&format!("{},0", icon.to_string_lossy()))
         ));
     }
     script.push_str("$sc.Save()\n");
-    // Explorer caches shell icons aggressively and won't notice a `.lnk`
-    // pointing at an already-known path got a new icon (or an icon at all)
-    // until something tells it to look again: without this, the desktop
-    // keeps showing a generic placeholder until the user manually reopens
-    // the shortcut's properties dialog.
     script.push_str(&notify_shell_icons_changed_script());
 
     run_powershell(&script)?;
     Ok(())
 }
 
-/// PowerShell snippet that broadcasts `SHChangeNotify(SHCNE_ASSOCCHANGED)` so
-/// Explorer re-reads icon associations instead of serving its stale cache.
 fn notify_shell_icons_changed_script() -> String {
     "Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;\
      public class AstroShellNotify{[DllImport(\"shell32.dll\")]\
@@ -155,7 +135,6 @@ fn notify_shell_icons_changed_script() -> String {
         .to_string()
 }
 
-/// Removes the desktop shortcut for an instance, if one exists.
 pub fn remove_by_id(instance_id: &str) -> anyhow::Result<bool> {
     let Some(path) = list_shortcuts()?
         .into_iter()

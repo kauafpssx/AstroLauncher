@@ -11,7 +11,6 @@ import {
   Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
-
 import type {
   ContextMenuAction,
   ContextMenuItem,
@@ -20,9 +19,7 @@ import { resolvePickerIconPngBase64 } from '@/lib/icon-src'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { FolderDTO } from '@/types/folder'
 import type { InstanceDTO } from '@/types/instance'
-
-import { InstanceWorkspaceAPI } from '../services/instance-workspace.api'
-
+import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 interface InstanceActionHandlers {
   onLaunch: (id: string) => void
   onStop?: (id: string) => void
@@ -32,7 +29,6 @@ interface InstanceActionHandlers {
   onDuplicate?: (id: string) => void
   onMoveToFolder?: (id: string, folderId: string | null) => void
 }
-
 export async function openFolder(id: string) {
   try {
     await InstanceWorkspaceAPI.openFolder(id)
@@ -40,19 +36,12 @@ export async function openFolder(id: string) {
     toast.error(`Falha ao abrir pasta: ${String(err)}`)
   }
 }
-
 async function toggleShortcut(
   id: string,
   hasShortcut: boolean,
   iconPath: string | null,
 ) {
   try {
-    // Resolved unconditionally: the backend: not `hasShortcut` (zustand
-    // state that can lag behind a `.lnk` deleted/created outside the app):
-    // is what actually decides whether this call creates or removes the
-    // shortcut, based on the real filesystem. Sending `null` here whenever
-    // the frontend *assumed* it was a removal risks a shortcut getting
-    // created with no icon.
     const iconPngBase64 = await resolvePickerIconPngBase64(iconPath)
     await useInstanceStore.getState().toggleShortcut(id, iconPngBase64)
   } catch (err) {
@@ -61,7 +50,6 @@ async function toggleShortcut(
     )
   }
 }
-
 export function getInstanceActions(
   instance: InstanceDTO,
   {
@@ -92,7 +80,6 @@ export function getInstanceActions(
       separatorBefore: folders.length > 0,
     },
   ]
-
   const items: ContextMenuItem[] = [
     isRunning
       ? {
@@ -154,6 +141,5 @@ export function getInstanceActions(
       separatorBefore: true,
     },
   ]
-
   return items
 }

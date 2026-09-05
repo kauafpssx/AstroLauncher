@@ -1,9 +1,7 @@
 import * as React from 'react'
 import { Checkbox as CheckboxPrimitive } from 'radix-ui'
-
 import { cn } from '@/lib/utils'
 import { CheckIcon } from 'lucide-react'
-
 function Checkbox({
   className,
   ...props
@@ -26,5 +24,4 @@ function Checkbox({
     </CheckboxPrimitive.Root>
   )
 }
-
 export { Checkbox }

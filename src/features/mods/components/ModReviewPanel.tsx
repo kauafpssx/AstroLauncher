@@ -1,7 +1,6 @@
 import { ArrowLeft, Loader2, Puzzle } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-
 import { EmptyState } from '@/components/common/EmptyState'
 import { ProgressGroup } from '@/components/common/ProgressGroup'
 import { Button } from '@/components/ui/button'
@@ -10,25 +9,26 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { ModAPI } from '@/features/mods/services/mod.api'
 import { tooltipProps } from '@/lib/tooltip'
 import type { ContentKind, ModSearchResult, ModVersion } from '@/types/mods'
-
 import type { EntryStatus } from './mod-review.types'
 import { ModReviewRow } from './ModReviewRow'
 import { useReviewEntries } from './useReviewEntries'
-
 interface ModReviewPanelProps {
   instanceId: string
-  selection: Record<string, { result: ModSearchResult; version: ModVersion }>
+  selection: Record<
+    string,
+    {
+      result: ModSearchResult
+      version: ModVersion
+    }
+  >
   gameVersion?: string
   loader?: string | null
   kind: ContentKind
-  /** `source:modId` keys already installed in this instance. */
   installedKeys: Set<string>
-  /** Lowercased jar filenames already installed in this instance. */
   installedFileNames: Set<string>
   onBack: () => void
   onInstalled: () => void
 }
-
 export function ModReviewPanel({
   instanceId,
   selection,
@@ -51,27 +51,22 @@ export function ModReviewPanel({
   const [statuses, setStatuses] = useState<Record<string, EntryStatus>>({})
   const [installedCount, setInstalledCount] = useState(0)
   const [currentName, setCurrentName] = useState<string | null>(null)
-
   const removeEntry = (key: string) =>
     setEntries((prev) => prev.filter((e) => e.key !== key))
-
   const handleInstallAll = async () => {
     setIsInstalling(true)
     setInstalledCount(0)
     let failures = 0
-
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i]
       setCurrentName(entry.result.name)
       setStatuses((prev) => ({ ...prev, [entry.key]: 'installing' }))
-
       if (!entry.version.downloadUrl) {
         failures += 1
         setStatuses((prev) => ({ ...prev, [entry.key]: 'failed' }))
         setInstalledCount(i + 1)
         continue
       }
-
       try {
         await ModAPI.install({
           instanceId,
@@ -92,10 +87,8 @@ export function ModReviewPanel({
       }
       setInstalledCount(i + 1)
     }
-
     setCurrentName(null)
     setIsInstalling(false)
-
     if (failures > 0) {
       toast.error(
         `${entries.length - failures} instalado(s), ${failures} falharam`,
@@ -103,10 +96,8 @@ export function ModReviewPanel({
     }
     onInstalled()
   }
-
   const overallPercent =
     entries.length > 0 ? (installedCount / entries.length) * 100 : 0
-
   return (
     <div className="flex h-full flex-col">
       <div className="relative flex h-14 shrink-0 items-center gap-2 border-b px-3">
@@ -124,7 +115,7 @@ export function ModReviewPanel({
         </span>
       </div>
 
-      <ScrollArea type="always" className="flex-1">
+      <ScrollArea type="always" className="min-h-0 flex-1">
         <div className="flex flex-col gap-1 p-2">
           {isResolving && (
             <p className="text-muted-foreground flex items-center justify-center gap-2 p-6 text-sm">
@@ -147,7 +138,7 @@ export function ModReviewPanel({
         </div>
       </ScrollArea>
 
-      <div className="flex flex-col gap-3 border-t p-3">
+      <div className="flex shrink-0 flex-col gap-3 border-t p-3">
         {isInstalling && (
           <div className="flex flex-col gap-2">
             <ProgressGroup

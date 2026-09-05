@@ -1,7 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useId } from 'react'
-
 import {
   ContextMenu,
   ContextMenuContent,
@@ -13,7 +12,6 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
 import { useContextMenuStore } from '@/stores/context-menu.store'
-
 export interface ContextMenuAction {
   key: string
   icon: LucideIcon
@@ -22,7 +20,6 @@ export interface ContextMenuAction {
   variant?: 'default' | 'destructive'
   separatorBefore?: boolean
 }
-
 interface ContextMenuSubmenu {
   key: string
   icon: LucideIcon
@@ -30,15 +27,12 @@ interface ContextMenuSubmenu {
   items: ContextMenuAction[]
   separatorBefore?: boolean
 }
-
 export type ContextMenuItem = ContextMenuAction | ContextMenuSubmenu
-
 interface EntityContextMenuProps {
   items: ContextMenuItem[]
   children: ReactNode
   stopPropagation?: boolean
 }
-
 function renderAction({
   key,
   icon: Icon,
@@ -56,7 +50,6 @@ function renderAction({
     </div>
   )
 }
-
 function renderSubmenu({
   key,
   icon: Icon,
@@ -85,11 +78,9 @@ function renderSubmenu({
     </div>
   )
 }
-
 function renderItem(item: ContextMenuItem) {
   return 'items' in item ? renderSubmenu(item) : renderAction(item)
 }
-
 export function EntityContextMenu({
   items,
   children,
@@ -98,7 +89,6 @@ export function EntityContextMenu({
   const id = useId()
   const isOpen = useContextMenuStore((s) => s.openId === id)
   const setOpenId = useContextMenuStore((s) => s.setOpenId)
-
   return (
     <ContextMenu
       open={isOpen}

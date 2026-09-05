@@ -13,7 +13,6 @@ import type {
   ModVersion,
   SearchModsInput,
 } from '@/types/mods'
-
 export const ModAPI = {
   search(input: SearchModsInput): Promise<ModSearchResult[]> {
     return apiInvoke<ModSearchResult[]>('search_mods', { input })

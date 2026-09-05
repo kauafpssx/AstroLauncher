@@ -1,5 +1,5 @@
+import { memo } from 'react'
 import { Trash2 } from 'lucide-react'
-
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,9 +9,7 @@ import { TableCell, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import { tooltipProps } from '@/lib/tooltip'
 import type { InstalledMod } from '@/types/mods'
-
 import { SOURCE_LOGO } from './installed-content-tab.constants'
-
 interface InstalledContentRowProps {
   item: InstalledMod
   isSelected: boolean
@@ -19,8 +17,7 @@ interface InstalledContentRowProps {
   onToggleEnabled: (item: InstalledMod, enabled: boolean) => void
   onDelete: (item: InstalledMod) => void
 }
-
-export function InstalledContentRow({
+function InstalledContentRow({
   item,
   isSelected,
   onToggleSelected,
@@ -32,8 +29,6 @@ export function InstalledContentRow({
       data-state={isSelected ? 'selected' : undefined}
       onClick={() => onToggleSelected(item.id)}
       onKeyDown={(e) => {
-        // Only respond when the row itself has focus: Enter/Space on inner
-        // controls (switch, buttons) bubbles up here.
         if (e.target !== e.currentTarget) return
         if (e.key !== 'Enter' && e.key !== ' ') return
         e.preventDefault()
@@ -97,3 +92,4 @@ export function InstalledContentRow({
     </TableRow>
   )
 }
+export const MemoizedInstalledContentRow = memo(InstalledContentRow)

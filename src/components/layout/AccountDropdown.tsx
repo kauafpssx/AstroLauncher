@@ -1,7 +1,6 @@
 import { Check, ChevronDown, UserCircle2, UserCog } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,12 +19,6 @@ import { resolveIconSrc } from '@/lib/icon-src'
 import { tooltipProps } from '@/lib/tooltip'
 import { useAccountStore, useDefaultAccount } from '@/stores/account.store'
 import type { AccountDTO } from '@/types/account'
-
-/** Wraps an account avatar so clicking it opens the skin-head picker instead
- * of bubbling to whatever selectable container it sits in (the dropdown
- * trigger button, a menu item). A `<span role="button">` rather than a real
- * `<button>`: the trigger case nests this inside an actual `<button>`, and
- * browsers don't allow nested `<button>` elements. */
 function AvatarPickerHandle({
   account,
   onOpenPicker,
@@ -62,7 +55,6 @@ function AvatarPickerHandle({
     </span>
   )
 }
-
 export function AccountDropdown() {
   const { accounts } = useAccounts()
   const defaultAccount = useDefaultAccount()
@@ -73,7 +65,6 @@ export function AccountDropdown() {
   const [skinPickerAccountId, setSkinPickerAccountId] = useState<string | null>(
     null,
   )
-
   const handlePickHead = async (base64Png: string) => {
     const account = accounts.find((a) => a.id === skinPickerAccountId)
     if (!account) return
@@ -88,7 +79,6 @@ export function AccountDropdown() {
       toast.error(`Falha ao salvar avatar: ${String(err)}`)
     }
   }
-
   if (accounts.length === 0) {
     return (
       <>
@@ -99,9 +89,7 @@ export function AccountDropdown() {
       </>
     )
   }
-
   const active = defaultAccount ?? accounts[0]
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

@@ -1,6 +1,5 @@
 const HEAD_SIZE = 8
 const OUTPUT_SIZE = 128
-
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -9,12 +8,6 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.src = src
   })
 }
-
-/** Crops the 8x8 head region (plus its 8x8 hat overlay) out of a standard
- * Minecraft skin texture and upscales it, pixelated, into a square PNG icon.
- * `dataUrl` must be a same-origin `data:` URI (fetched server-side first) —
- * loading a cross-origin image without a CORS-clean response taints the
- * canvas and makes `toDataURL` throw. */
 export async function cropHeadToBase64Png(dataUrl: string): Promise<string> {
   const image = await loadImage(dataUrl)
   const canvas = document.createElement('canvas')
@@ -23,7 +16,6 @@ export async function cropHeadToBase64Png(dataUrl: string): Promise<string> {
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas indisponível')
   ctx.imageSmoothingEnabled = false
-  // Base head layer, then the hat overlay on top (transparent where unused).
   ctx.drawImage(
     image,
     8,

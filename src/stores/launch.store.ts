@@ -1,10 +1,8 @@
 import { listen } from '@tauri-apps/api/event'
 import { toast } from 'sonner'
 import { create } from 'zustand'
-
 import { apiInvoke } from '@/lib/api/client'
 import type { LaunchEvent } from '@/types/launch'
-
 interface ProgressState {
   stage: string
   currentItem: string
@@ -13,7 +11,6 @@ interface ProgressState {
   overallCurrent: number
   overallTotal: number
 }
-
 interface LaunchStore {
   isOpen: boolean
   instanceId: string | null
@@ -21,13 +18,11 @@ interface LaunchStore {
   progress: ProgressState | null
   error: string | null
   runningInstanceId: string | null
-
   launch: (id: string) => Promise<void>
   stop: (id: string) => Promise<void>
   cancel: () => Promise<void>
   close: () => void
 }
-
 export const useLaunchStore = create<LaunchStore>((set) => ({
   isOpen: false,
   instanceId: null,
@@ -35,7 +30,6 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
   progress: null,
   error: null,
   runningInstanceId: null,
-
   launch: async (id) => {
     set({
       isOpen: true,
@@ -44,7 +38,6 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
       progress: null,
       error: null,
     })
-
     const unlisten = await listen<LaunchEvent>('launch://event', (event) => {
       const payload = event.payload
       if (payload.type === 'stage') {
@@ -65,7 +58,6 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
         set({ error: payload.message })
       }
     })
-
     try {
       await apiInvoke<void>('launch_instance', { id })
       set((state) =>
@@ -77,7 +69,6 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
       unlisten()
     }
   },
-
   stop: async (id) => {
     try {
       await apiInvoke<void>('stop_instance', { id })
@@ -88,7 +79,6 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
       toast.error(`Falha ao encerrar: ${String(err)}`)
     }
   },
-
   cancel: async () => {
     set({ isOpen: false, instanceId: null, error: null, progress: null })
     try {
@@ -97,13 +87,9 @@ export const useLaunchStore = create<LaunchStore>((set) => ({
       toast.error(`Falha ao cancelar: ${String(err)}`)
     }
   },
-
   close: () =>
     set({ isOpen: false, instanceId: null, error: null, progress: null }),
 }))
-
-// Persistent, app-lifetime listener: the game can exit long after the launch
-// call (and its transient progress listener) has already resolved.
 listen<string>('instance://stopped', (event) => {
   useLaunchStore.setState((state) =>
     state.runningInstanceId === event.payload
@@ -111,15 +97,9 @@ listen<string>('instance://stopped', (event) => {
       : state,
   )
 })
-
-// Cold start: the app may have been opened by a desktop shortcut carrying
-// `--launch-instance <id>`: consume it once and start that instance.
 apiInvoke<string | null>('take_pending_launch').then((id) => {
   if (id) useLaunchStore.getState().launch(id)
 })
-
-// Already running: the single-instance plugin forwards the same flag from a
-// second launch attempt as this event instead of spawning a new process.
 listen<string>('shortcut://launch-instance', (event) => {
   useLaunchStore.getState().launch(event.payload)
 })

@@ -1,29 +1,22 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-
 import { SettingsAPI } from '@/features/settings/services/settings.api'
 import { useFolderStore } from '@/stores/folder.store'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { FolderDTO } from '@/types/folder'
 import type { SettingsDTO } from '@/types/settings'
-
 import { useFolders } from './useFolders'
-
 export interface FolderDialogState {
   mode: 'create' | 'rename'
   folderId?: string
   initialName?: string
   isRoot?: boolean
 }
-
 interface UseFolderHandlersArgs {
   settings: SettingsDTO | null
   setSettings: (settings: SettingsDTO) => void
   refreshInstances: () => Promise<void> | void
 }
-
-/** State and handlers for folders (create, rename, delete, collapse, move
- * and reorder), extracted from `useInstancesPage`. */
 export function useFolderHandlers({
   settings,
   setSettings,
@@ -41,7 +34,6 @@ export function useFolderHandlers({
   )
   const [deleteFolderTarget, setDeleteFolderTarget] =
     useState<FolderDTO | null>(null)
-
   const handleCreateFolder = async (name: string) => {
     try {
       await createFolder({ name })
@@ -50,12 +42,9 @@ export function useFolderHandlers({
       throw err
     }
   }
-
   const handleRenameFolder = async (name: string) => {
     if (!folderDialog) return
     if (folderDialog.isRoot) {
-      // Without loaded settings, `?? null` would overwrite the persisted API
-      // keys with null and wipe the user's credentials.
       if (!settings) {
         toast.error('Configurações ainda carregando, tente novamente')
         return
@@ -85,7 +74,6 @@ export function useFolderHandlers({
       throw err
     }
   }
-
   const handleDeleteFolder = async () => {
     if (!deleteFolderTarget) return
     try {
@@ -97,7 +85,6 @@ export function useFolderHandlers({
       setDeleteFolderTarget(null)
     }
   }
-
   const handleToggleCollapsed = async (
     folderId: string,
     collapsed: boolean,
@@ -108,7 +95,6 @@ export function useFolderHandlers({
       toast.error(`Falha ao atualizar pasta: ${String(err)}`)
     }
   }
-
   const handleMoveToFolder = async (
     instanceId: string,
     folderId: string | null,
@@ -123,12 +109,10 @@ export function useFolderHandlers({
       toast.error(`Falha ao mover instância: ${String(err)}`)
     }
   }
-
   const handleReorderFolders = (orderedIds: string[]) =>
     reorderFolders(orderedIds).catch(() =>
       toast.error('Falha ao reordenar pastas'),
     )
-
   return {
     folders,
     refreshFolders,

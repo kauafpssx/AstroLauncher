@@ -1,10 +1,4 @@
 import { z } from 'zod'
-
-/**
- * Max character limits per user input. Mirrors the schemas below and feeds
- * the `maxLength` of every input so users cannot over-type in the first
- * place. Single source of truth for the whole app.
- */
 export const MAX = {
   INSTANCE_NAME: 60,
   ACCOUNT_USERNAME: 16,
@@ -18,25 +12,34 @@ export const MAX = {
   JAVA_PATH: 500,
   SEARCH_QUERY: 100,
   OPTION_VALUE: 200,
+  SEED: 20,
   ZEROTIER_API_TOKEN: 100,
   ZEROTIER_NETWORK_ID: 16,
 } as const
-
 const requiredField = (max: number, label: string) =>
   z
     .string()
     .trim()
     .min(1, `${label} não pode ficar vazio`)
     .max(max, `${label} deve ter no máximo ${max} caracteres`)
-
 export const instanceNameSchema = requiredField(
   MAX.INSTANCE_NAME,
   'O nome da instância',
 )
-export const accountUsernameSchema = requiredField(
-  MAX.ACCOUNT_USERNAME,
-  'O username',
-)
+export const accountUsernameSchema = z
+  .string()
+  .trim()
+  .min(1, 'O username não pode ficar vazio')
+  .min(3, 'O username deve ter no mínimo 3 caracteres')
+  .max(MAX.ACCOUNT_USERNAME, 'O username deve ter no máximo 16 caracteres')
+  .regex(
+    /^[A-Za-z0-9_]+$/,
+    'O username só pode conter letras, números e underline (_), sem espaços',
+  )
+  .regex(
+    /^[A-Za-z0-9]/,
+    'O username não pode começar com underline (_) e precisa ter ao menos 1 letra ou número',
+  )
 export const folderNameSchema = requiredField(
   MAX.FOLDER_NAME,
   'O nome da pasta',
@@ -72,8 +75,10 @@ export const javaArgsSchema = z
     MAX.JAVA_ARGS,
     `Os argumentos JVM devem ter no máximo ${MAX.JAVA_ARGS} caracteres`,
   )
-
-/** Returns the first validation issue message, or null when valid. */
+export const seedSchema = z
+  .string()
+  .max(MAX.SEED, 'Máximo de 20 dígitos')
+  .regex(/^-?[0-9]+$/, 'Só números — "-" só é permitido no início')
 export function getFirstIssue(
   schema: z.ZodType<string, string>,
   value: string,

@@ -1,5 +1,4 @@
 import { Hourglass } from 'lucide-react'
-
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import {
   ResizableHandle,
@@ -7,13 +6,11 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import type { ContentKind } from '@/types/mods'
-
 import { ModBrowserList } from './ModBrowserList'
 import { ModDetailPanel } from './ModDetailPanel'
 import { ModReviewPanel } from './ModReviewPanel'
 import { normalizeName } from './selection-utils'
 import { selectionKey, useModBrowser } from './useModBrowser'
-
 interface ModBrowserDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -23,7 +20,6 @@ interface ModBrowserDialogProps {
   kind?: ContentKind
   onInstalled: () => void
 }
-
 export function ModBrowserDialog({
   open,
   onOpenChange,
@@ -55,40 +51,36 @@ export function ModBrowserDialog({
     kindLabel,
     toggleSelection,
   } = browser
-
   const viewingKey = viewing
     ? selectionKey(viewing.source, viewing.projectId)
     : null
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="flex h-[90vh] max-h-[820px] flex-col gap-0 p-0 sm:max-w-6xl"
-        // Interacting with the resize handle sometimes gets misread by
-        // Radix's dismissable layer as an outside interaction, closing the
-        // dialog. Disable dismiss-on-outside-interaction here: Escape and
-        // the close button still work.
+        className="flex h-[90vh] max-h-[820px] flex-col gap-0 overflow-hidden p-0 sm:max-w-6xl"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogTitle className="sr-only">Buscar {kindLabel}</DialogTitle>
 
         {view === 'review' ? (
-          <ModReviewPanel
-            instanceId={instanceId}
-            selection={selection}
-            gameVersion={gameVersion}
-            loader={effectiveLoader}
-            kind={kind}
-            installedKeys={installedKeys}
-            installedFileNames={installedFileNames}
-            onBack={() => setView('browse')}
-            onInstalled={() => {
-              onInstalled()
-              onOpenChange(false)
-            }}
-          />
+          <div className="min-h-0 flex-1">
+            <ModReviewPanel
+              instanceId={instanceId}
+              selection={selection}
+              gameVersion={gameVersion}
+              loader={effectiveLoader}
+              kind={kind}
+              installedKeys={installedKeys}
+              installedFileNames={installedFileNames}
+              onBack={() => setView('browse')}
+              onInstalled={() => {
+                onInstalled()
+                onOpenChange(false)
+              }}
+            />
+          </div>
         ) : (
           <ResizablePanelGroup
             orientation="horizontal"

@@ -6,14 +6,11 @@ use crate::domain::repositories::{InstanceRepository, ModRepository};
 use crate::infrastructure::discord::DiscordRpcHandle;
 use crate::infrastructure::filesystem::paths;
 
+mod curseforge_files;
 mod curseforge_install;
+mod modrinth_files;
 mod modrinth_install;
 
-/// Modpack file downloads hit Modrinth/CurseForge's CDN in parallel instead
-/// of one at a time. Deliberately more conservative than
-/// `asset_downloader`'s 16 (Mojang's static asset CDN) — these are third-
-/// party hosts fronting a heavier per-file payload (whole mod jars), so
-/// staying polite matters more than squeezing out max throughput.
 pub(super) const FILE_CONCURRENCY: usize = 6;
 
 pub struct ModpackInstallerService {
@@ -22,15 +19,9 @@ pub struct ModpackInstallerService {
     discord: DiscordRpcHandle,
     http_client: reqwest::Client,
     app_data_dir: PathBuf,
-    /// Only one modpack install runs from the UI at a time, so a single
-    /// shared flag is enough to signal cancellation into whichever download
-    /// loop is currently running.
     cancelled: Arc<AtomicBool>,
 }
 
-/// Cleans up a partially-downloaded instance after a cancelled install:
-/// otherwise the user would be left with a broken, incomplete instance
-/// silently sitting in their list.
 fn rollback_instance(
     instance_repository: &dyn InstanceRepository,
     app_data_dir: &std::path::Path,
@@ -61,14 +52,10 @@ impl ModpackInstallerService {
         }
     }
 
-    /// Signals the currently-running install (if any) to stop before its
-    /// next file download.
     pub fn cancel(&self) {
         self.cancelled.store(true, Ordering::SeqCst);
     }
 
-    /// Downloads a modpack's icon and saves it alongside manually-uploaded
-    /// custom icons, so it shows up like any other icon the user picked.
     async fn download_icon(&self, icon_url: &Option<String>) -> Option<String> {
         let url = icon_url.as_ref()?;
         let bytes = self
@@ -87,12 +74,6 @@ impl ModpackInstallerService {
         std::fs::create_dir_all(&dir).ok()?;
         let path = dir.join(format!("{}.png", uuid::Uuid::new_v4()));
 
-        // Modrinth/CurseForge often serve project icons as WebP regardless
-        // of the `.png` we save under: decode-and-re-encode so the file on
-        // disk is a *real* PNG like every other icon in the app (manual
-        // uploads go through the same crop-to-PNG step on the frontend),
-        // square-cropped the same way. Falls back to the raw bytes if
-        // decoding fails so a weird icon never blocks the whole install.
         let encoded = Self::normalize_icon_png(&bytes);
         std::fs::write(&path, encoded.as_deref().unwrap_or(&bytes)).ok()?;
         Some(path.to_string_lossy().to_string())

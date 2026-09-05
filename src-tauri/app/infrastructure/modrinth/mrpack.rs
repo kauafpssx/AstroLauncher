@@ -31,7 +31,6 @@ pub struct PackFileEnv {
 }
 
 impl PackFile {
-    /// Files can be marked "unsupported" on the client (server-only plugins).
     pub fn is_client_supported(&self) -> bool {
         self.env
             .as_ref()
@@ -54,8 +53,6 @@ pub fn read_index(bytes: &[u8]) -> anyhow::Result<ModrinthIndex> {
     Ok(serde_json::from_str(&contents)?)
 }
 
-/// Extracts the `overrides/` (and `client-overrides/`) folders from the
-/// `.mrpack` archive directly into the instance directory.
 pub fn extract_overrides(bytes: &[u8], instance_dir: &Path) -> anyhow::Result<()> {
     let cursor = std::io::Cursor::new(bytes);
     let mut archive = zip::ZipArchive::new(cursor)?;

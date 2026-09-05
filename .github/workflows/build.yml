@@ -36,6 +36,28 @@ jobs:
           Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile $installer
           Start-Process $installer -ArgumentList "/silent /install" -Wait
 
+      - name: Ensure clang-cl is available
+        # build.rs requires clang-cl on Windows (C99 fork of cubiomes).
+        # LLVM is pre-installed on windows-latest but may not be in PATH.
+        shell: pwsh
+        run: |
+          if (Get-Command clang-cl -ErrorAction SilentlyContinue) {
+            "✅ clang-cl in PATH: $(Get-Command clang-cl | Select-Object -ExpandProperty Source)" >> $env:GITHUB_STEP_SUMMARY
+          } else {
+            $llvmBin = "C:\Program Files\LLVM\bin"
+            "$llvmBin" >> $env:GITHUB_PATH
+            "⚠️ clang-cl not in PATH — added $llvmBin to GITHUB_PATH for subsequent steps" >> $env:GITHUB_STEP_SUMMARY
+          }
+
+      - name: Verify clang-cl works
+        shell: pwsh
+        run: |
+          if (-not (Get-Command clang-cl -ErrorAction SilentlyContinue)) {
+            "❌ clang-cl not found. Install LLVM: winget install -e --id LLVM.LLVM" >> $env:GITHUB_STEP_SUMMARY
+            throw "clang-cl not available"
+          }
+          "✅ clang-cl: $(Get-Command clang-cl | Select-Object -ExpandProperty Source)" >> $env:GITHUB_STEP_SUMMARY
+
       - name: Install frontend deps
         run: npm ci
 

@@ -1,46 +1,42 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { InstalledContentTab } from '@/features/mods/components/InstalledContentTab'
 import { useDiscordPresence } from '@/hooks/useDiscordPresence'
 import { useInstanceStore } from '@/stores/instance.store'
-
-import { ConfigEditorTab } from '../components/edit-instance/ConfigEditorTab'
-import type { EditInstanceTab } from '../components/edit-instance/EditInstanceSidebar'
-import { EditInstanceSidebar } from '../components/edit-instance/EditInstanceSidebar'
-import { ExportAstropackDialog } from '../components/ExportAstropackDialog'
-import { DeleteInstanceDialog } from '../components/DeleteInstanceDialog'
-import { LogTab } from '../components/edit-instance/LogTab'
-import { NotesTab } from '../components/edit-instance/NotesTab'
-import { ScreenshotsTab } from '../components/edit-instance/ScreenshotsTab'
-import { SeedMapTab } from '../components/edit-instance/SeedMapTab'
-import { ServersTab } from '../components/edit-instance/ServersTab'
-import { SettingsTab } from '../components/edit-instance/SettingsTab'
-import { WorldsTab } from '../components/edit-instance/WorldsTab'
-import { useInstances } from '../hooks/useInstances'
-import { useLaunchInstance } from '../hooks/useLaunchInstance'
-import { openFolder } from '../lib/instance-actions'
-
+import { ExportAstropackDialog } from '@/features/instances/components/astropack/ExportAstropackDialog'
+import { ConfigEditorTab } from '@/features/instances/components/edit-instance/config-editor/ConfigEditorTab'
+import type { EditInstanceTab } from '@/features/instances/components/edit-instance/EditInstanceSidebar'
+import { EditInstanceSidebar } from '@/features/instances/components/edit-instance/EditInstanceSidebar'
+import { DeleteInstanceDialog } from '@/features/instances/components/instances-page/DeleteInstanceDialog'
+import { LogTab } from '@/features/instances/components/edit-instance/log/LogTab'
+import { NotesTab } from '@/features/instances/components/edit-instance/notes/NotesTab'
+import { ScreenshotsTab } from '@/features/instances/components/edit-instance/screenshots/ScreenshotsTab'
+import { SeedMapTab } from '@/features/instances/components/edit-instance/seed-map/SeedMapTab'
+import { ServersTab } from '@/features/instances/components/edit-instance/servers/ServersTab'
+import { SettingsTab } from '@/features/instances/components/edit-instance/settings/SettingsTab'
+import { WorldsTab } from '@/features/instances/components/edit-instance/worlds/WorldsTab'
+import { useInstances } from '@/features/instances/hooks/useInstances'
+import { useLaunchInstance } from '@/features/instances/hooks/useLaunchInstance'
+import { openFolder } from '@/features/instances/lib/instance-actions'
 export function EditInstancePage() {
   const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
+  const { id } = useParams<{
+    id: string
+  }>()
   const { instances, deleteInstance } = useInstances()
   const selectInstance = useInstanceStore((s) => s.selectInstance)
   const { launch, stop, runningId } = useLaunchInstance()
   const [tab, setTab] = useState<EditInstanceTab>('settings')
   const [isExportOpen, setIsExportOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-
   const instance = instances.find((i) => i.id === id)
-
   useDiscordPresence(
     'Editando uma instância',
     instance?.name ?? 'Carregando...',
   )
-
   if (!instance) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-3">
@@ -49,14 +45,11 @@ export function EditInstancePage() {
       </div>
     )
   }
-
   const isRunning = runningId === instance.id
-
   const goBack = () => {
     selectInstance(instance.id)
     navigate('/')
   }
-
   const handleConfirmDelete = async () => {
     try {
       await deleteInstance(instance.id)
@@ -67,7 +60,6 @@ export function EditInstancePage() {
       setIsDeleteOpen(false)
     }
   }
-
   return (
     <div className="flex h-screen">
       <EditInstanceSidebar
@@ -90,7 +82,12 @@ export function EditInstancePage() {
             {tab === 'config-editor' && (
               <ConfigEditorTab instanceId={instance.id} />
             )}
-            {tab === 'seed-map' && <SeedMapTab />}
+            {tab === 'seed-map' && (
+              <SeedMapTab
+                instanceId={instance.id}
+                mcVersion={instance.version}
+              />
+            )}
           </div>
         ) : (
           <ScrollArea type="always" className="min-h-0 flex-1">

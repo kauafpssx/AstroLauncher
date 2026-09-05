@@ -46,7 +46,7 @@
 
 **AstroLauncher** é um launcher de Minecraft construído do zero, inspirado no [PrismLauncher](https://prismlauncher.org/), com foco em arquitetura limpa e facilidade de manutenção. A interface usa [shadcn/ui](https://ui.shadcn.com/), com componentes Radix UI e Tailwind CSS. Do grid de instâncias ao visualizador de skins 3D, cada tela foi pensada para ser rápida e agradável de usar.
 
-Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases e snapshots mais recentes, com os principais loaders (**Fabric, Quilt, Forge, NeoForge e LiteLoader**). Num único lugar você tem instalação de mods e modpacks via **Modrinth e CurseForge**, contas offline, download automático de Java, playtime, atalhos de desktop, **rede entre amigos via ZeroTier**, ajustes de janela e Java por instância e exportação de instâncias completas em `.astropack`.
+Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases e snapshots mais recentes, com os principais loaders (**Fabric, Quilt, Forge, NeoForge e LiteLoader**). Num único lugar você tem instalação de mods e modpacks via **Modrinth e CurseForge**, contas offline, download automático de Java, playtime, atalhos de desktop, **rede entre amigos via ZeroTier**, ajustes de janela e Java por instância, exportação de instâncias completas em `.astropack`, **mapa da seed** (biomas e estruturas via Cubiomes local, offline) e **waypoints** com menções `@` nas notas.
 
 > 🎯 **Público-alvo:** jogadores que precisam de contas offline (crackeado) e suporte a múltiplas versões e loaders num único launcher.
 
@@ -87,7 +87,9 @@ Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases 
 | ✍️  | **Validação**             | Limites de caracteres nos formulários com contador em tempo real                                               |
 | 📱  | **Design responsivo**     | Telas se adaptam a janelas estreitas: cabeçalhos e barras quebram linha e painéis empilham automaticamente     |
 | 🧠  | **Sugestão de RAM**       | Recomendação de memória automática conforme a quantidade de conteúdo instalado (mods, resource packs, shaders) |
-| 🗞️ | **Changelog in-app**      | Notas de versão acessíveis direto no launcher, offline                                                         |
+| 🗞️  | **Changelog in-app**      | Notas de versão acessíveis direto no launcher, offline                                                         |
+| 🗺️  | **Mapa da Seed**          | Biomas, estruturas, slime chunks, strongholds e spawn da seed — engine Cubiomes (C) local, 100% offline        |
+| 📍  | **Waypoints**             | Pontos de interesse por instância (nome, ícone, dimensão, coordenadas) com menções `@` nas notas               |
 
 ## 🖼️ Screenshots
 
@@ -115,12 +117,21 @@ Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases 
 <table>
 <tr><td><b>🦀 Backend</b></td><td>
 
-<img src="https://icons.kauafpss.com.br/api/asset/rust.svg?color=ffffff&size=32&background=default" alt="Rust" width="20" valign="middle" /> Rust   <img src="https://icons.kauafpss.com.br/api/asset/tauri.svg?color=ffffff&size=32&background=default" alt="Tauri" width="20" valign="middle" /> Tauri 2   <img src="https://icons.kauafpss.com.br/api/asset/tokio.svg?color=ffffff&size=32&background=default" alt="Tokio" width="20" valign="middle" /> Tokio   <img src="https://icons.kauafpss.com.br/api/asset/sqlite.svg?color=ffffff&size=32&background=default" alt="SQLite" width="20" valign="middle" /> rusqlite (SQLite bundled)
+<img src="https://icons.kauafpss.com.br/api/asset/rust.svg?color=ffffff&size=32&background=default" alt="Rust" width="20" valign="middle" /> Rust &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/tauri.svg?color=ffffff&size=32&background=default" alt="Tauri" width="20" valign="middle" /> Tauri 2 &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/tokio.svg?color=ffffff&size=32&background=default" alt="Tokio" width="20" valign="middle" /> Tokio &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/sqlite.svg?color=ffffff&size=32&background=default" alt="SQLite" width="20" valign="middle" /> rusqlite (SQLite bundled) &nbsp;
+![rayon](https://img.shields.io/badge/rayon-grey?style=flat) &nbsp;
+![cc](https://img.shields.io/badge/cc-grey?style=flat)
 
 </td></tr>
 <tr><td><b>⚛️ Frontend</b></td><td>
 
-<img src="https://icons.kauafpss.com.br/api/asset/react.svg?color=ffffff&size=32&background=default" alt="React" width="20" valign="middle" /> React 19   <img src="https://icons.kauafpss.com.br/api/asset/typescript.svg?color=ffffff&size=32&background=default" alt="TypeScript" width="20" valign="middle" /> TypeScript   <img src="https://icons.kauafpss.com.br/api/asset/vite.svg?color=ffffff&size=32&background=default" alt="Vite" width="20" valign="middle" /> Vite   <img src="https://icons.kauafpss.com.br/api/asset/tailwindcss.svg?color=ffffff&size=32&background=default" alt="Tailwind CSS" width="20" valign="middle" /> Tailwind CSS 4
+<img src="https://icons.kauafpss.com.br/api/asset/react.svg?color=ffffff&size=32&background=default" alt="React" width="20" valign="middle" /> React 19 &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/typescript.svg?color=ffffff&size=32&background=default" alt="TypeScript" width="20" valign="middle" /> TypeScript &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/vite.svg?color=ffffff&size=32&background=default" alt="Vite" width="20" valign="middle" /> Vite &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/tailwindcss.svg?color=ffffff&size=32&background=default" alt="Tailwind CSS" width="20" valign="middle" /> Tailwind CSS 4 &nbsp;
+![OpenLayers](https://img.shields.io/badge/OpenLayers-grey?style=flat)
 
 </td></tr>
 <tr><td><b>🎨 UI</b></td><td>
@@ -136,14 +147,17 @@ Ele roda **todas as versões do jogo**, de classic e infdev (2009) às releases 
 </td></tr>
 <tr><td><b>🧙 Minecraft</b></td><td>
 
-![mc-launcher-core](https://img.shields.io/badge/mc--launcher--core-grey?style=flat)
+![mc-launcher-core](https://img.shields.io/badge/mc--launcher--core-grey?style=flat) &nbsp;
+![Cubiomes (C vendorizado)](https://img.shields.io/badge/Cubiomes-grey?style=flat)
 
 </td></tr>
 <tr><td><b>🌐 APIs</b></td><td>
 
-![Mojang launchermeta](https://img.shields.io/badge/Mojang-launchermeta-grey?style=flat)   <img src="https://icons.kauafpss.com.br/api/asset/modrinth.svg?color=ffffff&size=32&background=default" alt="Modrinth" width="20" valign="middle" /> Modrinth API v3   <img src="https://icons.kauafpss.com.br/api/asset/curseforge.svg?color=ffffff&size=32&background=default" alt="CurseForge" width="20" valign="middle" /> CurseForge Core API  
-![PlayerMC](https://img.shields.io/badge/PlayerMC-grey?style=flat)  
-![MCStat](https://img.shields.io/badge/MCStat-grey?style=flat)  
+![Mojang launchermeta](https://img.shields.io/badge/Mojang-launchermeta-grey?style=flat) &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/modrinth.svg?color=ffffff&size=32&background=default" alt="Modrinth" width="20" valign="middle" /> Modrinth API (v2) &nbsp;
+<img src="https://icons.kauafpss.com.br/api/asset/curseforge.svg?color=ffffff&size=32&background=default" alt="CurseForge" width="20" valign="middle" /> CurseForge Core API &nbsp;
+![PlayerMC](https://img.shields.io/badge/PlayerMC-grey?style=flat) &nbsp;
+![MCStat](https://img.shields.io/badge/MCStat-grey?style=flat) &nbsp;
 ![Adoptium Temurin](https://img.shields.io/badge/Adoptium%20Temurin-grey?style=flat)
 
 </td></tr>
@@ -171,7 +185,7 @@ graph LR
     A["React UI (frontend)<br/>feature-first + shadcn/ui"] -->|"invoke() IPC"| B["Tauri Commands (Presentation)"]
     B --> C["Application (Use Cases + DTOs)<br/>CQRS leve, Commands & Queries"]
     C --> D["Domain (Entities + Traits)<br/>regras de negócio, erros tipados"]
-    D --> E["Infrastructure<br/>SQLite, Java, Download, Process, Minecraft, CF, Modrinth"]
+    D --> E["Infrastructure<br/>SQLite, Java, Download, Process, Minecraft, CF, Modrinth, Worldgen"]
 ```
 
 > 📐 **Regra fundamental:** a UI conversa apenas com use cases expostos via comandos Tauri, nunca diretamente com a Infrastructure.
@@ -180,8 +194,8 @@ graph LR
 | --------------------- | ----------------------------------------------------------------- |
 | 🖥️ **Presentation**  | Comandos `#[tauri::command]`, estado gerenciado, IPC              |
 | 🧠 **Application**    | Casos de uso, commands/queries, DTOs e mappers                    |
-| 🏛️ **Domain**        | Entidades, value objects, traits de repositório, erros tipados    |
-| 🔌 **Infrastructure** | SQLite, download manager, processo, Java, Minecraft, APIs de mods |
+| 🏛️ **Domain**         | Entidades, value objects, traits de repositório, erros tipados    |
+| 🔌 **Infrastructure** | SQLite, download manager, processo, Java, Minecraft, APIs de mods, worldgen (Cubiomes) |
 
 **Princípios:** Dependency Inversion, Composição sobre herança, Fail fast, Repository Pattern, CQRS-lite e SOLID
 
@@ -195,7 +209,7 @@ AstroLauncher/
 ├── src/                        # 🎨 Frontend (React + TS)
 │   ├── components/             #   UI (shadcn/ui) + layout + splash
 │   ├── features/               #   feature-first: instances, mods, skins...
-│   │   ├── instances/          #     criação, edição, astropack, ícones
+│   │   ├── instances/          #     criação, edição, astropack, ícones, seed-map, waypoints
 │   │   ├── mods/               #     browser de mods e modpacks
 │   │   ├── accounts/           #     gerenciamento de contas + avatares
 │   │   ├── skins/              #     skins + visualizador 3D
@@ -211,9 +225,10 @@ AstroLauncher/
 │       ├── domain/             #   entidades, traits, erros
 │       ├── infrastructure/     #   minecraft, java, downloader,
 │       │                       #   process, persistence (SQLite),
-│       │                       #   filesystem, discord, modloader,
-│       │                       #   curseforge, modrinth, playermc
+│   │                       #   filesystem, discord, modloader,
+│   │                       #   curseforge, modrinth, playermc, worldgen
 │       └── presentation/       #   comandos Tauri, estado, IPC
+│   └── vendor/                  #   Cubiomes C vendorizado (fork xpple, compilado no build.rs)
 ├── public/                     # 🖼️ Assets estáticos (logo, ícones, providers)
 ├── .github/
 │   ├── workflows/              #   CI/CD:

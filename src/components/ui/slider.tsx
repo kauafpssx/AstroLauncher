@@ -1,8 +1,6 @@
 import * as React from 'react'
 import { Slider as SliderPrimitive } from 'radix-ui'
-
 import { cn } from '@/lib/utils'
-
 function Slider({
   className,
   defaultValue,
@@ -20,7 +18,6 @@ function Slider({
           : [min, max],
     [value, defaultValue, min, max],
   )
-
   return (
     <SliderPrimitive.Root
       data-slot="slider"
@@ -53,5 +50,4 @@ function Slider({
     </SliderPrimitive.Root>
   )
 }
-
 export { Slider }

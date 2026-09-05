@@ -1,12 +1,9 @@
 'use client'
-
 import * as React from 'react'
 import { type VariantProps } from 'class-variance-authority'
 import { Tabs as TabsPrimitive } from 'radix-ui'
-
 import { cn } from '@/lib/utils'
 import { tabsListVariants } from '@/components/ui/tabs-variants'
-
 function Tabs({
   className,
   orientation = 'horizontal',
@@ -24,7 +21,6 @@ function Tabs({
     />
   )
 }
-
 function TabsList({
   className,
   variant = 'default',
@@ -40,7 +36,6 @@ function TabsList({
     />
   )
 }
-
 function TabsTrigger({
   className,
   ...props
@@ -59,7 +54,6 @@ function TabsTrigger({
     />
   )
 }
-
 function TabsContent({
   className,
   ...props
@@ -72,5 +66,4 @@ function TabsContent({
     />
   )
 }
-
 export { Tabs, TabsList, TabsTrigger, TabsContent }

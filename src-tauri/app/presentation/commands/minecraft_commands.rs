@@ -53,8 +53,6 @@ pub fn cancel_launch(state: State<AppState>) {
     state.launch_instance.cancel();
 }
 
-/// Returns and clears the instance id a desktop shortcut asked us to launch
-/// via `--launch-instance <id>`. `None` when the app was opened normally.
 #[tauri::command]
 pub fn take_pending_launch() -> Option<String> {
     crate::infrastructure::cli::take_pending_launch()
@@ -67,25 +65,10 @@ pub fn get_total_system_memory_mb() -> u64 {
     system.total_memory() / (1024 * 1024)
 }
 
-/// A binary's install directory, guessed as two levels up from the
-/// executable (`<root>/bin/java.exe` is the standard JDK/JRE zip layout).
-/// `None` for a bare `"java"` (resolved through `PATH` at spawn time, with
-/// no filesystem location we can point at).
 fn installation_dir_from_binary(bin: &Path) -> Option<PathBuf> {
     Some(bin.parent()?.parent()?.to_path_buf())
 }
 
-/// Reports the Java the launcher would actually use to launch: `path` when
-/// given (an instance's custom Java override); otherwise, when
-/// `instance_id` is given and that instance has already launched at least
-/// once, the exact major `launch_instance` recorded for it (see
-/// `last_java_major` on `Instance`) — the only way to know for sure, since
-/// "system vs. one of possibly several portable JREs" can't be guessed
-/// correctly from just `app_data_dir` (a system/bundled preference order
-/// only approximates what a *specific* instance's Minecraft version
-/// actually requires). Falls back to a best-effort preview (system Java,
-/// else the newest portable JRE already downloaded) for an instance that
-/// has never launched, or no instance context at all.
 #[tauri::command]
 pub fn get_java_info(
     state: State<AppState>,
@@ -127,8 +110,6 @@ pub fn get_java_info(
                 };
             }
         }
-        // Recorded Java moved/was removed since the last launch — fall
-        // through to the best-effort preview below instead of lying.
     }
 
     if let Ok(system_java) = detect::find_java() {
@@ -158,8 +139,6 @@ pub fn get_java_info(
     }
 }
 
-/// Output device names as the OS reports them: Minecraft's `soundDevice`
-/// option stores the device name verbatim (empty string means "system default").
 #[tauri::command]
 pub fn list_audio_output_devices() -> Vec<String> {
     use cpal::traits::{DeviceTrait, HostTrait};

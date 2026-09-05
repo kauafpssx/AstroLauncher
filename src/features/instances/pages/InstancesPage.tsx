@@ -6,13 +6,11 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
-
-import { InstanceGrid } from '../components/InstanceGrid'
-import { InstanceSidebar } from '../components/InstanceSidebar'
-import { InstancesBackground } from '../components/InstancesBackground'
-import { InstancesPageDialogs } from '../components/InstancesPageDialogs'
-import { useInstancesPage } from '../hooks/useInstancesPage'
-
+import { InstanceGrid } from '@/features/instances/components/instance-grid/InstanceGrid'
+import { InstanceSidebar } from '@/features/instances/components/instances-page/InstanceSidebar'
+import { InstancesBackground } from '@/features/instances/components/instances-page/InstancesBackground'
+import { InstancesPageDialogs } from '@/features/instances/components/instances-page/InstancesPageDialogs'
+import { useInstancesPage } from '@/features/instances/hooks/useInstancesPage'
 export function InstancesPage() {
   const page = useInstancesPage()
   const {
@@ -40,7 +38,6 @@ export function InstancesPage() {
     handleReorderFolders,
     handleReorderInstances,
   } = page
-
   return (
     <Shell
       topBar={
@@ -102,9 +99,7 @@ export function InstancesPage() {
         {selectedInstance && (
           <>
             <ResizableHandle />
-            {/* Capped well short of the middle of the screen: this is a
-                quick-glance info panel, not a workspace someone should be
-                able to drag out to half the window. */}
+
             <ResizablePanel defaultSize="256px" minSize="220px" maxSize="420px">
               <InstanceSidebar
                 instance={selectedInstance}

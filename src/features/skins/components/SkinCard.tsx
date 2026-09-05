@@ -1,29 +1,19 @@
 import { useEffect, useState } from 'react'
-
 import { cn } from '@/lib/utils'
 import type { SkinSummary } from '@/types/skins'
-
-import { withThumbnailLimit } from '../lib/thumbnailQueue'
-import { renderStaticThumbnail } from '../lib/thumbnailRenderer'
-import { SkinAPI } from '../services/skin.api'
-
+import { withThumbnailLimit } from '@/features/skins/lib/thumbnailQueue'
+import { renderStaticThumbnail } from '@/features/skins/lib/thumbnailRenderer'
+import { SkinAPI } from '@/features/skins/services/skin.api'
 interface SkinCardProps {
   skin: SkinSummary
   matched?: boolean
   dimmed?: boolean
   onClick: () => void
 }
-
 function SkinThumbnail({ skin, alt }: { skin: SkinSummary; alt: string }) {
   const [renderUrl, setRenderUrl] = useState<string | null>(null)
-
   useEffect(() => {
     let cancelled = false
-    // Rendered locally with skinview3d (same engine as the detail modal's 3D
-    // view) instead of a third-party render service: no network flakiness,
-    // no bot-detection surprises. The texture is fetched through our own
-    // backend into a data: URI first so the canvas read-back below never
-    // taints on a cross-origin image.
     withThumbnailLimit(async () => {
       const textureBase64 = await SkinAPI.fetchTextureBase64(skin.skinUrl)
       return renderStaticThumbnail(
@@ -39,11 +29,9 @@ function SkinThumbnail({ skin, alt }: { skin: SkinSummary; alt: string }) {
       cancelled = true
     }
   }, [skin.skinUrl, skin.model])
-
   if (!renderUrl) {
     return <div className="bg-muted/60 size-full animate-pulse rounded-md" />
   }
-
   return (
     <img
       src={renderUrl}
@@ -53,10 +41,8 @@ function SkinThumbnail({ skin, alt }: { skin: SkinSummary; alt: string }) {
     />
   )
 }
-
 export function SkinCard({ skin, matched, dimmed, onClick }: SkinCardProps) {
   const username = skin.firstSeenPlayer.username
-
   return (
     <button
       type="button"

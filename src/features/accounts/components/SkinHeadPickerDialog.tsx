@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
 import { useEffect } from 'react'
-
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
 import { SearchInput } from '@/components/common/SearchInput'
@@ -15,19 +14,14 @@ import {
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
-
+import { LAYOUT_SPRING_TRANSITION } from '@/lib/motion'
 import { SkinHeadThumbnail } from './SkinHeadThumbnail'
 import { useSkinHeadPicker } from './useSkinHeadPicker'
-
 interface SkinHeadPickerDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onPick: (base64Png: string) => void
 }
-
-/** Picks a skin from PlayerMC (same search API as the skins gallery) and
- * hands back just its cropped head as a base64 PNG, for use as an account
- * avatar. */
 export function SkinHeadPickerDialog({
   open,
   onOpenChange,
@@ -45,25 +39,18 @@ export function SkinHeadPickerDialog({
     isActivelySearching,
     matchedKeys,
   } = useSkinHeadPicker(open)
-
   const { viewportRef, sentinelRef } = useInfiniteScroll({
     hasMore,
     isLoading: isLoadingMore,
     onLoadMore: loadMore,
   })
-
-  // Searching overlays matches on top of the list in place: without this,
-  // typing a query while scrolled down leaves the matches out of view above
-  // the fold instead of jumping the list back to the top.
   useEffect(() => {
     viewportRef.current?.scrollTo({ top: 0 })
   }, [query, viewportRef])
-
   const handlePick = (base64Png: string) => {
     onPick(base64Png)
     onOpenChange(false)
   }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md sm:max-w-md">
@@ -103,11 +90,7 @@ export function SkinHeadPickerDialog({
                     <motion.div
                       key={key}
                       layout
-                      transition={{
-                        type: 'spring',
-                        stiffness: 350,
-                        damping: 32,
-                      }}
+                      transition={LAYOUT_SPRING_TRANSITION}
                     >
                       <SkinHeadThumbnail
                         skin={skin}

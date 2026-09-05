@@ -1,5 +1,6 @@
 mod v10_instance_window_monitor;
 mod v11_instance_last_java_major;
+mod v12_waypoints;
 mod v1_initial;
 mod v2_account_ordering;
 mod v3_mod_icon;
@@ -33,6 +34,7 @@ const MIGRATIONS: &[(u32, MigrationFn)] = &[
         v11_instance_last_java_major::VERSION,
         v11_instance_last_java_major::up,
     ),
+    (v12_waypoints::VERSION, v12_waypoints::up),
 ];
 
 pub fn run(conn: &Connection) -> Result<()> {

@@ -3,11 +3,6 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use tauri::{Monitor, PhysicalPosition, PhysicalSize, WebviewWindow};
 
-/// Minimum sliver of the window (in physical px) that must stay inside the
-/// monitor's bounds so the user can always see and drag it back — without
-/// this, a window closed while dragged off-screen (or onto a monitor that
-/// got unplugged/rearranged since) reopens somewhere the user can never
-/// reach, looking like the app silently fails to show up at all.
 const MIN_VISIBLE_PX: i32 = 120;
 
 fn clamp_to_monitor(
@@ -20,8 +15,6 @@ fn clamp_to_monitor(
 
     let max_x = m_pos.x + m_size.width as i32 - MIN_VISIBLE_PX;
     let min_x = m_pos.x - size.width as i32 + MIN_VISIBLE_PX;
-    // Never let the top edge go above the monitor: once the title bar is
-    // off-screen there's no way to drag the window back down.
     let max_y = m_pos.y + m_size.height as i32 - MIN_VISIBLE_PX;
 
     PhysicalPosition::new(
@@ -30,18 +23,6 @@ fn clamp_to_monitor(
     )
 }
 
-/// Position/size are stored as an offset from the monitor's own origin
-/// (not absolute virtual-screen coordinates) plus the monitor's name:
-/// restoring by re-adding that offset to whichever monitor currently has
-/// that name sidesteps the well-known upstream bug in
-/// `tauri-plugin-window-state` where a maximized window reopens on the
-/// wrong monitor when monitors have different DPI scale factors
-/// (tauri-apps/plugins-workspace#244): that plugin restores physical
-/// bounds before the window has picked up its target monitor's scale
-/// factor, so `set_size` rescales them using the *previous* monitor's
-/// factor. Storing monitor-relative offsets and always setting position
-/// before size (both in physical units, so nothing gets rescaled) avoids
-/// that class of bug entirely.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct WindowState {
     monitor_name: Option<String>,
@@ -56,15 +37,7 @@ fn state_path(app_data_dir: &Path) -> PathBuf {
     app_data_dir.join("window-state.json")
 }
 
-/// Captures the window's current bounds and writes them to disk. Call this
-/// on `CloseRequested` for the main window: best-effort, a failure here
-/// must never block the app from closing.
 pub fn save(app_data_dir: &Path, window: &WebviewWindow) {
-    // Windows reports a minimized window's placement as a sentinel rect
-    // (historically `(-32000, -32000)`, 0×0) instead of its real restored
-    // bounds — saving that verbatim and reapplying it next launch put the
-    // window fully off-screen with no way to see or reach it. Skip the
-    // write entirely rather than clobber a previously-good save with junk.
     if window.is_minimized().unwrap_or(false) {
         return;
     }
@@ -106,10 +79,6 @@ pub fn save(app_data_dir: &Path, window: &WebviewWindow) {
     }
 }
 
-/// Applies the last saved bounds to the window, if any were saved. Falls
-/// back to whatever monitor the window would normally open on when the
-/// saved monitor is no longer connected. Best-effort: a failure here must
-/// never block startup.
 pub fn restore(app_data_dir: &Path, window: &WebviewWindow) {
     let Ok(content) = std::fs::read_to_string(state_path(app_data_dir)) else {
         return;
@@ -117,8 +86,6 @@ pub fn restore(app_data_dir: &Path, window: &WebviewWindow) {
     let Ok(state) = serde_json::from_str::<WindowState>(&content) else {
         return;
     };
-    // Guards against a state file written before this validation existed
-    // (e.g. captured while minimized, Windows' `(-32000, -32000)` sentinel).
     if state.width == 0 || state.height == 0 {
         return;
     }
@@ -131,8 +98,6 @@ pub fn restore(app_data_dir: &Path, window: &WebviewWindow) {
             .find(|m| m.name().map(String::as_str) == Some(name))
     });
 
-    // Saved monitor is gone (unplugged, layout changed): offsets alone
-    // aren't meaningful anymore, so leave the OS/config default position.
     if target_monitor.is_none() && state.monitor_name.is_some() {
         return;
     }

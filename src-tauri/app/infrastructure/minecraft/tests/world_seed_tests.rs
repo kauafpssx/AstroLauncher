@@ -26,12 +26,35 @@ struct TestWorldGen {
     seed: i64,
 }
 
+#[derive(Serialize)]
+struct TestWorldGenSettingsFile {
+    data: TestWorldGenSettingsData,
+}
+
+#[derive(Serialize)]
+struct TestWorldGenSettingsData {
+    seed: i64,
+}
+
 fn write_level_dat(dir: &std::path::Path, data: &TestData) {
     let nbt = fastnbt::to_bytes_with_opts(&TestLevelDat { data }, fastnbt::SerOpts::new()).unwrap();
     let mut encoder = GzEncoder::new(Vec::new(), Compression::fast());
     encoder.write_all(&nbt).unwrap();
     let gzipped = encoder.finish().unwrap();
     std::fs::write(dir.join("level.dat"), gzipped).unwrap();
+}
+
+fn write_world_gen_settings(dir: &std::path::Path, seed: i64) {
+    let file = TestWorldGenSettingsFile {
+        data: TestWorldGenSettingsData { seed },
+    };
+    let nbt = fastnbt::to_bytes_with_opts(&file, fastnbt::SerOpts::new()).unwrap();
+    let mut encoder = GzEncoder::new(Vec::new(), Compression::fast());
+    encoder.write_all(&nbt).unwrap();
+    let gzipped = encoder.finish().unwrap();
+    let subdir = dir.join("data/minecraft");
+    std::fs::create_dir_all(&subdir).unwrap();
+    std::fs::write(subdir.join("world_gen_settings.dat"), gzipped).unwrap();
 }
 
 #[test]
@@ -79,4 +102,25 @@ fn reads_uncompressed_level_dat() {
         .unwrap();
     std::fs::write(dir.path().join("level.dat"), nbt).unwrap();
     assert_eq!(world_seed(dir.path()), Some(7));
+}
+
+#[test]
+fn falls_back_to_world_gen_settings_dat() {
+    let dir = tempdir().unwrap();
+    write_world_gen_settings(dir.path(), 998877665544332211);
+    assert_eq!(world_seed(dir.path()), Some(998877665544332211));
+}
+
+#[test]
+fn prefers_level_dat_over_world_gen_settings_dat() {
+    let dir = tempdir().unwrap();
+    write_level_dat(
+        dir.path(),
+        &TestData {
+            world_gen_settings: Some(TestWorldGen { seed: 100 }),
+            random_seed: None,
+        },
+    );
+    write_world_gen_settings(dir.path(), 200);
+    assert_eq!(world_seed(dir.path()), Some(100));
 }

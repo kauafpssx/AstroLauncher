@@ -2,18 +2,16 @@ import { motion } from 'framer-motion'
 import { ArrowDown } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Button } from '@/components/ui/button'
-
-import { McstatApiKeyDialog } from '../components/McstatApiKeyDialog'
-import { SkinCard } from '../components/SkinCard'
-import { SkinDetailDialog } from '../components/SkinDetailDialog'
-import { SkinsToolbar } from '../components/SkinsToolbar'
+import { LAYOUT_SPRING_TRANSITION } from '@/lib/motion'
+import { McstatApiKeyDialog } from '@/features/skins/components/McstatApiKeyDialog'
+import { SkinCard } from '@/features/skins/components/SkinCard'
+import { SkinDetailDialog } from '@/features/skins/components/SkinDetailDialog'
+import { SkinsToolbar } from '@/features/skins/components/SkinsToolbar'
 import { skinKey, useSkinsBrowser } from './useSkinsBrowser'
-
 export function SkinsPage() {
   const navigate = useNavigate()
   const {
@@ -40,16 +38,10 @@ export function SkinsPage() {
     matchedKeys,
     combined,
   } = useSkinsBrowser()
-
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  // Searching overlays matches on top of the gallery in place: without this,
-  // typing a query while scrolled down leaves the matches out of view above
-  // the fold instead of jumping the list back to the top.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 })
   }, [query])
-
   return (
     <div className="flex h-screen flex-col">
       <PageHeader title="Skins" onBack={() => navigate('/')}>
@@ -80,7 +72,7 @@ export function SkinsPage() {
                   <motion.div
                     key={key}
                     layout
-                    transition={{ type: 'spring', stiffness: 350, damping: 32 }}
+                    transition={LAYOUT_SPRING_TRANSITION}
                   >
                     <SkinCard
                       skin={skin}

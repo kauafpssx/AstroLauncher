@@ -187,6 +187,7 @@ version = "0.5.0"
 dependencies = [
  "anyhow",
  "base64 0.23.1",
+ "cc",
  "chrono",
  "cpal",
  "dirs",
@@ -200,6 +201,7 @@ dependencies = [
  "mc-launcher-core",
  "once_cell",
  "parking_lot",
+ "rayon",
  "reqwest",
  "rusqlite",
  "serde",

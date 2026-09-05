@@ -6,7 +6,6 @@ import type {
   UpdateInstanceInput,
 } from '@/types/instance'
 import type { JavaInfoDTO } from '@/types/java'
-
 export const InstanceAPI = {
   list(): Promise<InstanceDTO[]> {
     return apiInvoke<InstanceDTO[]>('list_instances')

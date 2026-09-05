@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "AstroLauncher",
-  "version": "0.6.3",
+  "version": "1.0.0",
   "identifier": "com.astrolauncher.app",
   "build": {
     "frontendDist": "../dist",
@@ -99,6 +99,7 @@
         "zerotierCentral": "https://api.zerotier.com/api/v1",
         "zerotierDownload": "https://download.zerotier.com/dist/ZeroTier%20One.msi"
       },
+      "githubBase": "https://github.com",
       "githubRepo": "kauafpssx/AstroLauncher",
       "zerotierAccount": "https://my.zerotier.com/account",
       "zerotierDownloadPage": "https://www.zerotier.com/download/",

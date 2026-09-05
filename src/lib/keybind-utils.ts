@@ -1,17 +1,12 @@
 import { categoryForAction, humanizeAction } from './keybind-labels'
 import type { KeybindCategory } from './keybind-labels'
-
 export { humanizeKey, KEYBIND_CATEGORY_ORDER } from './keybind-labels'
-
 export interface ParsedKeybind {
-  /** e.g. "forward", "sodium.reload_chunks": the part after `key_key.` */
   action: string
   label: string
   value: string
   category: KeybindCategory
 }
-
-/** Maps a browser KeyboardEvent to Minecraft's `key.keyboard.*` id. */
 export function eventToMinecraftKey(event: KeyboardEvent): string | null {
   const code = event.code
   if (code === 'Escape') return null
@@ -33,17 +28,13 @@ export function eventToMinecraftKey(event: KeyboardEvent): string | null {
   if (/^F[0-9]{1,2}$/.test(code)) return `key.keyboard.${code.toLowerCase()}`
   return `key.keyboard.${code.toLowerCase()}`
 }
-
-/** Matches any `key_*` line: vanilla (`key_key.forward`) and mod-added ones (`key_iris.keybind.reload`) alike. */
 const KEY_LINE = /^key_(.+):(.*)$/
 const VANILLA_PREFIX = 'key.'
-
 function actionFromRawKey(rawKey: string): string {
   return rawKey.startsWith(VANILLA_PREFIX)
     ? rawKey.slice(VANILLA_PREFIX.length)
     : rawKey
 }
-
 export function parseKeybinds(optionsTxt: string): ParsedKeybind[] {
   const result: ParsedKeybind[] = []
   for (const rawLine of optionsTxt.split('\n')) {
@@ -61,8 +52,6 @@ export function parseKeybinds(optionsTxt: string): ParsedKeybind[] {
   }
   return result
 }
-
-/** Rewrites the `key_*` lines in `optionsTxt` from `updates` (keyed by `ParsedKeybind.action`), leaving every other line untouched. */
 export function applyKeybinds(
   optionsTxt: string,
   updates: Record<string, string>,
@@ -79,11 +68,6 @@ export function applyKeybinds(
     })
     .join('\n')
 }
-
-/**
- * Maps each bound physical key (excluding `key.keyboard.unknown`) to the
- * actions currently assigned to it: any key with 2+ actions is a conflict.
- */
 export function findKeybindConflicts(
   binds: ParsedKeybind[],
   overrides: Record<string, string>,

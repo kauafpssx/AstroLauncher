@@ -7,10 +7,6 @@ use crate::domain::entities::PlaytimeSession;
 use crate::domain::errors::InstanceError;
 use crate::domain::repositories::{InstanceRepository, PlaytimeRepository};
 
-/// Tracks individual play sessions: a row is inserted when the game is spawned
-/// and closed (with its duration) when the process exits. On close it also
-/// keeps the instance's denormalized `playtime_seconds` / `last_played`
-/// columns in sync (docs/12-armazenamento.md).
 pub struct PlaytimeService {
     instance_repository: Arc<dyn InstanceRepository>,
     playtime_repository: Arc<dyn PlaytimeRepository>,
@@ -34,8 +30,6 @@ impl PlaytimeService {
         Ok(session)
     }
 
-    /// Closes an open session, records its duration, and adds it to the
-    /// instance's total playtime. Idempotent for sessions already closed.
     pub fn end_session(&self, session_id: &str) -> Result<(), InstanceError> {
         let session = self
             .playtime_repository
@@ -72,8 +66,6 @@ impl PlaytimeService {
             .playtime_repository
             .find_open_by_instance(instance_id)?;
 
-        // While a session is active, the denormalized total doesn't include it
-        // yet: surface it live so the UI can tick up in real time.
         let total_seconds = match open.as_ref() {
             Some(session) => {
                 let started_at = DateTime::parse_from_rfc3339(&session.started_at)

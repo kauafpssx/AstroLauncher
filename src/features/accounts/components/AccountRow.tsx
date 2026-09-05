@@ -3,7 +3,6 @@ import { CSS } from '@dnd-kit/utilities'
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -19,9 +18,7 @@ import { resolveIconSrc } from '@/lib/icon-src'
 import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
 import type { AccountDTO } from '@/types/account'
-
 import { SkinHeadPickerDialog } from './SkinHeadPickerDialog'
-
 interface AccountRowProps {
   account: AccountDTO
   onSetDefault: () => void
@@ -29,7 +26,6 @@ interface AccountRowProps {
   onDelete: () => void
   onUpdateIcon: (iconPath: string) => void
 }
-
 export function AccountRow({
   account,
   onSetDefault,
@@ -46,7 +42,6 @@ export function AccountRow({
     transition,
     isDragging,
   } = useSortable({ id: account.id })
-
   const handlePickHead = async (base64Png: string) => {
     try {
       const saved = await CustomIconAPI.save(base64Png)
@@ -55,7 +50,6 @@ export function AccountRow({
       toast.error(`Falha ao salvar avatar: ${String(err)}`)
     }
   }
-
   return (
     <TableRow
       ref={setNodeRef}
