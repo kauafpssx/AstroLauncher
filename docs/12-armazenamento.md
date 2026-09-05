@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS meta (
 );
 ```
 
-### 12.2.2 Migrações posteriores (v2–v10, aplicadas via `ALTER TABLE`; não há v7)
+### 12.2.2 Migrações posteriores (v2–v12, aplicadas via `ALTER TABLE`/`CREATE TABLE`; não há v7)
 
 | Versão | Arquivo                          | Mudança                                                                                          |
 | ------ | -------------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -100,6 +100,8 @@ CREATE TABLE IF NOT EXISTS meta (
 | v8     | `v8_account_icon.rs`             | `accounts` ganha `icon_path TEXT` (v0.6.0)                                                       |
 | v9     | `v9_instance_window_java.rs`     | `instances` ganha `fullscreen`/`window_width`/`window_height`/`java_path` (v0.6.0)               |
 | v10    | `v10_instance_window_monitor.rs` | `instances` ganha `window_monitor TEXT` (v0.6.0)                                                 |
+| v11    | `v11_instance_last_java_major.rs`  | `instances` ganha `last_java_major INTEGER` (v0.6.0)                                             |
+| v12    | `v12_waypoints.rs`                 | cria `waypoints` (v1.0.0): id/instance_id/name/icon/dimension/x/y/z/created_at                   |
 
 `installed_modpacks` existe no schema desde v1, mas não há repositório dedicado para ela na camada de domínio (repos ativos cobrem instance/folder/account/mod/playtime).
 

@@ -89,6 +89,8 @@ Launcher de Minecraft desktop (Windows) feito em **Tauri v2 + React 19**. Inspir
 - Persistência de janela: posição/tamanho/maximizado da janela principal restaurados no próximo launch
 - Dual-window: `main` (app) + `splash` (360x420 frameless, checa updater, depois `invoke('finish_splash')`)
 - Rede ZeroTier (novo v0.6.0): instalação do serviço, entrar/sair de redes, aprovar/desautorizar membros via ZeroTier Central
+- Mapa da Seed (novo v1.0.0): biomas, estruturas, slime chunks, strongholds e spawn via Cubiomes (C) vendorizado, 100% local (OpenLayers no frontend)
+- Waypoints (novo v1.0.0): pontos de interesse por instância com menções `@` nas notas
 - Configuração da janela do jogo por instância (fullscreen, dimensões, monitor) e Java por instância + avatares de conta (v0.6.0)
 
 **Idioma:** UI, toasts, docs, commits e PR em **PT-BR**. Código (identificadores, mensagens de erro de domínio, comentários): **inglês** (comentários podem ser PT-BR na prática, mas documentam o _porquê_).
@@ -97,11 +99,11 @@ Launcher de Minecraft desktop (Windows) feito em **Tauri v2 + React 19**. Inspir
 
 ### Frontend (npm)
 
-React 19, TypeScript ~6.0 (strict, `verbatimModuleSyntax`, `erasableSyntaxOnly`), Vite 8, Tailwind v4 (CSS-first, plugin `@tailwindcss/vite`), shadcn/ui (`components.json` → style `radix-nova`, pacote único `radix-ui` ^1.6, NÃO `@radix-ui/react-*` individuais), zustand 5, react-router-dom v7 (**HashRouter**), sonner (toasts), framer-motion, lucide-react, dnd-kit, tiptap + codemirror, skinview3d, react-easy-crop, react-resizable-panels, cmdk, next-themes, `@fontsource-variable/geist`.
+React 19, TypeScript ~6.0 (strict, `verbatimModuleSyntax`, `erasableSyntaxOnly`), Vite 8, Tailwind v4 (CSS-first, plugin `@tailwindcss/vite`), shadcn/ui (`components.json` → style `radix-nova`, pacote único `radix-ui` ^1.6, NÃO `@radix-ui/react-*` individuais), zustand 5, react-router-dom v7 (**HashRouter**), sonner (toasts), framer-motion, lucide-react, dnd-kit, tiptap + codemirror + `@tiptap/suggestion` (menções `@`), `ol` (OpenLayers, Seed Map), skinview3d, react-easy-crop, react-resizable-panels, cmdk, next-themes, `@fontsource-variable/geist`.
 
 ### Backend (Rust, crate `astrolauncher`)
 
-tauri 2.11 (plugins: dialog, fs, shell, clipboard-manager, updater, process, log, **single-instance**), tokio (full), reqwest 0.13 (json, stream), rusqlite 0.40 **bundled**, thiserror + anyhow, parking_lot, chrono, uuid v4, mc-launcher-core 0.1.2 (Forge/NeoForge + launch command builder), futures (downloads concorrentes via `stream::iter(...).buffer_unordered(N)` — ver §15), sysinfo, cpal, discord-rich-presence, tracing, sha1, zip, walkdir, windows (Win32 FFI em `window_placement.rs` e `language.rs`), tempfile (dev), wiremock (dev). Lint `#![warn(unused_crate_dependencies)]` em `lib.rs` (allow em `main.rs`) pega dependência do Cargo.toml sem nenhum uso — roda em todo `cargo clippy` (CI já usa `--all-targets -D warnings`).
+tauri 2.11 (plugins: dialog, fs, shell, clipboard-manager, updater, process, log, **single-instance**), tokio (full), reqwest 0.13 (json, stream), rusqlite 0.40 **bundled**, thiserror + anyhow, parking_lot, chrono, uuid v4, mc-launcher-core 0.1.2 (Forge/NeoForge + launch command builder), futures (downloads concorrentes via `stream::iter(...).buffer_unordered(N)` — ver §15), rayon (paralelismo nos tiles do Seed Map), sysinfo, cpal, discord-rich-presence, tracing, sha1, zip, walkdir, windows (Win32 FFI em `window_placement.rs` e `language.rs`), tempfile (dev), wiremock (dev), cc (build-dependency — compila o Cubiomes C vendorizado). Lint `#![warn(unused_crate_dependencies)]` em `lib.rs` (allow em `main.rs`) pega dependência do Cargo.toml sem nenhum uso — roda em todo `cargo clippy` (CI já usa `--all-targets -D warnings`).
 
 ### Configs relevantes
 
@@ -348,7 +350,7 @@ Trait: `XxxRepository`; impl: `SqliteXxxRepository` sobre `Arc<Mutex<Connection>
 
 ### Migrações (`infrastructure/persistence/migrations/`)
 
-Registro function-pointer: `(u32, fn(&Connection) -> rusqlite::Result<()>)`, tabela `meta` (`schema_version`). Cada arquivo: `pub const VERSION: u32` + `pub fn up(conn: &Connection)`. Versões atuais (v1–v10 na data desta doc, sem v7 — confira no array de `migrations/mod.rs`) vivem no array de `migrations/mod.rs` — confira lá antes de assumir. Rodam em transação no bootstrap, antes de qualquer repositório. Migração nova = arquivo `v{n}_nome.rs` + entrada no array. **NUNCA editar migração já aplicada** (usuários com DB no schema N+1 quebrariam) — mudou schema → criar `v{n+1}`.
+Registro function-pointer: `(u32, fn(&Connection) -> rusqlite::Result<()>)`, tabela `meta` (`schema_version`). Cada arquivo: `pub const VERSION: u32` + `pub fn up(conn: &Connection)`. Versões atuais (v1–v12 na data desta doc, sem v7 — confira no array de `migrations/mod.rs`) vivem no array de `migrations/mod.rs` — confira lá antes de assumir. Rodam em transação no bootstrap, antes de qualquer repositório. Migração nova = arquivo `v{n}_nome.rs` + entrada no array. **NUNCA editar migração já aplicada** (usuários com DB no schema N+1 quebrariam) — mudou schema → criar `v{n+1}`.
 
 ### Bootstrap (`bootstrap/setup.rs`)
 
@@ -437,12 +439,12 @@ Passou disso → quebre em peças menores (lego!). Exceção conhecida: `launch_
 
 Rust: unidade para regras de domínio, integração para infra. Domínio nunca toca I/O. Sem mocking framework nem benchmarks configurados hoje (`mockall`/`criterion` removidos do Cargo.toml por estarem sem uso real — adicionar de volta só quando for escrever teste/benchmark de verdade que precise deles). Frontend: sem suíte de testes configurada (não adicionar test runner sem necessidade real — gate não exige).
 
-**Localização dos unit tests:** o corpo dos testes de unidade fica em arquivo separado numa subpasta `tests/` ao lado do fonte; o arquivo-fonte só declara `#[cfg(test)] #[path = "tests/<nome>_tests.rs"] mod tests;` (o test file usa `use super::*;`, acessa internals normalmente). Mantém o arquivo de lógica limpo. Padrão aplicado em `domain/entities/`, `application/mappers/`, `infrastructure/modloader/forge_like`. Novo unit test → siga esse layout, não deixe `mod tests { ... }` inline.
+**Localização dos unit tests:** o corpo dos testes de unidade fica em arquivo separado numa subpasta `tests/` ao lado do fonte; o arquivo-fonte só declara `#[cfg(test)] #[path = "tests/<nome>_tests.rs"] mod tests;` (o test file usa `use super::*;`, acessa internals normalmente). Mantém o arquivo de lógica limpo. Padrão aplicado em `domain/entities/`, `application/mappers/`, `infrastructure/modloader/forge_like`. Novo unit test → siga esse layout, não deixe `mod tests { ... }` inline. **[MUST]** Isso vale pra TODO o backend, sem exceção — inclusive testes/benchmarks já existentes que ainda estejam inline em `mod tests { ... }` dentro do arquivo de lógica (ex.: arquivos legados que antecedem essa convenção). Achou um `mod tests { ... }` inline? Extraia pra `tests/<nome>_tests.rs` como parte da limpeza, mesmo que não seja o foco da tarefa.
 
 ## 11. Persistência e armazenamento
 
 - **SQLite** (rusqlite bundled): `<app_data_dir>/data/launcher.db` (via resolver do Tauri, não crate `dirs`). Sem ORM, SQL raw, repos síncronos.
-- Tabelas v1: `instances`, `folders`, `playtime_sessions`, `accounts`, `instance_mods`, `installed_modpacks`, `meta`. Migrações v2–v10 (sem v7) = ALTER TABLE: `accounts` + `position`/`is_default` (v2) + `icon_path` (v8); `instance_mods` + `icon_url` (v3) + `kind` `'mod'|'resourcepack'|'shader'` (v4); `instances` + `position` (v5) + `fullscreen`/`window_width`/`window_height`/`java_path` (v9) + `window_monitor` (v10); `folders` + `icon_path` (v6). `installed_modpacks` existe mas sem repositório no domínio.
+- Tabelas v1: `instances`, `folders`, `playtime_sessions`, `accounts`, `instance_mods`, `installed_modpacks`, `meta`. Migrações v2–v12 (sem v7) = ALTER TABLE: `accounts` + `position`/`is_default` (v2) + `icon_path` (v8); `instance_mods` + `icon_url` (v3) + `kind` `'mod'|'resourcepack'|'shader'` (v4); `instances` + `position` (v5) + `fullscreen`/`window_width`/`window_height`/`java_path` (v9) + `window_monitor` (v10) + `last_java_major` (v11); v12 cria `waypoints`. `folders` + `icon_path` (v6). `installed_modpacks` existe mas sem repositório no domínio.
 - **settings.json** (config de usuário, `<app_data_dir>/settings.json`): schema mínimo — confira campos atuais no código (`json_settings_repository.rs`). Campos atuais: `curseforge_api_key`, `mcstat_api_key`, `root_group_name`, `root_group_icon`, `zerotier_api_token`. NÃO adicionar `theme`/`minecraft_dir` etc. (schema antigo de docs). Existe também `window-state.json` (v0.5.2, ver `infrastructure/window_state.rs`), mas é estado de janela, não config de usuário.
 - **window-state.json** (`<app_data_dir>/window-state.json`, desde v0.5.2): posição/tamanho/maximizado da janela principal, salvo no `CloseRequested` e restaurado no boot. Implementação própria em `infrastructure/window_state.rs` (NÃO `tauri-plugin-window-state` — ver §15). Desde v0.6.0 há também `infrastructure/process/window_placement.rs`, que reposiciona a janela do processo Minecraft (jogo) num monitor específico após o launch.
 - **Filesystem**: instâncias/notas/screenshots/mundos/icons em `<app_data_dir>` (paths via `infrastructure/filesystem/paths.rs` — path-joining puro, sem I/O). Assets Mojang por hash SHA1. Java portátil em `<app_data_dir>/java/<major>/`.
@@ -520,7 +522,7 @@ CREATE TABLE meta (
 );
 ```
 
-v2–v10 (sem v7) = ALTER TABLE: `accounts` + `position`/`is_default` (v2) + `icon_path` (v8); `instance_mods` + `icon_url` (v3) + `kind` `'mod'|'resourcepack'|'shader'` (v4); `instances` + `position` (v5) + `fullscreen`/`window_width`/`window_height`/`java_path` (v9) + `window_monitor` (v10); `folders` + `icon_path` (v6). IDs sempre uuid v4 string; timestamps RFC3339; booleans como INTEGER 0/1; NULLs → `Option<T>`/`string | null`.
+v2–v12 (sem v7) = ALTER TABLE: `accounts` + `position`/`is_default` (v2) + `icon_path` (v8); `instance_mods` + `icon_url` (v3) + `kind` `'mod'|'resourcepack'|'shader'` (v4); `instances` + `position` (v5) + `fullscreen`/`window_width`/`window_height`/`java_path` (v9) + `window_monitor` (v10) + `last_java_major` (v11); v12 cria `waypoints`. `folders` + `icon_path` (v6). IDs sempre uuid v4 string; timestamps RFC3339; booleans como INTEGER 0/1; NULLs → `Option<T>`/`string | null`.
 
 ## 12. CI/CD (Quality Gate)
 
@@ -594,7 +596,7 @@ Bug report: título `bug:`, label `bug` — versão do launcher, SO, loader, ver
 - ❌ Adicionar dependência sem necessidade real (audit + outdated no gate).
 - ❌ Commit de secrets/chaves de assinatura.
 - ❌ Commit de artefatos de build: `dist/`, `src-tauri/target/`, `src-tauri/gen/`, `node_modules/`, `.tsbuildinfo` (jobs `files`/gitignore pegam).
-- ❌ Editar migração já aplicada (v1–v10) — criar `v{n+1}`.
+- ❌ Editar migração já aplicada (v1–v12) — criar `v{n+1}`.
 - ❌ Seguir `presentation/ipc/instance.rs` — layout legado paralelo, não usar.
 - ❌ Adicionar `theme`/`minecraft_dir`/etc. ao settings.json — schema mínimo é lei.
 - ❌ **[MUST] Deixar janela de console (cmd/PowerShell/terminal) vazar, piscar ou aparecer na tela do usuário.** Todo processo externo (Java/Minecraft, comandos de sistema, qualquer `std::process::Command` no Windows) SEMPRE roda de forma interna/suprimida — janela oculta, nunca visível. No Windows: aplicar `CREATE_NO_WINDOW` (`0x08000000`) via `.creation_flags(...)` (`std::os::windows::process::CommandExt`) em TODO `Command` que spawna processo. Nenhuma exceção — nem em launch, download, java, nem em helpers.

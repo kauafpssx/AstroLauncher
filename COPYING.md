@@ -88,12 +88,17 @@ As seguintes bibliotecas Rust são utilizadas pelo AstroLauncher. As versões li
 | `log`                            | 0.4     | MIT OR Apache-2.0 |
 | `once_cell`                      | 1.21.4  | MIT OR Apache-2.0 |
 
+### Build (build-dependencies)
+
+| Crate | Versão | Licença           |
+| ----- | ------ | ----------------- |
+| `cc`  | 1.4.0  | MIT OR Apache-2.0 |
+
 ### Minecraft
 
 | Crate              | Versão | Licença           |
 | ------------------ | ------ | ----------------- |
 | `mc-launcher-core` | 0.1.2  | MIT               |
-| `mc_chat`          | 0.3.0  | MIT OR Apache-2.0 |
 | `uuid`             | 1.20.0 | Apache-2.0 OR MIT |
 
 ### HTTP e Rede
@@ -105,62 +110,81 @@ As seguintes bibliotecas Rust são utilizadas pelo AstroLauncher. As versões li
 
 ### Hash, Criptografia e Dados
 
-| Crate          | Versão | Licença           |
-| -------------- | ------ | ----------------- |
-| `sha1`         | 0.11.0 | MIT OR Apache-2.0 |
-| `sha2`         | 0.11.0 | MIT OR Apache-2.0 |
-| `md-5`         | 0.10.6 | MIT OR Apache-2.0 |
-| `hex`          | 0.4.3  | MIT OR Apache-2.0 |
-| `base64`       | 0.23.0 | MIT OR Apache-2.0 |
-| `jsonwebtoken` | 11.0.0 | MIT               |
-| `rusqlite`     | 0.40.1 | MIT               |
+| Crate      | Versão | Licença           |
+| ---------- | ------ | ----------------- |
+| `sha1`     | 0.11.0 | MIT OR Apache-2.0 |
+| `hex`      | 0.4.3  | MIT OR Apache-2.0 |
+| `base64`   | 0.23.0 | MIT OR Apache-2.0 |
+| `flate2`   | 1.1.9  | MIT OR Apache-2.0 |
+| `fastnbt`  | 2.6.3  | MIT OR Apache-2.0 |
+| `rusqlite` | 0.40.1 | MIT               |
 
 ### Sistema, Arquivos e Áudio
 
-| Crate        | Versão | Licença           |
-| ------------ | ------ | ----------------- |
-| `dirs`       | 6.0.0  | MIT OR Apache-2.0 |
-| `sysinfo`    | 0.39.6 | MIT               |
-| `cpal`       | 0.18.1 | Apache-2.0        |
-| `tempfile`   | 3.27.0 | MIT OR Apache-2.0 |
-| `walkdir`    | 2.5.0  | Unlicense/MIT     |
-| `fs_extra`   | 1.3.0  | MIT               |
-| `path-clean` | 1.0.1  | MIT OR Apache-2.0 |
+| Crate      | Versão | Licença           |
+| ---------- | ------ | ----------------- |
+| `dirs`     | 6.0.0  | MIT OR Apache-2.0 |
+| `sysinfo`  | 0.39.6 | MIT               |
+| `cpal`     | 0.18.1 | Apache-2.0        |
+| `tempfile` | 3.27.0 | MIT OR Apache-2.0 |
+| `walkdir`  | 2.5.0  | Unlicense/MIT     |
+| `image`    | 0.25.0 | MIT OR Apache-2.0 |
 
 ### Concorrência e Assíncrono
 
 | Crate         | Versão | Licença           |
 | ------------- | ------ | ----------------- |
 | `parking_lot` | 0.12.5 | MIT OR Apache-2.0 |
-| `crossbeam`   | 0.8.4  | MIT OR Apache-2.0 |
 | `futures`     | 0.3.33 | MIT OR Apache-2.0 |
-| `async-trait` | 0.1.91 | MIT OR Apache-2.0 |
+| `rayon`       | 1.12.0 | MIT OR Apache-2.0 |
 
 ### Logging e Tempo
 
-| Crate                | Versão | Licença           |
-| -------------------- | ------ | ----------------- |
-| `tracing`            | 0.1.44 | MIT               |
-| `tracing-subscriber` | 0.3.23 | MIT               |
-| `tracing-appender`   | 0.2.5  | MIT               |
-| `chrono`             | 0.4.45 | MIT OR Apache-2.0 |
+| Crate     | Versão | Licença           |
+| --------- | ------ | ----------------- |
+| `tracing` | 0.1.44 | MIT               |
+| `chrono`  | 0.4.45 | MIT OR Apache-2.0 |
 
 ### Utilitários e Integrações
 
-| Crate                   | Versão | Licença           |
-| ----------------------- | ------ | ----------------- |
-| `itertools`             | 0.15.0 | MIT/Apache-2.0    |
-| `regex`                 | 1.13.1 | MIT OR Apache-2.0 |
-| `semver`                | 1.0.28 | MIT OR Apache-2.0 |
-| `toml`                  | 1.0.7  | MIT OR Apache-2.0 |
-| `discord-rich-presence` | 1.1.0  | MIT               |
+| Crate                   | Versão | Licença |
+| ----------------------- | ------ | ------- |
+| `discord-rich-presence` | 1.1.0  | MIT     |
 
 ### Desenvolvimento (dev-dependencies)
 
-| Crate       | Versão | Licença           |
-| ----------- | ------ | ----------------- |
-| `criterion` | 0.8.2  | Apache-2.0 OR MIT |
-| `mockall`   | 0.15.0 | MIT OR Apache-2.0 |
+| Crate      | Versão | Licença           |
+| ---------- | ------ | ----------------- |
+| `wiremock` | 0.6.5  | MIT OR Apache-2.0 |
+
+---
+
+## Cubiomes vendorizado (C, MIT)
+
+O Mapa da Seed usa o [Cubiomes](https://github.com/Cubitect/cubiomes) — biblioteca C de worldgen do Minecraft — vendorizado do fork https://github.com/xpple/cubiomes (commit `0a3db3a4c9f4b1740bb30a5188a661412c6c9a45`, 2026-09-03) em [`src-tauri/vendor/cubiomes/`](src-tauri/vendor/cubiomes/). O `build.rs` compila o subconjunto necessário via crate `cc` (clang-cl no Windows; ver `VENDORED_COMMIT.txt` e `update-cubiomes.sh`).
+
+      Cubiomes - Minecraft world generation library
+      Copyright (c) 2020 Cubitect
+
+      Permission is hereby granted, free of charge, to any person obtaining a copy
+      of this software and associated documentation files (the "Software"), to deal
+      in the Software without restriction, including without limitation the rights
+      to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+      copies of the Software, and to permit persons to whom the Software is
+      furnished to do so, subject to the following conditions:
+
+      The above copyright notice and this permission notice shall be included in all
+      copies or substantial portions of the Software.
+
+      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+      FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+      AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+      LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+      OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+      SOFTWARE.
+
+Os crates `cubiomes`/`cubiomes-sys` do crates.io **não** são usados (incompatibilidade de bindings neste toolchain Windows) — a integração é via FFI manual em `infrastructure/worldgen/`.
 
 ---
 
@@ -181,22 +205,22 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 
 ### UI e Design System
 
-| Pacote                     | Versão  | Licença    |
-| -------------------------- | ------- | ---------- |
-| `tailwindcss`              | 4.3.3   | MIT        |
-| `@tailwindcss/vite`        | 4.3.3   | MIT        |
-| `radix-ui`                 | 1.6.7   | MIT        |
-| `shadcn`                   | 4.16.1  | MIT        |
-| `framer-motion`            | 12.43.0 | MIT        |
-| `lucide-react`             | 1.28.0  | ISC        |
-| `sonner`                   | 2.0.7   | MIT        |
-| `next-themes`              | 0.4.6   | MIT        |
-| `cmdk`                     | 1.1.1   | MIT        |
-| `class-variance-authority` | 0.7.1   | Apache-2.0 |
-| `clsx`                     | 2.1.1   | MIT        |
-| `tailwind-merge`           | 3.6.0   | MIT        |
-| `tailwindcss-animate`      | 1.0.7   | MIT        |
-| `tw-animate-css`           | 1.4.0   | MIT        |
+| Pacote                     | Versão | Licença    |
+| -------------------------- | ------ | ---------- |
+| `tailwindcss`              | 4.3.3  | MIT        |
+| `@tailwindcss/vite`        | 4.3.3  | MIT        |
+| `radix-ui`                 | 1.6.7  | MIT        |
+| `shadcn`                   | 4.16.1 | MIT        |
+| `framer-motion`            | 13.0.0 | MIT        |
+| `lucide-react`             | 1.30.0 | ISC        |
+| `sonner`                   | 2.0.7  | MIT        |
+| `next-themes`              | 0.4.6  | MIT        |
+| `cmdk`                     | 1.1.1  | MIT        |
+| `class-variance-authority` | 0.7.1  | Apache-2.0 |
+| `clsx`                     | 2.1.1  | MIT        |
+| `tailwind-merge`           | 3.6.0  | MIT        |
+| `tw-animate-css`           | 1.4.0  | MIT        |
+| `tw-animate-css`           | 1.4.0  | MIT        |
 
 ### Tauri
 
@@ -225,6 +249,7 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 | `@tiptap/starter-kit`     | 3.29.0  | MIT     |
 | `@tiptap/pm`              | 3.29.0  | MIT     |
 | `@tiptap/extension-image` | 3.29.0  | MIT     |
+| `@tiptap/suggestion`      | 3.29.2  | MIT     |
 | `tiptap-markdown`         | 0.9.0   | MIT     |
 | `@uiw/react-codemirror`   | 4.25.11 | MIT     |
 | `@codemirror/lang-json`   | 6.0.2   | MIT     |
@@ -235,15 +260,16 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 
 ### 3D, Imagens e Interação
 
-| Pacote                   | Versão | Licença |
-| ------------------------ | ------ | ------- |
-| `skinview3d`             | 3.4.2  | MIT     |
-| `react-easy-crop`        | 6.2.3  | MIT     |
-| `@dnd-kit/core`          | 6.3.1  | MIT     |
-| `@dnd-kit/modifiers`     | 9.0.0  | MIT     |
-| `@dnd-kit/sortable`      | 10.0.0 | MIT     |
-| `@dnd-kit/utilities`     | 3.2.2  | MIT     |
-| `react-resizable-panels` | 4.12.2 | MIT     |
+| Pacote                   | Versão  | Licença      |
+| ------------------------ | ------- | ------------ |
+| `skinview3d`             | 3.4.2   | MIT          |
+| `ol` (OpenLayers)        | 10.10.0 | BSD-2-Clause |
+| `react-easy-crop`        | 6.2.3   | MIT          |
+| `@dnd-kit/core`          | 6.3.1   | MIT          |
+| `@dnd-kit/modifiers`     | 9.0.0   | MIT          |
+| `@dnd-kit/sortable`      | 10.0.0  | MIT          |
+| `@dnd-kit/utilities`     | 3.2.2   | MIT          |
+| `react-resizable-panels` | 4.12.2  | MIT          |
 
 ### Fontes e Desenvolvimento
 

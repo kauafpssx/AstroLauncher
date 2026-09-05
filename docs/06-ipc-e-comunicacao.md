@@ -16,6 +16,8 @@ Comandos ficam em `src-tauri/app/presentation/commands/*_commands.rs`, um arquiv
 | `discord_commands.rs` | `discord_set_presence` |
 | `custom_icon_commands.rs` | `list_custom_icons`, `save_custom_icon`, `delete_custom_icon` |
 | `zerotier_commands.rs` | `zerotier_status`, `zerotier_install`, `zerotier_join`, `zerotier_leave`, `zerotier_list_networks`, `zerotier_list_owned_networks`, `zerotier_list_pending_members`, `zerotier_approve_member`, `zerotier_deauthorize_member` |
+| `seed_map_commands.rs` (+ `seed_map_commands/`) | `generate_biome_tile`, `list_biome_palette`, `filter_supported_seed_map_versions`, `get_spawn_point`, `get_column_info`, `list_structures`, `list_strongholds`, `list_slime_chunks`, `get_structure_variant` (v1.0.0) |
+| `waypoint_commands.rs` | `list_waypoints`, `create_waypoint`, `update_waypoint`, `delete_waypoint` (v1.0.0) |
 | `splash_commands.rs` | `finish_splash` |
 
 ## 6.2 Cada Comando Deve Ser Fino
@@ -47,7 +49,7 @@ export function apiInvoke<T>(
 }
 ```
 
-Cada feature tem seu próprio módulo de serviço em `src/features/*/services/*.api.ts` (ex.: `instance.api.ts`, `account.api.ts`, `folder.api.ts`, `mod.api.ts`, `skin.api.ts`, `astropack.api.ts`, `playtime.api.ts`, `settings.api.ts`, `custom-icon.api.ts`, `version.api.ts`) que chama `apiInvoke` internamente. Componentes não chamam `invoke()` direto.
+Cada feature tem seu próprio módulo de serviço em `src/features/*/services/*.api.ts` (ex.: `instance.api.ts`, `account.api.ts`, `folder.api.ts`, `mod.api.ts`, `skin.api.ts`, `astropack.api.ts`, `playtime.api.ts`, `settings.api.ts`, `custom-icon.api.ts`, `version.api.ts`, `seed-map.api.ts`, `waypoint.api.ts`) que chama `apiInvoke` internamente. Componentes não chamam `invoke()` direto.
 
 ## 6.4 Eventos (Tauri Events)
 
