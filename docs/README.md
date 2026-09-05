@@ -18,6 +18,7 @@ Este diretório contém a documentação completa da arquitetura, estrutura e pa
 | 10  | [Glossário](10-glossario.md)                             | Definições de termos técnicos                                               |
 | 11  | [Dependências e Libs](11-dependencias-e-libs.md)         | Bibliotecas Rust, npm, shadcn/ui, ícones, Discord RPC, CurseForge, Modrinth |
 | 12  | [Armazenamento](12-armazenamento.md)                     | SQLite, JSON, cache, schema do banco, migrações                             |
+| 13  | [Especificação: Seed Map](13-seed-map-spec.md)           | Inventário funcional da feature de mapa de biomas/estruturas (Java only)    |
 
 ## Convenções
 

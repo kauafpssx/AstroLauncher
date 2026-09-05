@@ -1,4 +1,4 @@
-﻿import { Map as MapIcon } from 'lucide-react'
+import { Map as MapIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
@@ -21,6 +21,8 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { TabHeader } from '@/components/common/TabHeader'
 import { Skeleton } from '@/components/ui/skeleton'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
+import { useVersions } from '@/features/instances/hooks/useVersions'
+import { isMcVersionAtLeast } from '@/lib/mc-version'
 import { SeedMapAPI } from '@/features/instances/services/seed-map.api'
 import {
   ResizableHandle,
@@ -31,6 +33,7 @@ import type {
   BiomePaletteEntry,
   SeedMapDimension,
   SeedMapLayer,
+  StructureVariant,
 } from '@/types/seed-map'
 import type { WorldDTO } from '@/types/world'
 import {
@@ -39,13 +42,14 @@ import {
   isBiomeAvailableInVersion,
   type BiomeCategory,
 } from '@/data/biome-metadata'
-import { STRUCTURE_LIST } from './structure-metadata'
+import { STRUCTURE_LIST } from '@/data/structure-metadata'
 import { CustomMarkerPopupContent } from '@/features/instances/components/edit-instance/seed-map/components/CustomMarkerPopupContent'
 import { SeedMapControlsRow } from '@/features/instances/components/edit-instance/seed-map/components/SeedMapControlsRow'
 import { SeedMapLegendPanel } from '@/features/instances/components/edit-instance/seed-map/components/SeedMapLegendPanel'
 import { StructurePopupContent } from '@/features/instances/components/edit-instance/seed-map/components/StructurePopupContent'
 import { MapStatusOverlay } from '@/features/instances/components/edit-instance/seed-map/components/MapStatusOverlay'
 import { MapToolsOverlay } from '@/features/instances/components/edit-instance/seed-map/components/MapToolsOverlay'
+import { StructureSearchButton } from '@/features/instances/components/edit-instance/seed-map/components/StructureSearchButton'
 import { StructureSearchDialog } from '@/features/instances/components/edit-instance/seed-map/components/StructureSearchDialog'
 import { TargetResultsNavigator } from '@/features/instances/components/edit-instance/seed-map/components/TargetResultsNavigator'
 import { useSeedMapFetchers } from '@/features/instances/components/edit-instance/seed-map/hooks/useSeedMapFetchers'
@@ -83,10 +87,39 @@ interface SeedMapTabProps {
 const HIDDEN_BIOME_NAMES = new Set(['the_void'])
 export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
   const mapDivRef = useRef<HTMLDivElement>(null)
+  const { versions, isLoading: isLoadingVersions } = useVersions()
+  // O manifest da Mojang inclui snapshots recentes demais que nosso fork do
+  // cubiomes ainda não suporta — filtra dinamicamente contra o parser real
+  // do backend (WorldgenService::is_version_supported) em vez de manter uma
+  // lista fixa no frontend, pra não desalinhar quando a lib for atualizada.
+  const [supportedVersionIds, setSupportedVersionIds] =
+    useState<Set<string> | null>(null)
+  useEffect(() => {
+    if (versions.length === 0) return
+    let cancelled = false
+    SeedMapAPI.filterSupportedVersions(versions.map((v) => v.id))
+      .then((ids) => {
+        if (!cancelled) setSupportedVersionIds(new Set(ids))
+      })
+      .catch(() => {
+        if (!cancelled) setSupportedVersionIds(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [versions])
+  const seedMapVersions = useMemo(
+    () =>
+      supportedVersionIds
+        ? versions.filter((v) => supportedVersionIds.has(v.id))
+        : versions,
+    [versions, supportedVersionIds],
+  )
   const [worlds, setWorlds] = useState<WorldDTO[]>([])
   const [selectedWorldName, setSelectedWorldName] = useState<string | null>(
     null,
   )
+  const [customSeed, setCustomSeed] = useState<string | null>(null)
   const [isLoadingWorlds, setIsLoadingWorlds] = useState(true)
   const [highlightedBiomeIds, setHighlightedBiomeIds] = useState<Set<number>>(
     () => new Set(),
@@ -146,13 +179,23 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
     z: number
     placeMarker: boolean
   } | null>(null)
+  const placeCustomMarkerRef = useRef<((x: number, z: number) => void) | null>(
+    null,
+  )
+  const handleClearStructureSearchRef = useRef<(() => void) | null>(null)
   const [structuresHiddenByZoom, setStructuresHiddenByZoom] = useState(false)
+  const [slimeHiddenByZoom, setSlimeHiddenByZoom] = useState(false)
   const [mapResolution, setMapResolution] = useState(DEFAULT_RESOLUTION)
   const [structurePopup, setStructurePopup] = useState<{
     structureId: string
     x: number
     z: number
+    y: number | null
     completed: boolean
+  } | null>(null)
+  const [structureVariantEntry, setStructureVariantEntry] = useState<{
+    key: string
+    variant: StructureVariant
   } | null>(null)
   const structureCompletedMap = useRef(new Map<string, boolean>())
   const [coordsCopied, setCoordsCopied] = useState(false)
@@ -176,8 +219,48 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
   } | null>(null)
   const mapLayerRef = useRef(mapLayer)
   const selectedWorld = worlds.find((w) => w.name === selectedWorldName)
-  const seed = selectedWorld?.seed != null ? String(selectedWorld.seed) : null
+  const seed =
+    customSeed ??
+    (selectedWorld?.seed != null ? String(selectedWorld.seed) : null)
   const effectiveVersion = versionOverride.trim() || mcVersion
+  const structureVariantKey = structurePopup
+    ? `${structurePopup.structureId}:${structurePopup.x}:${structurePopup.z}:${seed}:${effectiveVersion}:${dimension}`
+    : null
+  useEffect(() => {
+    const structure = structurePopup
+      ? STRUCTURE_LIST.find((s) => s.id === structurePopup.structureId)
+      : undefined
+    if (
+      !structurePopup ||
+      !seed ||
+      !structure?.cubiomesType ||
+      !structureVariantKey
+    ) {
+      return
+    }
+    const key = structureVariantKey
+    const { x, z } = structurePopup
+    let cancelled = false
+    SeedMapAPI.getStructureVariant({
+      seed,
+      mcVersion: effectiveVersion,
+      dimension,
+      structureType: structure.cubiomesType,
+      x,
+      z,
+    })
+      .then((variant) => {
+        if (!cancelled) setStructureVariantEntry({ key, variant })
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [structureVariantKey, structurePopup, seed, effectiveVersion, dimension])
+  const structureVariant =
+    structureVariantEntry?.key === structureVariantKey
+      ? structureVariantEntry.variant
+      : null
   const seedRef = useRef(seed)
   const dimensionRef = useRef(dimension)
   const effectiveVersionRef = useRef(effectiveVersion)
@@ -191,13 +274,19 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
           isBiomeAvailableInVersion(
             BIOME_METADATA[entry.name]?.added ?? 'desconhecida',
             effectiveVersion,
+            BIOME_METADATA[entry.name]?.removed,
           ),
       ),
     [palette, dimension, effectiveVersion],
   )
   const structuresForDimension = useMemo(
-    () => STRUCTURE_LIST.filter((s) => s.dimension === dimension),
-    [dimension],
+    () =>
+      STRUCTURE_LIST.filter(
+        (s) =>
+          s.dimension === dimension &&
+          isMcVersionAtLeast(s.minVersion, effectiveVersion),
+      ),
+    [dimension, effectiveVersion],
   )
   const visiblePalette = useMemo(() => {
     const q = biomeSearch.trim().toLowerCase()
@@ -330,6 +419,9 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
     }>
   >([])
   const [targetResultIndex, setTargetResultIndex] = useState(0)
+  const [targetResultYs, setTargetResultYs] = useState<Map<string, number>>(
+    new Map(),
+  )
   const [targetSearching, setTargetSearching] = useState(false)
   const targetSearchTokenRef = useRef(0)
   const targetResultsRef = useRef<
@@ -350,6 +442,46 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
   useEffect(() => {
     targetedStructureIdRef.current = targetedStructureId
   }, [targetedStructureId])
+  useEffect(() => {
+    const structureId = targetedStructureId
+    if (targetResults.length === 0 || !seedRef.current || !structureId) return
+    const seed = seedRef.current
+    const mcVersion = effectiveVersionRef.current
+    const dim = dimensionRef.current
+    const layer = mapLayerRef.current
+    const pending = targetResults.filter(
+      (r) => !targetResultYs.has(`${structureId}:${r.x}:${r.z}`),
+    )
+    if (pending.length === 0) return
+    let cancelled = false
+    Promise.allSettled(
+      pending.map((r) =>
+        SeedMapAPI.getColumnInfo({
+          seed,
+          mcVersion,
+          dimension: dim,
+          layer,
+          x: r.x,
+          z: r.z,
+        }).then((info) => [r, info.y] as const),
+      ),
+    ).then((settled) => {
+      if (cancelled) return
+      setTargetResultYs((prev) => {
+        const next = new Map(prev)
+        for (const s of settled) {
+          if (s.status === 'fulfilled') {
+            const [r, y] = s.value
+            next.set(`${structureId}:${r.x}:${r.z}`, y)
+          }
+        }
+        return next
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [targetResults, targetResultYs, targetedStructureId])
   const pinnedTargetKeyRef = useRef<string | null>(null)
   const searchOriginRef = useRef<{
     x: number
@@ -392,6 +524,8 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
   useSeedMapInstance({
     mapDivRef,
     pendingPanRef,
+    placeCustomMarkerRef,
+    handleClearStructureSearchRef,
     mapRef,
     biomeLayerRef,
     biomeSourceRef,
@@ -424,6 +558,8 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
     setCustomMarkerPopup,
     setMapResolution,
     setStructuresHiddenByZoom,
+    showSlimeChunksRef,
+    setSlimeHiddenByZoom,
     setHoverInfo,
     setTargetResultIndex,
     createBiomeSource,
@@ -524,7 +660,7 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
     return () => {
       cancelled = true
     }
-  }, [seed, effectiveVersion, dimension])
+  }, [seed, effectiveVersion, dimension, palette.length])
   useEffect(() => {
     showSlimeChunksRef.current = showSlimeChunks
     seedRef.current = seed
@@ -596,10 +732,32 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
       structureId: id,
       x: result.x,
       z: result.z,
+      y: null,
       completed:
         structureCompletedMap.current.get(`${id}:${result.x}:${result.z}`) ??
         false,
     })
+    if (seedRef.current) {
+      SeedMapAPI.getColumnInfo({
+        seed: seedRef.current,
+        mcVersion: effectiveVersionRef.current,
+        dimension: dimensionRef.current,
+        layer: mapLayerRef.current,
+        x: result.x,
+        z: result.z,
+      })
+        .then((info) => {
+          setStructurePopup((prev) =>
+            prev &&
+            prev.structureId === id &&
+            prev.x === result.x &&
+            prev.z === result.z
+              ? { ...prev, y: info.y }
+              : prev,
+          )
+        })
+        .catch(() => {})
+    }
     const overlay = structureOverlayRef.current
     if (overlay) {
       const iconSizePx = getStructureIconSizePx(
@@ -614,9 +772,9 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
     handleNextTargetResult,
     handleToggleBiomeHighlight,
     handleToggleStructure,
+    handleToggleSlimeChunks,
     handleSelectStructureSearch,
     handleClearStructureSearch,
-    handleSelectBiomeSearch,
     handleGoToEquivalentDimension,
     handleCategoryFilterChange,
     handleGo,
@@ -626,6 +784,9 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
   } = useSeedMapControls({
     mapRef,
     spawnPointRef,
+    placeCustomMarkerRef,
+    structureOverlayRef,
+    setStructurePopup,
     pendingPanRef,
     seedRef,
     effectiveVersionRef,
@@ -639,6 +800,7 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
     setTargetResultIndex,
     setHighlightedBiomeIds,
     setEnabledStructureIds,
+    setShowSlimeChunks,
     setDimension,
     setCustomMarkerPopup,
     setActiveBiomeCategories,
@@ -653,38 +815,15 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
     gotoZ,
     dimensionPalette,
   })
-  if (!isLoadingWorlds && worlds.length === 0) {
-    return (
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <TabHeader description="Mapa de biomas e estruturas do Overworld a partir da seed." />
-        <EmptyState
-          icon={MapIcon}
-          title="Nenhum mundo encontrado"
-          description="Inicie a instÃ¢ncia pelo menos uma vez para gerar dados de mundo."
-          className="min-h-[60vh]"
-        />
-      </div>
-    )
-  }
+  useEffect(() => {
+    handleClearStructureSearchRef.current = handleClearStructureSearch
+  }, [handleClearStructureSearch])
   if (isLoadingWorlds) {
     return (
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <TabHeader description="Mapa de biomas e estruturas do Overworld a partir da seed." />
         <Skeleton className="h-8 w-48" />
         <Skeleton className="flex-1" />
-      </div>
-    )
-  }
-  if (!seed) {
-    return (
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <TabHeader description="Mapa de biomas e estruturas do Overworld a partir da seed." />
-        <EmptyState
-          icon={MapIcon}
-          title="Seed nÃ£o disponÃ­vel"
-          description="O mundo selecionado nÃ£o possui uma seed vÃ¡lida."
-          className="min-h-[60vh]"
-        />
       </div>
     )
   }
@@ -696,6 +835,8 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
         worlds={worlds}
         selectedWorldName={selectedWorldName}
         setSelectedWorldName={setSelectedWorldName}
+        customSeed={customSeed}
+        setCustomSeed={setCustomSeed}
         dimension={dimension}
         setDimension={setDimension}
         mapLayer={mapLayer}
@@ -703,6 +844,8 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
         versionOverride={versionOverride}
         setVersionOverride={setVersionOverride}
         mcVersion={mcVersion}
+        versions={seedMapVersions}
+        isLoadingVersions={isLoadingVersions || supportedVersionIds === null}
         gotoX={gotoX}
         setGotoX={setGotoX}
         gotoZ={gotoZ}
@@ -710,155 +853,183 @@ export function SeedMapTab({ instanceId, mcVersion }: SeedMapTabProps) {
         handleGo={handleGo}
       />
 
-      <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
-        <ResizablePanel minSize="300px">
-          <div className="relative h-full min-w-0">
-            <div
-              ref={mapDivRef}
-              className="h-full min-h-[400px] w-full overflow-hidden rounded-lg border"
-            />
-            {palette.length === 0 && !paletteError && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-sm text-white">
-                  <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Carregando paleta de biomas...
+      {!seed ? (
+        <EmptyState
+          icon={MapIcon}
+          title="Seed não disponível"
+          description={
+            worlds.length === 0
+              ? 'Inicie a instância pelo menos uma vez pra gerar dados de mundo, ou use "Seed customizada..." no seletor de Mundo acima.'
+              : 'O mundo selecionado não possui uma seed válida. Use "Seed customizada..." no seletor de Mundo acima.'
+          }
+          className="min-h-[60vh]"
+        />
+      ) : paletteError && paletteError.version === effectiveVersion ? (
+        <EmptyState
+          icon={MapIcon}
+          title="Versão não suportada"
+          description={`Versão "${effectiveVersion}" não reconhecida. ${paletteError.message}`}
+          className="min-h-[60vh]"
+        />
+      ) : (
+        <ResizablePanelGroup
+          orientation="horizontal"
+          className="min-h-0 flex-1"
+        >
+          <ResizablePanel minSize="300px">
+            <div className="relative h-full min-w-0">
+              <div
+                ref={mapDivRef}
+                className="h-full min-h-[400px] w-full overflow-hidden rounded-lg border"
+              />
+              {palette.length === 0 && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-sm text-white">
+                    <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Carregando paleta de biomas...
+                  </div>
                 </div>
-              </div>
-            )}
-            {paletteError && paletteError.version === effectiveVersion && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <EmptyState
-                  icon={MapIcon}
-                  title="VersÃ£o nÃ£o suportada"
-                  description={`O mapa de seed requer Minecraft 1.18 ou superior. ${paletteError.message}`}
-                  className="min-h-0"
-                />
-              </div>
-            )}
-            {structuresHiddenByZoom && enabledStructureIds.size > 0 && (
-              <div className="bg-background text-muted-foreground absolute top-2 left-2 z-10 rounded-lg border px-2 py-1 text-xs shadow-sm">
-                Aproxime para ver as estruturas
-              </div>
-            )}
-            <TargetResultsNavigator
-              targetedStructureId={targetedStructureId}
-              targetResultsListOpen={targetResultsListOpen}
-              setTargetResultsListOpen={setTargetResultsListOpen}
-              targetResults={targetResults}
-              targetResultIndex={targetResultIndex}
-              setTargetResultIndex={setTargetResultIndex}
-              targetSearching={targetSearching}
-              targetSearchedRadius={targetSearchedRadius}
-              searchOrigin={searchOrigin}
-              handlePrevTargetResult={handlePrevTargetResult}
-              handleNextTargetResult={handleNextTargetResult}
-            />
-            <MapToolsOverlay
-              handleZoomIn={handleZoomIn}
-              handleZoomOut={handleZoomOut}
-              targetedStructureId={targetedStructureId}
-              setStructureSearchOpen={setStructureSearchOpen}
-              handleClearStructureSearch={handleClearStructureSearch}
-              handleReset={handleReset}
-              terrainMode={terrainMode}
-              setTerrainMode={setTerrainMode}
-              dimension={dimension}
-              mapLayer={mapLayer}
-            />
-            <MapStatusOverlay
-              hoverInfo={hoverInfo}
-              mapResolution={mapResolution}
-            />
-            {structurePopup &&
-              createPortal(
-                <StructurePopupContent
-                  popup={structurePopup}
-                  meta={getStructurePopupMeta(structurePopup.structureId)}
-                  isSlimeChunk={
-                    structurePopup.structureId === SLIME_CHUNK_POPUP_ID
-                  }
-                  coordsCopied={coordsCopied}
-                  onCopyCoords={() => {
-                    navigator.clipboard.writeText(
-                      `${structurePopup.x} ${structurePopup.z}`,
-                    )
-                    setCoordsCopied(true)
-                    setTimeout(() => setCoordsCopied(false), 2000)
-                  }}
-                  targetedStructureId={targetedStructureId}
-                  searchOrigin={searchOrigin}
-                  onToggleCompleted={(checked) => {
-                    const key = `${structurePopup.structureId}:${structurePopup.x}:${structurePopup.z}`
-                    structureCompletedMap.current.set(key, checked)
-                    if (seed)
-                      persistStructureCompleted(
-                        seed,
-                        structureCompletedMap.current,
+              )}
+              <StructureSearchButton
+                targetedStructureId={targetedStructureId}
+                setStructureSearchOpen={setStructureSearchOpen}
+                handleClearStructureSearch={handleClearStructureSearch}
+              />
+              {((structuresHiddenByZoom && enabledStructureIds.size > 0) ||
+                slimeHiddenByZoom) && (
+                <div className="bg-background text-muted-foreground absolute right-2 bottom-2 z-10 rounded-lg border px-2 py-1 text-xs shadow-sm">
+                  {structuresHiddenByZoom &&
+                  enabledStructureIds.size > 0 &&
+                  slimeHiddenByZoom
+                    ? 'Aproxime para ver as estruturas e os slime chunks'
+                    : slimeHiddenByZoom
+                      ? 'Aproxime para ver os slime chunks'
+                      : 'Aproxime para ver as estruturas'}
+                </div>
+              )}
+              <TargetResultsNavigator
+                targetedStructureId={targetedStructureId}
+                targetResultsListOpen={targetResultsListOpen}
+                setTargetResultsListOpen={setTargetResultsListOpen}
+                targetResults={targetResults}
+                targetResultYs={targetResultYs}
+                targetResultIndex={targetResultIndex}
+                setTargetResultIndex={setTargetResultIndex}
+                targetSearching={targetSearching}
+                targetSearchedRadius={targetSearchedRadius}
+                searchOrigin={searchOrigin}
+                handlePrevTargetResult={handlePrevTargetResult}
+                handleNextTargetResult={handleNextTargetResult}
+                handleClearStructureSearch={handleClearStructureSearch}
+              />
+              <MapToolsOverlay
+                handleZoomIn={handleZoomIn}
+                handleZoomOut={handleZoomOut}
+                handleReset={handleReset}
+                terrainMode={terrainMode}
+                setTerrainMode={setTerrainMode}
+                dimension={dimension}
+                mapLayer={mapLayer}
+              />
+              <MapStatusOverlay
+                hoverInfo={hoverInfo}
+                mapResolution={mapResolution}
+              />
+              {structurePopup &&
+                createPortal(
+                  <StructurePopupContent
+                    popup={structurePopup}
+                    variant={structureVariant}
+                    meta={getStructurePopupMeta(structurePopup.structureId)}
+                    isSlimeChunk={
+                      structurePopup.structureId === SLIME_CHUNK_POPUP_ID
+                    }
+                    coordsCopied={coordsCopied}
+                    onCopyCoords={() => {
+                      navigator.clipboard.writeText(
+                        structurePopup.y !== null
+                          ? `${structurePopup.x} ${structurePopup.y} ${structurePopup.z}`
+                          : `${structurePopup.x} ${structurePopup.z}`,
                       )
-                    setStructurePopup((prev) =>
-                      prev ? { ...prev, completed: checked } : prev,
-                    )
-                  }}
-                />,
-                structurePopupEl,
-              )}
-            {customMarkerPopup &&
-              createPortal(
-                <CustomMarkerPopupContent
-                  popup={customMarkerPopup}
-                  coordsCopied={coordsCopied}
-                  onCopyCoords={() => {
-                    navigator.clipboard.writeText(
-                      `${customMarkerPopup.x} ${customMarkerPopup.y} ${customMarkerPopup.z}`,
-                    )
-                    setCoordsCopied(true)
-                    setTimeout(() => setCoordsCopied(false), 2000)
-                  }}
-                  detailsOpen={customMarkerDetailsOpen}
-                  setDetailsOpen={setCustomMarkerDetailsOpen}
-                  dimension={dimension}
-                  onGoToEquivalentDimension={handleGoToEquivalentDimension}
-                />,
-                customMarkerPopupEl,
-              )}
-            <StructureSearchDialog
-              structureSearchOpen={structureSearchOpen}
-              setStructureSearchOpen={setStructureSearchOpen}
-              structureSearchQuery={structureSearchQuery}
-              setStructureSearchQuery={setStructureSearchQuery}
+                      setCoordsCopied(true)
+                      setTimeout(() => setCoordsCopied(false), 2000)
+                    }}
+                    targetedStructureId={targetedStructureId}
+                    searchOrigin={searchOrigin}
+                    onToggleCompleted={(checked) => {
+                      const key = `${structurePopup.structureId}:${structurePopup.x}:${structurePopup.z}`
+                      structureCompletedMap.current.set(key, checked)
+                      if (seed)
+                        persistStructureCompleted(
+                          seed,
+                          structureCompletedMap.current,
+                        )
+                      setStructurePopup((prev) =>
+                        prev ? { ...prev, completed: checked } : prev,
+                      )
+                    }}
+                  />,
+                  structurePopupEl,
+                )}
+              {customMarkerPopup &&
+                createPortal(
+                  <CustomMarkerPopupContent
+                    popup={customMarkerPopup}
+                    coordsCopied={coordsCopied}
+                    onCopyCoords={() => {
+                      navigator.clipboard.writeText(
+                        `${customMarkerPopup.x} ${customMarkerPopup.y} ${customMarkerPopup.z}`,
+                      )
+                      setCoordsCopied(true)
+                      setTimeout(() => setCoordsCopied(false), 2000)
+                    }}
+                    onClose={() => {
+                      setCustomMarkerPopup(null)
+                      customMarkerOverlayRef.current?.setPosition(undefined)
+                      customMarkerSourceRef.current?.clear()
+                    }}
+                    detailsOpen={customMarkerDetailsOpen}
+                    setDetailsOpen={setCustomMarkerDetailsOpen}
+                    dimension={dimension}
+                    onGoToEquivalentDimension={handleGoToEquivalentDimension}
+                  />,
+                  customMarkerPopupEl,
+                )}
+              <StructureSearchDialog
+                structureSearchOpen={structureSearchOpen}
+                setStructureSearchOpen={setStructureSearchOpen}
+                structureSearchQuery={structureSearchQuery}
+                setStructureSearchQuery={setStructureSearchQuery}
+                structuresForDimension={structuresForDimension}
+                enabledStructureIds={enabledStructureIds}
+                handleSelectStructureSearch={handleSelectStructureSearch}
+              />
+            </div>
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel defaultSize="256px" minSize="200px" maxSize="420px">
+            <SeedMapLegendPanel
+              categorizedPalette={categorizedPalette}
+              highlightedBiomeIds={highlightedBiomeIds}
+              handleToggleBiomeHighlight={handleToggleBiomeHighlight}
+              getBiomeDisplayName={getBiomeDisplayName}
+              biomeSearch={biomeSearch}
+              setBiomeSearch={setBiomeSearch}
+              presentBiomeCategories={presentBiomeCategories}
+              activeBiomeCategories={activeBiomeCategories}
+              handleCategoryFilterChange={handleCategoryFilterChange}
+              showSpawn={showSpawn}
+              setShowSpawn={setShowSpawn}
+              showSlimeChunks={showSlimeChunks}
+              handleToggleSlimeChunks={handleToggleSlimeChunks}
+              dimension={dimension}
               structuresForDimension={structuresForDimension}
               enabledStructureIds={enabledStructureIds}
-              handleSelectStructureSearch={handleSelectStructureSearch}
-              dimensionPalette={dimensionPalette}
-              highlightedBiomeIds={highlightedBiomeIds}
-              handleSelectBiomeSearch={handleSelectBiomeSearch}
-              getBiomeDisplayName={getBiomeDisplayName}
+              handleToggleStructure={handleToggleStructure}
             />
-          </div>
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel defaultSize="256px" minSize="200px" maxSize="420px">
-          <SeedMapLegendPanel
-            categorizedPalette={categorizedPalette}
-            highlightedBiomeIds={highlightedBiomeIds}
-            handleToggleBiomeHighlight={handleToggleBiomeHighlight}
-            getBiomeDisplayName={getBiomeDisplayName}
-            biomeSearch={biomeSearch}
-            setBiomeSearch={setBiomeSearch}
-            presentBiomeCategories={presentBiomeCategories}
-            activeBiomeCategories={activeBiomeCategories}
-            handleCategoryFilterChange={handleCategoryFilterChange}
-            showSpawn={showSpawn}
-            setShowSpawn={setShowSpawn}
-            showSlimeChunks={showSlimeChunks}
-            setShowSlimeChunks={setShowSlimeChunks}
-            dimension={dimension}
-            structuresForDimension={structuresForDimension}
-            enabledStructureIds={enabledStructureIds}
-            handleToggleStructure={handleToggleStructure}
-          />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      )}
     </div>
   )
 }

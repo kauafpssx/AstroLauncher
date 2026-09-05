@@ -6,16 +6,11 @@ import VectorLayer from 'ol/layer/Vector'
 import WebGLTileLayer from 'ol/layer/WebGLTile'
 import Feature from 'ol/Feature'
 import Point from 'ol/geom/Point'
-import {
-  Style as OlStyle,
-  Fill as OlFill,
-  Stroke as OlStroke,
-} from 'ol/style'
+import { Style as OlStyle, Fill as OlFill, Stroke as OlStroke } from 'ol/style'
 import Overlay from 'ol/Overlay'
+import { defaults as defaultInteractions } from 'ol/interaction/defaults'
 import { SeedMapAPI } from '@/features/instances/services/seed-map.api'
-import {
-  STRUCTURE_BY_ID,
-} from '@/features/instances/components/edit-instance/seed-map/components/seed-map-shared'
+import { STRUCTURE_BY_ID } from '@/features/instances/components/edit-instance/seed-map/components/seed-map-shared'
 import {
   CUSTOM_MARKER_STYLE,
   getStructureHighlightRingStyle,
@@ -31,14 +26,20 @@ import {
   getStructureMaxResolution,
   mcProjection,
 } from '@/features/instances/components/edit-instance/seed-map/lib/seed-map-geo'
-import {
-  SLIME_CHUNK_POPUP_ID,
-} from '@/features/instances/components/edit-instance/seed-map/lib/seed-map-popups'
-import { STRUCTURE_LIST } from '@/features/instances/components/edit-instance/seed-map/structure-metadata'
-import type { BiomePaletteEntry, SeedMapDimension, SeedMapLayer } from '@/types/seed-map'
+import { SLIME_CHUNK_POPUP_ID } from '@/features/instances/components/edit-instance/seed-map/lib/seed-map-popups'
+import { STRUCTURE_LIST } from '@/data/structure-metadata'
+import type {
+  BiomePaletteEntry,
+  SeedMapDimension,
+  SeedMapLayer,
+} from '@/types/seed-map'
 interface UseSeedMapInstanceParams {
   mapDivRef: React.RefObject<HTMLDivElement | null>
-  pendingPanRef: React.RefObject<{ x: number; z: number; placeMarker: boolean } | null>
+  pendingPanRef: React.RefObject<{
+    x: number
+    z: number
+    placeMarker: boolean
+  } | null>
   mapRef: React.RefObject<OlMap | null>
   biomeLayerRef: React.RefObject<WebGLTileLayer | null>
   biomeSourceRef: React.RefObject<import('ol/source/DataTile').default | null>
@@ -66,29 +67,38 @@ interface UseSeedMapInstanceParams {
   targetResultsRef: React.RefObject<Array<{ x: number; z: number }>>
   structureCompletedMap: React.RefObject<Map<string, boolean>>
   palette: BiomePaletteEntry[]
-  setStructurePopup: React.Dispatch<React.SetStateAction<{
-    structureId: string
-    x: number
-    z: number
-    completed: boolean
-  } | null>>
+  setStructurePopup: React.Dispatch<
+    React.SetStateAction<{
+      structureId: string
+      x: number
+      z: number
+      y: number | null
+      completed: boolean
+    } | null>
+  >
   setCustomMarkerDetailsOpen: React.Dispatch<React.SetStateAction<boolean>>
-  setCustomMarkerPopup: React.Dispatch<React.SetStateAction<{
-    x: number
-    y: number
-    z: number
-    biomeName: string | null
-    biomeColor: string | null
-  } | null>>
+  setCustomMarkerPopup: React.Dispatch<
+    React.SetStateAction<{
+      x: number
+      y: number
+      z: number
+      biomeName: string | null
+      biomeColor: string | null
+    } | null>
+  >
   setMapResolution: React.Dispatch<React.SetStateAction<number>>
   setStructuresHiddenByZoom: React.Dispatch<React.SetStateAction<boolean>>
-  setHoverInfo: React.Dispatch<React.SetStateAction<{
-    x: number
-    z: number
-    y: number | null
-    biomeName: string | null
-    biomeColor: string | null
-  } | null>>
+  showSlimeChunksRef: React.RefObject<boolean>
+  setSlimeHiddenByZoom: React.Dispatch<React.SetStateAction<boolean>>
+  setHoverInfo: React.Dispatch<
+    React.SetStateAction<{
+      x: number
+      z: number
+      y: number | null
+      biomeName: string | null
+      biomeColor: string | null
+    } | null>
+  >
   setTargetResultIndex: React.Dispatch<React.SetStateAction<number>>
   createBiomeSource: () => import('ol/source/DataTile').default
   fetchVisibleSlimeChunks: () => void
@@ -102,9 +112,13 @@ interface UseSeedMapInstanceParams {
   dimension: SeedMapDimension
   mapLayer: SeedMapLayer
   getBiomeDisplayName: (entry: BiomePaletteEntry) => string
+  placeCustomMarkerRef: React.RefObject<((x: number, z: number) => void) | null>
+  handleClearStructureSearchRef: React.RefObject<(() => void) | null>
 }
 export function useSeedMapInstance({
   mapDivRef,
+  placeCustomMarkerRef,
+  handleClearStructureSearchRef,
   pendingPanRef,
   mapRef,
   biomeLayerRef,
@@ -138,6 +152,8 @@ export function useSeedMapInstance({
   setCustomMarkerPopup,
   setMapResolution,
   setStructuresHiddenByZoom,
+  showSlimeChunksRef,
+  setSlimeHiddenByZoom,
   setHoverInfo,
   setTargetResultIndex,
   createBiomeSource,
@@ -215,6 +231,7 @@ export function useSeedMapInstance({
     const map = new OlMap({
       target: mapDivRef.current,
       controls: [],
+      interactions: defaultInteractions({ doubleClickZoom: false }),
       maxTilesLoading: 8,
       layers: [
         biomeLayer,
@@ -294,6 +311,7 @@ export function useSeedMapInstance({
     if (pendingPan?.placeMarker) {
       placeCustomMarker(pendingPan.x, pendingPan.z)
     }
+    placeCustomMarkerRef.current = placeCustomMarker
     const handleContextMenu = (evt: MouseEvent) => {
       evt.preventDefault()
       const pixel = map.getEventPixel(evt)
@@ -324,6 +342,21 @@ export function useSeedMapInstance({
         setStructurePopup(null)
         structureOverlay.setPosition(undefined)
       }
+      const slimeHidden =
+        showSlimeChunksRef.current && resolution > SLIME_MAX_RESOLUTION
+      setSlimeHiddenByZoom((prev) =>
+        prev === slimeHidden ? prev : slimeHidden,
+      )
+      const targetedId = targetedStructureIdRef.current
+      const targetedStructure = targetedId
+        ? STRUCTURE_BY_ID.get(targetedId)
+        : undefined
+      if (
+        targetedStructure &&
+        resolution >= getStructureMaxResolution(targetedStructure)
+      ) {
+        handleClearStructureSearchRef.current?.()
+      }
     }
     updateStructuresZoomState()
     map.on('moveend', () => {
@@ -333,7 +366,83 @@ export function useSeedMapInstance({
       updateStructuresZoomState()
       updateTargetLine()
     })
-    const handlePointerMove = (evt: { coordinate: number[] }) => {
+    let isPointerDown = false
+    let isDragging = false
+    let holdTimeoutId: number | null = null
+    let downClientPos: [number, number] | null = null
+    const clearHoldTimeout = () => {
+      if (holdTimeoutId !== null) {
+        window.clearTimeout(holdTimeoutId)
+        holdTimeoutId = null
+      }
+    }
+    const setMapCursor = (cursor: 'grab' | 'grabbing' | 'pointer' | null) => {
+      const el = mapDivRef.current
+      if (!el) return
+      el.classList.remove('cursor-grab', 'cursor-grabbing', 'cursor-pointer')
+      if (cursor) el.classList.add(`cursor-${cursor}`)
+    }
+    const handleMouseDown = (evt: MouseEvent) => {
+      if (evt.button !== 0) return
+      isPointerDown = true
+      isDragging = false
+      downClientPos = [evt.clientX, evt.clientY]
+      clearHoldTimeout()
+      holdTimeoutId = window.setTimeout(() => {
+        if (isPointerDown) {
+          isDragging = true
+          setMapCursor('grabbing')
+        }
+      }, 1000)
+    }
+    const handleMouseMoveForDrag = (evt: MouseEvent) => {
+      if (!isPointerDown || !downClientPos) return
+      if (isDragging) return
+      const dx = evt.clientX - downClientPos[0]
+      const dy = evt.clientY - downClientPos[1]
+      if (Math.hypot(dx, dy) > 3) {
+        isDragging = true
+        clearHoldTimeout()
+        setMapCursor('grabbing')
+      }
+    }
+    const handleMouseUp = () => {
+      isPointerDown = false
+      isDragging = false
+      clearHoldTimeout()
+      setMapCursor(null)
+    }
+    mapDivRef.current.addEventListener('mousedown', handleMouseDown)
+    window.addEventListener('mousemove', handleMouseMoveForDrag)
+    window.addEventListener('mouseup', handleMouseUp)
+    let cursorRafId: number | null = null
+    let pendingCursorPixel: number[] | null = null
+    const flushCursorHitTest = () => {
+      cursorRafId = null
+      if (isPointerDown || !pendingCursorPixel) return
+      const hoveredFeature = map.forEachFeatureAtPixel(
+        pendingCursorPixel,
+        (f) => f,
+        {
+          layerFilter: (l) =>
+            l === structureLayerRef.current ||
+            l === slimeLayerRef.current ||
+            l === customMarkerLayerRef.current ||
+            l === spawnLayerRef.current,
+        },
+      )
+      setMapCursor(hoveredFeature ? 'pointer' : null)
+    }
+    const handlePointerMove = (evt: {
+      coordinate: number[]
+      pixel: number[]
+    }) => {
+      if (!isPointerDown) {
+        pendingCursorPixel = evt.pixel
+        if (cursorRafId === null) {
+          cursorRafId = requestAnimationFrame(flushCursorHitTest)
+        }
+      }
       const bx = Math.floor(evt.coordinate[0])
       const bz = Math.floor(-evt.coordinate[1])
       setHoverInfo((prev) =>
@@ -382,6 +491,7 @@ export function useSeedMapInstance({
     const handlePointerLeave = () => {
       hoverLastFetchedRef.current = null
       setHoverInfo(null)
+      if (!isPointerDown) setMapCursor(null)
     }
     map.on('pointermove', handlePointerMove)
     mapDivRef.current.addEventListener('pointerleave', handlePointerLeave)
@@ -397,10 +507,32 @@ export function useSeedMapInstance({
           structureId,
           x,
           z,
+          y: null,
           completed:
             structureCompletedMap.current.get(`${structureId}:${x}:${z}`) ??
             false,
         })
+        if (seedRef.current) {
+          SeedMapAPI.getColumnInfo({
+            seed: seedRef.current,
+            mcVersion: effectiveVersionRef.current,
+            dimension: dimensionRef.current,
+            layer: mapLayerRef.current,
+            x,
+            z,
+          })
+            .then((info) => {
+              setStructurePopup((prev) =>
+                prev &&
+                prev.structureId === structureId &&
+                prev.x === x &&
+                prev.z === z
+                  ? { ...prev, y: info.y }
+                  : prev,
+              )
+            })
+            .catch(() => {})
+        }
         const iconSizePx = getStructureIconSizePx(
           map.getView().getResolution() ?? RESOLUTION,
         )
@@ -430,6 +562,7 @@ export function useSeedMapInstance({
           structureId: SLIME_CHUNK_POPUP_ID,
           x,
           z,
+          y: null,
           completed: false,
         })
         structureOverlay.setOffset([0, -8])
@@ -467,6 +600,11 @@ export function useSeedMapInstance({
       map.un('pointermove', handlePointerMove)
       mapDivRef.current?.removeEventListener('pointerleave', handlePointerLeave)
       mapDivRef.current?.removeEventListener('contextmenu', handleContextMenu)
+      mapDivRef.current?.removeEventListener('mousedown', handleMouseDown)
+      window.removeEventListener('mousemove', handleMouseMoveForDrag)
+      window.removeEventListener('mouseup', handleMouseUp)
+      clearHoldTimeout()
+      if (cursorRafId !== null) cancelAnimationFrame(cursorRafId)
       map.setTarget(undefined)
       mapRef.current = null
       biomeLayerRef.current = null
@@ -475,6 +613,7 @@ export function useSeedMapInstance({
       spawnSourceRef.current = null
       slimeLayerRef.current = null
       slimeSourceRef.current = null
+      placeCustomMarkerRef.current = null
     }
   }, [
     seed,
