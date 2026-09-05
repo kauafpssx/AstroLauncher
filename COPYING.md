@@ -245,11 +245,11 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 
 | Pacote                    | Versão  | Licença |
 | ------------------------- | ------- | ------- |
-| `@tiptap/react`           | 3.29.0  | MIT     |
-| `@tiptap/starter-kit`     | 3.29.0  | MIT     |
-| `@tiptap/pm`              | 3.29.0  | MIT     |
-| `@tiptap/extension-image` | 3.29.0  | MIT     |
-| `@tiptap/suggestion`      | 3.29.2  | MIT     |
+| `@tiptap/react`           | 3.31.3  | MIT     |
+| `@tiptap/starter-kit`     | 3.31.3  | MIT     |
+| `@tiptap/pm`              | 3.31.3  | MIT     |
+| `@tiptap/extension-image` | 3.31.3  | MIT     |
+| `@tiptap/suggestion`      | 3.31.3  | MIT     |
 | `tiptap-markdown`         | 0.9.0   | MIT     |
 | `@uiw/react-codemirror`   | 4.25.11 | MIT     |
 | `@codemirror/lang-json`   | 6.0.2   | MIT     |
