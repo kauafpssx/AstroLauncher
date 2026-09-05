@@ -3,7 +3,6 @@ use crate::domain::errors::InstanceError;
 
 pub type Result<T> = std::result::Result<T, InstanceError>;
 
-/// Local SQLite database; no async needed (see docs/12-armazenamento.md 12.10).
 pub trait InstanceRepository: Send + Sync {
     fn find_all(&self) -> Result<Vec<Instance>>;
     fn find_by_id(&self, id: &str) -> Result<Instance>;

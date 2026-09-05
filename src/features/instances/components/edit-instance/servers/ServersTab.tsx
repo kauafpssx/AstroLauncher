@@ -1,7 +1,6 @@
 import { Pencil, Plus, Server, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
 import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
 import { TabHeader } from '@/components/common/TabHeader'
 import { Button } from '@/components/ui/button'
@@ -16,21 +15,17 @@ import {
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 import { tooltipProps } from '@/lib/tooltip'
 import type { ServerEntryDTO } from '@/types/server'
-
 import { ServerEditDialog } from './ServerEditDialog'
 import type { EditingState } from './server-editing'
-
 interface ServersTabProps {
   instanceId: string
 }
-
 export function ServersTab({ instanceId }: ServersTabProps) {
   const [servers, setServers] = useState<ServerEntryDTO[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [editing, setEditing] = useState<EditingState | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<ServerEntryDTO | null>(null)
   const [isSaving, setIsSaving] = useState(false)
-
   const load = async () => {
     try {
       setServers(await InstanceWorkspaceAPI.listServers(instanceId))
@@ -40,7 +35,6 @@ export function ServersTab({ instanceId }: ServersTabProps) {
       setIsLoading(false)
     }
   }
-
   useEffect(() => {
     let cancelled = false
     InstanceWorkspaceAPI.listServers(instanceId)
@@ -55,7 +49,6 @@ export function ServersTab({ instanceId }: ServersTabProps) {
       cancelled = true
     }
   }, [instanceId])
-
   const handleSave = async () => {
     if (!editing || !editing.name.trim() || !editing.ip.trim()) return
     setIsSaving(true)
@@ -82,7 +75,6 @@ export function ServersTab({ instanceId }: ServersTabProps) {
       setIsSaving(false)
     }
   }
-
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
@@ -94,7 +86,6 @@ export function ServersTab({ instanceId }: ServersTabProps) {
       setDeleteTarget(null)
     }
   }
-
   return (
     <div className="flex flex-col gap-3">
       <TabHeader description="Servidores salvos nesta instância.">

@@ -4,18 +4,10 @@ use crate::infrastructure::filesystem::shortcut;
 use super::InstanceWorkspaceService;
 
 impl InstanceWorkspaceService {
-    /// Desktop shortcuts for every instance, keyed by instance id. The
-    /// frontend derives the per-instance toggle state from this list.
     pub fn list_shortcut_ids(&self) -> Result<Vec<String>, InstanceError> {
         shortcut::list_instance_ids().map_err(|e| InstanceError::Persistence(e.to_string()))
     }
 
-    /// Resolves an instance's icon into raw PNG bytes for the shortcut.
-    /// `icon_path` is either a data URI, an absolute filesystem path to a
-    /// custom upload (both readable straight from Rust: no webview round
-    /// trip needed), or a bundled preset under `/picker/...` served by the
-    /// webview, which only the frontend can fetch: `picker_png_base64` is
-    /// its answer for that case.
     fn resolve_shortcut_icon(
         icon_path: Option<&str>,
         picker_png_base64: Option<&str>,
@@ -41,8 +33,6 @@ impl InstanceWorkspaceService {
         Ok(Some(std::fs::read(path)?))
     }
 
-    /// Creates the instance's desktop shortcut if absent, removes it if
-    /// present. Returns the new state (`true` = shortcut exists).
     pub fn toggle_shortcut(
         &self,
         id: &str,
@@ -70,9 +60,6 @@ impl InstanceWorkspaceService {
         }
     }
 
-    /// Re-creates the instance's shortcut with its current icon: a no-op if
-    /// no shortcut exists. Called after the icon changes so an existing
-    /// shortcut picks it up without the user having to toggle it off/on.
     pub fn refresh_shortcut_icon(
         &self,
         id: &str,

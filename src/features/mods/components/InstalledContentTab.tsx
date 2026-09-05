@@ -1,6 +1,7 @@
 import { Plus, Puzzle } from 'lucide-react'
-
+import { SearchInput } from '@/components/common/SearchInput'
 import { TabHeader } from '@/components/common/TabHeader'
+import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -12,20 +13,17 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import type { ContentKind } from '@/types/mods'
-
 import { InstalledContentBatchBar } from './InstalledContentBatchBar'
-import { InstalledContentRow } from './InstalledContentRow'
+import { MemoizedInstalledContentRow } from './InstalledContentRow'
 import { LABELS } from './installed-content-tab.constants'
 import { ModBrowserDialog } from './ModBrowserDialog'
 import { useInstalledContent } from './useInstalledContent'
-
 interface InstalledContentTabProps {
   instanceId: string
   gameVersion: string
   loader: string | null
   kind: ContentKind
 }
-
 export function InstalledContentTab({
   instanceId,
   gameVersion,
@@ -36,9 +34,12 @@ export function InstalledContentTab({
   const content = useInstalledContent({ instanceId, kind })
   const {
     items,
+    filteredItems,
     isLoading,
     searchOpen,
     setSearchOpen,
+    searchQuery,
+    setSearchQuery,
     load,
     handleToggle,
     handleDelete,
@@ -55,11 +56,18 @@ export function InstalledContentTab({
     handleBatchToggle,
     handleBatchDelete,
   } = content
-
   return (
     <div className="flex flex-col gap-3">
-      <TabHeader description={labels.title}>
-        <Button size="sm" onClick={() => setSearchOpen(true)}>
+      <TabHeader
+        description={isLoading ? 'Carregando...' : labels.title(items.length)}
+      >
+        <SearchInput
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={`Buscar ${labels.pluralLabel.toLowerCase()}...`}
+          containerClassName="w-64"
+        />
+        <Button onClick={() => setSearchOpen(true)}>
           <Plus /> {labels.addLabel}
         </Button>
       </TabHeader>
@@ -87,27 +95,36 @@ export function InstalledContentTab({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!isLoading && items.length === 0 && (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-32">
+                  <CenteredSpinner />
+                </TableCell>
+              </TableRow>
+            ) : filteredItems.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={6}
                   className="text-muted-foreground h-24 text-center"
                 >
                   <Puzzle className="mx-auto mb-2 size-6" />
-                  {labels.emptyLabel}
+                  {searchQuery.trim()
+                    ? `Nenhum resultado para "${searchQuery}"`
+                    : labels.emptyLabel}
                 </TableCell>
               </TableRow>
+            ) : (
+              filteredItems.map((item) => (
+                <MemoizedInstalledContentRow
+                  key={item.id}
+                  item={item}
+                  isSelected={selectedIds.has(item.id)}
+                  onToggleSelected={toggleSelected}
+                  onToggleEnabled={handleToggle}
+                  onDelete={handleDelete}
+                />
+              ))
             )}
-            {items.map((item) => (
-              <InstalledContentRow
-                key={item.id}
-                item={item}
-                isSelected={selectedIds.has(item.id)}
-                onToggleSelected={toggleSelected}
-                onToggleEnabled={handleToggle}
-                onDelete={handleDelete}
-              />
-            ))}
           </TableBody>
         </Table>
       </div>

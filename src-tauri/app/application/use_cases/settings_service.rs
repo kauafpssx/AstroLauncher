@@ -23,6 +23,7 @@ impl SettingsService {
             root_group_name: settings.root_group_name,
             root_group_icon: settings.root_group_icon,
             zerotier_api_token: settings.zerotier_api_token,
+            auto_update_enabled: settings.auto_update_enabled.unwrap_or(true),
         }
     }
 
@@ -46,6 +47,7 @@ impl SettingsService {
             root_group_name: input.root_group_name.or(current.root_group_name),
             root_group_icon: input.root_group_icon.or(current.root_group_icon),
             zerotier_api_token: input.zerotier_api_token.or(current.zerotier_api_token),
+            auto_update_enabled: input.auto_update_enabled.or(current.auto_update_enabled),
         };
         json_settings_repository::write(&self.app_data_dir, &settings)?;
         Ok(SettingsDTO {
@@ -54,6 +56,7 @@ impl SettingsService {
             root_group_name: settings.root_group_name,
             root_group_icon: settings.root_group_icon,
             zerotier_api_token: settings.zerotier_api_token,
+            auto_update_enabled: settings.auto_update_enabled.unwrap_or(true),
         })
     }
 }

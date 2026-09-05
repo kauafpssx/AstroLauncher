@@ -7,10 +7,6 @@ use crate::domain::errors::InstanceError;
 use super::InstanceWorkspaceService;
 
 impl InstanceWorkspaceService {
-    /// Notes live as individual `.md` files under `notes/`: the file name
-    /// (sans extension) is both the note's id and its title. A lone legacy
-    /// `notes.txt` (pre-multi-note) is migrated in transparently the first
-    /// time the list is read.
     fn notes_dir(&self, id: &str) -> Result<PathBuf, InstanceError> {
         let instance_dir = self.instance_dir(id)?;
         let notes_dir = instance_dir.join("notes");
@@ -79,8 +75,6 @@ impl InstanceWorkspaceService {
         std::fs::write(path, content).map_err(|e| InstanceError::Persistence(e.to_string()))
     }
 
-    /// Finds a `<base> N.md`-style name that doesn't collide with an
-    /// existing note: shared by note creation and renaming.
     fn unique_note_title(&self, dir: &Path, base: &str) -> String {
         let trimmed = base.trim();
         let base = if trimmed.is_empty() {
@@ -88,8 +82,6 @@ impl InstanceWorkspaceService {
         } else {
             trimmed
         };
-        // The title doubles as the note's file name; strip path separators so
-        // a crafted title can't escape notes/ (same as AstroPack import).
         let base = base.replace(['/', '\\'], "-");
         if !dir.join(format!("{base}.md")).exists() {
             return base.clone();

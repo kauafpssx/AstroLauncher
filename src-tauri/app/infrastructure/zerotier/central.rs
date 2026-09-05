@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-/// ZeroTier Central API base URL, sourced from `plugins.env` in
-/// `tauri.conf.json` like every other external endpoint.
 pub fn base_url() -> &'static str {
     crate::infrastructure::config::api()
         .zerotier_central

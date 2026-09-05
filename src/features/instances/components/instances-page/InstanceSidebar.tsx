@@ -1,16 +1,13 @@
 import { Clock } from 'lucide-react'
 import { useState } from 'react'
-
 import { Button } from '@/components/ui/button'
+import { IconPickerButton } from '@/features/instances/components/icon-picker/IconPickerButton'
+import { useInstanceIcon } from '@/features/instances/hooks/useInstanceIcon'
+import { usePlaytimeSummary } from '@/features/instances/hooks/usePlaytimeSummary'
+import { getInstanceActions } from '@/features/instances/lib/instance-actions'
 import { formatDateTime, formatDuration, parseLauncherDate } from '@/lib/format'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { InstanceDTO } from '@/types/instance'
-
-import { useInstanceIcon } from '../hooks/useInstanceIcon'
-import { usePlaytimeSummary } from '../hooks/usePlaytimeSummary'
-import { getInstanceActions } from '../lib/instance-actions'
-import { IconPickerButton } from './IconPickerButton'
-
 interface InstanceSidebarProps {
   instance: InstanceDTO
   isRunning: boolean
@@ -21,7 +18,6 @@ interface InstanceSidebarProps {
   onExport: (id: string) => void
   onDuplicate: (id: string) => void
 }
-
 export function InstanceSidebar({
   instance,
   isRunning,
@@ -47,13 +43,6 @@ export function InstanceSidebar({
   const [primaryAction, ...rest] = actions
   const deleteAction = rest.find((a) => a.key === 'delete')!
   const secondaryActions = rest.filter((a) => a.key !== 'delete')
-
-  // Guards the launch/stop and shortcut toggle buttons against double-clicks
-  // while their own async call is in flight (e.g. clicking "Criar Atalho"
-  // twice before the first `.lnk` write finishes) — `onSelect` here always
-  // returns the underlying action's promise, even though the shared
-  // `ContextMenuAction` type declares it `void` for context-menu callers
-  // that don't need to await it.
   const [pendingKey, setPendingKey] = useState<string | null>(null)
   const runAction = async (key: string, onSelect: () => void) => {
     if (pendingKey) return
@@ -64,7 +53,6 @@ export function InstanceSidebar({
       setPendingKey(null)
     }
   }
-
   return (
     <aside className="flex h-full min-w-0 flex-col gap-4 border-l p-4">
       <div className="flex flex-col items-center gap-2 text-center">

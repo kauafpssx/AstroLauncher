@@ -24,6 +24,8 @@ pub struct AstroPackManifest {
     pub servers: Vec<AstroPackServerEntry>,
     #[serde(default)]
     pub screenshots: Vec<String>,
+    #[serde(default)]
+    pub configs: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,6 +59,7 @@ pub struct AstroPackServerEntry {
 #[serde(rename_all = "camelCase")]
 pub struct ExportSelection {
     pub settings: bool,
+    pub configs: bool,
     pub worlds: bool,
     pub notes: bool,
     pub mods: bool,
@@ -75,6 +78,7 @@ pub struct ExportSummaryDTO {
     pub worlds: usize,
     pub has_notes: bool,
     pub has_settings: bool,
+    pub configs: usize,
     pub servers: usize,
     pub screenshots: usize,
 }

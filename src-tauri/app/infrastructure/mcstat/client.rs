@@ -69,9 +69,6 @@ struct SkinDetailResponse {
     error: Option<String>,
 }
 
-/// Searches mcstat.org's community skin uploads. `sort` mirrors their own
-/// values: `recent`, `popular`, `trending`. `model` filters by skin model
-/// (`classic`/`slim`) when given.
 pub async fn search(
     client: &reqwest::Client,
     api_key: &str,
@@ -112,8 +109,6 @@ pub async fn search(
     Ok(response.data.map(|d| d.skins).unwrap_or_default())
 }
 
-/// Fetches a skin's detail by slug, including every player profile currently
-/// wearing it.
 pub async fn get_skin(
     client: &reqwest::Client,
     api_key: &str,

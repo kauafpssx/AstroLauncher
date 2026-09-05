@@ -17,7 +17,6 @@ import {
 } from '@dnd-kit/sortable'
 import { Plus, UserCircle2 } from 'lucide-react'
 import { useState } from 'react'
-
 import { EmptyState } from '@/components/common/EmptyState'
 import { Button } from '@/components/ui/button'
 import {
@@ -37,16 +36,13 @@ import {
 } from '@/components/ui/table'
 import { useAccountStore } from '@/stores/account.store'
 import type { AccountDTO } from '@/types/account'
-
-import { useAccounts } from '../hooks/useAccounts'
+import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { AccountRow } from './AccountRow'
 import { AccountSheet } from './AccountSheet'
-
 interface AccountsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
-
 export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
   const { accounts } = useAccounts()
   const createAccount = useAccountStore((s) => s.createAccount)
@@ -54,23 +50,19 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
   const deleteAccount = useAccountStore((s) => s.deleteAccount)
   const setDefaultAccount = useAccountStore((s) => s.setDefaultAccount)
   const reorderAccounts = useAccountStore((s) => s.reorderAccounts)
-
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingAccount, setEditingAccount] = useState<AccountDTO | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
   )
-
   const openCreate = () => {
     setEditingAccount(null)
     setSheetOpen(true)
   }
-
   const openEdit = (account: AccountDTO) => {
     setEditingAccount(account)
     setSheetOpen(true)
   }
-
   const handleSubmit = async (username: string, iconPath: string | null) => {
     if (editingAccount) {
       await updateAccount({ id: editingAccount.id, username, iconPath })
@@ -78,11 +70,9 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
       await createAccount({ username, iconPath })
     }
   }
-
   const handleDelete = async (id: string) => {
     await deleteAccount(id)
   }
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
@@ -91,7 +81,6 @@ export function AccountsDialog({ open, onOpenChange }: AccountsDialogProps) {
     const toIndex = ids.indexOf(over.id as string)
     reorderAccounts(arrayMove(ids, fromIndex, toIndex))
   }
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>

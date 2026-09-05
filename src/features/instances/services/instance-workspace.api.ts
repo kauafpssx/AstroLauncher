@@ -4,7 +4,6 @@ import type { NoteDTO } from '@/types/note'
 import type { ScreenshotDTO } from '@/types/screenshot'
 import type { ServerEntryDTO } from '@/types/server'
 import type { WorldDTO } from '@/types/world'
-
 export const InstanceWorkspaceAPI = {
   readLog(id: string): Promise<string> {
     return apiInvoke<string>('read_instance_log', { id })

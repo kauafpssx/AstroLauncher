@@ -23,34 +23,12 @@ use crate::infrastructure::process::launcher;
 use crate::infrastructure::process::manager::ProcessManager;
 use crate::infrastructure::process::window_placement;
 
-/// Fabric/Quilt/LiteLoader libraries have no advertised size: used only to
-/// keep the overall progress bar moving sensibly before they're downloaded.
 const ESTIMATED_LOADER_LIBRARY_BYTES: u64 = 300_000;
 
-/// Library downloads hit Mojang/Forge/NeoForge Maven repos in parallel
-/// instead of one at a time — moderate concurrency, unlike
-/// `asset_downloader`'s 16 (thousands of tiny asset files vs. dozens of
-/// jars), so it stays polite to Maven-style hosts.
 const LIBRARY_CONCURRENCY: usize = 8;
 
-/// Ceiling on the whole Forge/NeoForge preparation step (installer run +
-/// library/asset download + native extraction). That entire sequence is
-/// delegated to `mc-launcher-core` (see `forge_like`), whose blocking HTTP
-/// client has no request timeout configured anywhere — a single stalled
-/// connection to a Maven-style host hangs the sequential download loop
-/// forever, freezing the launch dialog with no way to recover (observed in
-/// practice, repeatedly, on `com.mojang:text2speech`). `tokio::time::timeout`
-/// can't actually abort the blocked OS thread — the crate offers no
-/// injection point for a client with its own timeout — so this only bounds
-/// how long the *user* waits before seeing a retryable error instead of an
-/// infinite spinner; the leaked thread quietly finishes or dies on its own.
 const FORGE_PREPARE_TIMEOUT: Duration = Duration::from_secs(180);
 
-/// Builds `--width`/`--height` game args from the instance's window
-/// settings. These are real, documented Minecraft launch arguments (see
-/// `custom_resolution` in `mc-launcher-core`) — unlike fullscreen, which has
-/// no CLI equivalent and is applied via `options.txt` instead (see
-/// `options_file::set_option`, called right before spawning).
 fn resolution_args(width: Option<i64>, height: Option<i64>) -> Vec<String> {
     match (width, height) {
         (Some(w), Some(h)) => vec![
@@ -72,16 +50,10 @@ pub struct LaunchInstanceUseCase {
     process_manager: Arc<ProcessManager>,
     http_client: reqwest::Client,
     app_data_dir: PathBuf,
-    /// Only one launch preparation runs from the UI at a time, so a single
-    /// shared flag is enough to signal cancellation into whichever download
-    /// step is currently running. Once Forge/NeoForge's own installer starts
-    /// (a blocking third-party call we don't control), cancellation can no
-    /// longer interrupt it: the flag only stops things before that point.
     cancelled: Arc<AtomicBool>,
 }
 
 impl LaunchInstanceUseCase {
-    // Dependency-injection constructor: many parameters are expected here.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         instance_repository: Arc<dyn InstanceRepository>,
@@ -106,8 +78,6 @@ impl LaunchInstanceUseCase {
         }
     }
 
-    /// Signals the currently-running launch preparation (if any) to stop
-    /// before its next checkpoint.
     pub fn cancel(&self) {
         self.cancelled.store(true, Ordering::SeqCst);
     }
@@ -175,9 +145,6 @@ impl LaunchInstanceUseCase {
         (*on_event)(LaunchEventDTO::Stage {
             label: "Verificando Java".to_string(),
         });
-        // A custom Java path (set in the instance's settings) always wins over
-        // the auto-managed JRE, but only when it still points at something on
-        // disk — otherwise silently fall back instead of failing the launch.
         let custom_java = instance
             .java_path
             .as_deref()
@@ -204,10 +171,6 @@ impl LaunchInstanceUseCase {
             .await?
         };
 
-        // Best-effort bookkeeping: remembers which Java major actually ran
-        // this instance, so the Settings tab can show the real answer
-        // instead of guessing (see `get_java_info` in `minecraft_commands`)
-        // — a failure here must never affect the launch itself.
         let detected_major = java::detect::detect_major_version(&java_bin)
             .ok()
             .map(i64::from);
@@ -386,11 +349,6 @@ impl LaunchInstanceUseCase {
                         Ok(path)
                     }
                 })
-                // `buffered` (not `buffer_unordered`): still downloads up to
-                // LIBRARY_CONCURRENCY at once, but yields results in input
-                // order — `library_paths` feeds `build_classpath` below, and
-                // an out-of-order classpath is a real (if usually silent)
-                // correctness risk when libraries have overlapping packages.
                 .buffered(LIBRARY_CONCURRENCY)
                 .collect()
                 .await;
@@ -510,11 +468,6 @@ impl LaunchInstanceUseCase {
         Ok(())
     }
 
-    /// Registers the spawned process, wraps `on_exit` so the playtime
-    /// session opened for this launch is closed (and the instance total
-    /// updated) when the game exits, and updates Discord Rich Presence for
-    /// the session's duration. Both are best-effort: a failure must never
-    /// prevent the game from launching.
     async fn register_with_playtime(
         &self,
         instance_id: String,
@@ -574,12 +527,6 @@ impl LaunchInstanceUseCase {
         self.process_manager.register(instance_id, child, on_exit);
     }
 
-    /// Forge/NeoForge: the installer, library/asset downloads, and final
-    /// command are all delegated to `mc-launcher-core` (see
-    /// `infrastructure::modloader::forge_like`) since the modern installer
-    /// runs its own binary-patch processors: something worth reusing rather
-    /// than reimplementing. The crate's API is synchronous, so the whole
-    /// sequence runs inside one `spawn_blocking`.
     async fn run_forge_like(
         &self,
         instance: &crate::domain::entities::Instance,
@@ -616,9 +563,6 @@ impl LaunchInstanceUseCase {
                     Some(v) => v,
                     None => forge_like::resolve_loader_version(&loader, &mc_version)?,
                 };
-                // Modpack manifests store Forge versions without the Minecraft
-                // prefix (`47.4.10`); the Maven artifact requires the full
-                // `<mc>-<forge>` id or the installer download 404s.
                 let loader_version =
                     forge_like::normalize_loader_version(&loader, &mc_version, &loader_version);
 
@@ -647,14 +591,6 @@ impl LaunchInstanceUseCase {
                 let on_event_files = on_event_blocking.clone();
                 let libraries_total = merged.libraries.len() as u64;
                 let mut libraries_done = 0u64;
-                // `install_version_files` never actually emits `StageStarted`
-                // (verified against the crate source) — gating on a "current
-                // stage" that never changes from its initial value would
-                // silently sweep every task (including the thousands of
-                // asset files) into the "library" bucket. Classify by the
-                // task's own destination path instead, captured at
-                // `TaskStarted` and looked up when it finishes (`TaskFinished`
-                // only carries the label, not the path).
                 let mut task_paths: std::collections::HashMap<String, std::path::PathBuf> =
                     std::collections::HashMap::new();
                 forge_like::install_files(&merged, &app_data_dir, move |event| {
@@ -680,8 +616,6 @@ impl LaunchInstanceUseCase {
                                 });
                             }
                         }
-                        // Never actually emitted by `install_version_files`
-                        // (see comment above), but still part of the enum.
                         ProgressEvent::StageStarted { .. }
                         | ProgressEvent::BytesReceived { .. } => {}
                     }

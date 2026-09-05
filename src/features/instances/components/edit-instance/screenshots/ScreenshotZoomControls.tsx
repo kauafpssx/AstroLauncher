@@ -1,16 +1,12 @@
 import { Minus, Plus, RotateCcw } from 'lucide-react'
-
 import { Button } from '@/components/ui/button'
 import { tooltipProps } from '@/lib/tooltip'
-
 import { MAX_SCALE, MIN_SCALE } from './useScreenshotZoom'
-
 interface ScreenshotZoomControlsProps {
   scale: number
   onZoomBy: (delta: number) => void
   onReset: () => void
 }
-
 export function ScreenshotZoomControls({
   scale,
   onZoomBy,

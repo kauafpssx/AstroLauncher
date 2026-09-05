@@ -38,8 +38,6 @@ pub struct ModVersionDTO {
     pub file_name: String,
     pub game_versions: Vec<String>,
     pub download_url: Option<String>,
-    /// Project IDs of required dependencies (same source), for auto-resolving
-    /// the review/install list.
     pub required_dependency_project_ids: Vec<String>,
 }
 
@@ -51,11 +49,7 @@ pub struct SearchModsInput {
     pub project_type: String,
     pub game_version: Option<String>,
     pub loader: Option<String>,
-    /// `"relevance"`, `"downloads"`, `"newest"` or `"updated"`: mapped to
-    /// each provider's own sort parameter in `ModBrowserService::search`.
     pub sort: Option<String>,
-    /// Pagination offset (results already loaded): `None`/`0` is the first
-    /// page. Used for infinite scroll in the mod/modpack browser lists.
     pub offset: Option<u32>,
 }
 
@@ -82,10 +76,6 @@ pub struct ModProjectDTO {
     pub project_id: String,
     pub name: String,
     pub description: String,
-    /// The project's full page body: Modrinth serves this as markdown,
-    /// CurseForge as raw HTML from a separate `/description` endpoint. Both
-    /// render fine through the same markdown-with-embedded-HTML pipeline on
-    /// the frontend.
     pub body: Option<String>,
     pub icon_url: Option<String>,
     pub downloads: u64,
@@ -106,7 +96,6 @@ pub struct InstallModInput {
     pub file_name: String,
     pub download_url: String,
     pub icon_url: Option<String>,
-    /// `"mod"`, `"resourcepack"` or `"shader"`.
     pub kind: String,
 }
 

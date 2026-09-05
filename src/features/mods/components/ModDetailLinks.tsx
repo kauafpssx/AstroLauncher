@@ -1,12 +1,9 @@
 import { BookOpen, Code2, ExternalLink, MessageCircle } from 'lucide-react'
-
 import type { ModProject } from '@/types/mods'
-
 interface ModDetailLinksProps {
   project: ModProject
   openLink: (url: string) => void
 }
-
 export function ModDetailLinks({ project, openLink }: ModDetailLinksProps) {
   if (
     !project.sourceUrl &&
@@ -16,7 +13,6 @@ export function ModDetailLinks({ project, openLink }: ModDetailLinksProps) {
   ) {
     return null
   }
-
   return (
     <div className="flex flex-col gap-1.5 border-t pt-3 text-sm">
       {project.sourceUrl && (

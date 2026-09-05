@@ -6,6 +6,25 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Esconde scrollbars (mouse e webkit) mantendo o container rolável. Usado em
+   listas horizontais com scroll-por-arraste (ex.: DraggableCategoryChips). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* O editor tiptap por padrão só ocupa a altura do próprio conteúdo — clicar
+   abaixo do texto (na área vazia do card) não focava o editor. Estica o
+   elemento contenteditable pra preencher o card inteiro. */
+.note-editor-content .tiptap {
+  height: 100%;
+  min-height: 100%;
+  cursor: text;
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: 'Geist Variable', sans-serif;

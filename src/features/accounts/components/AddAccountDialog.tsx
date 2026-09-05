@@ -1,20 +1,16 @@
 import { toast } from 'sonner'
-
 import { SingleFieldDialog } from '@/components/common/SingleFieldDialog'
 import { MAX, accountUsernameSchema } from '@/lib/validation'
 import { useAccountStore } from '@/stores/account.store'
-
 interface AddAccountDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
-
 export function AddAccountDialog({
   open,
   onOpenChange,
 }: AddAccountDialogProps) {
   const createAccount = useAccountStore((s) => s.createAccount)
-
   return (
     <SingleFieldDialog
       open={open}

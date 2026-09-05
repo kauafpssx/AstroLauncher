@@ -60,12 +60,6 @@ impl InstanceWorkspaceService {
         Ok(format!("data:image/png;base64,{encoded}"))
     }
 
-    /// Downscaled JPEG preview for the gallery grid — Minecraft screenshots
-    /// are lossless PNGs, often several MB each at 1920x1080+; decoding and
-    /// base64-transferring the full file for every thumbnail in the grid is
-    /// what made the tab take seconds to show anything. The full-resolution
-    /// PNG is still what `read_screenshot_data_uri` (and thus the viewer,
-    /// download and clipboard-copy) uses.
     pub fn read_screenshot_thumbnail_data_uri(
         &self,
         id: &str,
@@ -96,7 +90,6 @@ impl InstanceWorkspaceService {
         Ok(())
     }
 
-    /// Renames only the base name, keeping the original file extension intact.
     pub fn rename_screenshot(
         &self,
         id: &str,

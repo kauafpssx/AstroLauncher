@@ -1,7 +1,6 @@
 import { Check, Clipboard, Download, Pencil, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
 import { CharacterCounter } from '@/components/common/CharacterCounter'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -10,11 +9,9 @@ import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-wor
 import { tooltipProps } from '@/lib/tooltip'
 import { MAX, getFirstIssue, screenshotNameSchema } from '@/lib/validation'
 import { cn } from '@/lib/utils'
-
 import { splitExtension } from './screenshot-name'
 import { ScreenshotZoomControls } from './ScreenshotZoomControls'
 import { MIN_SCALE, useScreenshotZoom } from './useScreenshotZoom'
-
 interface ScreenshotViewerDialogProps {
   instanceId: string
   name: string
@@ -24,7 +21,6 @@ interface ScreenshotViewerDialogProps {
   onCopy: () => void
   onRenamed: (newName: string) => void
 }
-
 export function ScreenshotViewerDialog({
   instanceId,
   name,
@@ -34,19 +30,12 @@ export function ScreenshotViewerDialog({
   onCopy,
   onRenamed,
 }: ScreenshotViewerDialogProps) {
-  // The grid only ever loaded a downscaled preview; fetch the real PNG once
-  // the viewer opens and swap it in — the thumbnail renders immediately in
-  // the meantime instead of a blank dialog.
   const [fullDataUri, setFullDataUri] = useState<string | null>(null)
-
-  // Clears the stale full-res image during render when a different
-  // screenshot opens (the linter forbids synchronous setState in effects).
   const [prevName, setPrevName] = useState(name)
   if (prevName !== name) {
     setPrevName(name)
     setFullDataUri(null)
   }
-
   useEffect(() => {
     let cancelled = false
     InstanceWorkspaceAPI.readScreenshot(instanceId, name)
@@ -58,7 +47,6 @@ export function ScreenshotViewerDialog({
       cancelled = true
     }
   }, [instanceId, name])
-
   const displayedDataUri = fullDataUri ?? thumbnailDataUri
   const {
     scale,
@@ -75,14 +63,11 @@ export function ScreenshotViewerDialog({
   const [isRenaming, setIsRenaming] = useState(false)
   const [draftName, setDraftName] = useState('')
   const [isSavingName, setIsSavingName] = useState(false)
-
   const { base: currentBase, ext: currentExt } = splitExtension(name)
-
   const startRenaming = () => {
     setDraftName(currentBase)
     setIsRenaming(true)
   }
-
   const commitRename = async () => {
     const trimmed = draftName.trim()
     if (!trimmed || trimmed === currentBase) {
@@ -109,7 +94,6 @@ export function ScreenshotViewerDialog({
       setIsSavingName(false)
     }
   }
-
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[94vh] w-[96vw] max-w-none flex-col gap-3 p-4 sm:max-w-none">

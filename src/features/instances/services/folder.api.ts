@@ -4,7 +4,6 @@ import type {
   FolderDTO,
   UpdateFolderInput,
 } from '@/types/folder'
-
 export const FolderAPI = {
   list(): Promise<FolderDTO[]> {
     return apiInvoke<FolderDTO[]>('list_folders')

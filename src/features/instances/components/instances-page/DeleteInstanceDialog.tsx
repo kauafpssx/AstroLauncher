@@ -1,13 +1,11 @@
 import { ConfirmDeleteDialog } from '@/components/common/ConfirmDeleteDialog'
 import type { InstanceDTO } from '@/types/instance'
-
 interface DeleteInstanceDialogProps {
   instance: InstanceDTO | null
   isRunning: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
 }
-
 export function DeleteInstanceDialog({
   instance,
   isRunning,

@@ -1,13 +1,10 @@
 type McIconCategory = 'block' | 'item'
-
 export interface McIcon {
   id: string
   label: string
   path: string
   category: McIconCategory
 }
-
-/** Filename → display label overrides for textures whose file name carries a face/stage suffix. */
 const LABEL_OVERRIDES: Record<string, string> = {
   acacia_boat: 'Bote de acácia',
   acacia_leaves: 'Folhas de acácia',
@@ -515,7 +512,6 @@ const LABEL_OVERRIDES: Record<string, string> = {
   written_book: 'Livro escrito',
   yellow_wool: 'Lã amarela',
 }
-
 function labelFor(fileName: string): string {
   if (LABEL_OVERRIDES[fileName]) return LABEL_OVERRIDES[fileName]
   return fileName
@@ -523,7 +519,6 @@ function labelFor(fileName: string): string {
     .map((word) => word[0].toUpperCase() + word.slice(1))
     .join(' ')
 }
-
 const BLOCK_FILES = [
   'stone',
   'cobblestone',
@@ -781,7 +776,6 @@ const BLOCK_FILES = [
   'white_glazed_terracotta',
   'shulker_box',
 ]
-
 const ITEM_FILES = [
   'wooden_sword',
   'wooden_pickaxe',
@@ -1038,19 +1032,16 @@ const ITEM_FILES = [
   'allay_spawn_egg',
   'vex_spawn_egg',
 ]
-
 export const MC_BLOCK_ICONS: McIcon[] = BLOCK_FILES.map((file) => ({
   id: `block:${file}`,
   label: labelFor(file),
   path: `/picker/blocks/${file}.png`,
   category: 'block',
 }))
-
 export const MC_ITEM_ICONS: McIcon[] = ITEM_FILES.map((file) => ({
   id: `item:${file}`,
   label: labelFor(file),
   path: `/picker/items/${file}.png`,
   category: 'item',
 }))
-
 export const MC_ICONS: McIcon[] = [...MC_BLOCK_ICONS, ...MC_ITEM_ICONS]

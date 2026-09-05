@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
 import {
   Dialog,
   DialogContent,
@@ -19,12 +18,10 @@ import { JoinNetworkForm } from '@/features/network/components/JoinNetworkForm'
 import { LocalNetworksSection } from '@/features/network/components/LocalNetworksSection'
 import { PendingMembersSection } from '@/features/network/components/PendingMembersSection'
 import { ZeroTierTokenDialog } from '@/features/network/components/ZeroTierTokenDialog'
-
 interface ZeroTierDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
-
 export function ZeroTierDialog({ open, onOpenChange }: ZeroTierDialogProps) {
   const { status, isLoading, leavingNetworkId, refreshStatus, join, leave } =
     useZeroTier(open)
@@ -36,14 +33,12 @@ export function ZeroTierDialog({ open, onOpenChange }: ZeroTierDialogProps) {
   const [isInstalling, setIsInstalling] = useState(false)
   const [activeTab, setActiveTab] = useState('join')
   const isBusy = isLeaving || isInstalling
-
   useEffect(() => {
     if (!open) return
     SettingsAPI.get().then((settings) =>
       setApiToken(settings.zerotierApiToken ?? ''),
     )
   }, [open])
-
   const submitToken = async (token: string) => {
     const settings = await SettingsAPI.get()
     await SettingsAPI.update({
@@ -54,7 +49,6 @@ export function ZeroTierDialog({ open, onOpenChange }: ZeroTierDialogProps) {
     setApiToken(token)
     setTokenInvalid(false)
   }
-
   const handleInstall = async () => {
     setIsInstalling(true)
     try {
@@ -67,17 +61,10 @@ export function ZeroTierDialog({ open, onOpenChange }: ZeroTierDialogProps) {
       setIsInstalling(false)
     }
   }
-
-  // Leaving a network or installing ZeroTier One both take a moment (daemon
-  // teardown / elevated installer): closing the dialog or switching tabs
-  // mid-action would abandon it with no way to see it finish, so both stay
-  // blocked until it settles — same idea as `useModpackInstallStore` blocking
-  // navigation during a modpack install.
   const handleOpenChange = (next: boolean) => {
     if (isBusy) return
     onOpenChange(next)
   }
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent

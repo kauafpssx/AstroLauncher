@@ -6,7 +6,7 @@ use crate::domain::repositories::{InstanceRepository, ModRepository};
 use crate::infrastructure::filesystem::paths;
 use crate::infrastructure::minecraft::servers_dat;
 
-use self::helpers::{count_dirs, count_files, read_manifest_json};
+use self::helpers::{count_dirs, count_files, count_files_recursive, read_manifest_json};
 
 mod astropack_export;
 mod astropack_import;
@@ -55,6 +55,7 @@ impl AstroPackService {
             has_notes: instance_dir.join("notes").exists()
                 || instance_dir.join("notes.txt").exists(),
             has_settings: instance_dir.join("options.txt").exists(),
+            configs: count_files_recursive(&instance_dir.join("config")),
             servers: servers_dat::read_servers(&instance_dir.join("servers.dat"))
                 .map(|s| s.len())
                 .unwrap_or(0),

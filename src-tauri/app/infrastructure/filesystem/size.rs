@@ -1,7 +1,5 @@
 use std::path::Path;
 
-/// Total size in bytes of every regular file under `path`, walked
-/// recursively. `0` for a missing/empty directory.
 pub fn dir_size(path: &Path) -> u64 {
     walkdir::WalkDir::new(path)
         .into_iter()

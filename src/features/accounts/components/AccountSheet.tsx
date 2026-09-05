@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,16 +17,13 @@ import { resolveIconSrc } from '@/lib/icon-src'
 import { tooltipProps } from '@/lib/tooltip'
 import { MAX, accountUsernameSchema, getFirstIssue } from '@/lib/validation'
 import type { AccountDTO } from '@/types/account'
-
 import { SkinHeadPickerDialog } from './SkinHeadPickerDialog'
-
 interface AccountSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   account: AccountDTO | null
   onSubmit: (username: string, iconPath: string | null) => Promise<void>
 }
-
 export function AccountSheet({
   open,
   onOpenChange,
@@ -38,9 +34,6 @@ export function AccountSheet({
   const [iconPath, setIconPath] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [skinPickerOpen, setSkinPickerOpen] = useState(false)
-
-  // Prefill the input during render when the sheet opens (or the target
-  // account changes) instead of doing it in an effect.
   const sheetKey = `${open}:${account?.id ?? 'new'}`
   const [prevSheetKey, setPrevSheetKey] = useState(sheetKey)
   if (prevSheetKey !== sheetKey) {
@@ -50,9 +43,13 @@ export function AccountSheet({
       setIconPath(account?.iconPath ?? null)
     }
   }
-
+  const trimmedUsername = username.trim()
+  const usernameIssue =
+    trimmedUsername === ''
+      ? null
+      : getFirstIssue(accountUsernameSchema, trimmedUsername)
   const handleSubmit = async () => {
-    const trimmed = username.trim()
+    const trimmed = trimmedUsername
     const issue = getFirstIssue(accountUsernameSchema, trimmed)
     if (issue) {
       toast.error(issue)
@@ -66,7 +63,6 @@ export function AccountSheet({
       setIsSubmitting(false)
     }
   }
-
   const handlePickHead = async (base64Png: string) => {
     try {
       const saved = await CustomIconAPI.save(base64Png)
@@ -75,7 +71,6 @@ export function AccountSheet({
       toast.error(`Falha ao salvar avatar: ${String(err)}`)
     }
   }
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
@@ -114,10 +109,14 @@ export function AccountSheet({
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoFocus
+            aria-invalid={usernameIssue ? true : undefined}
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSubmit()
             }}
           />
+          {usernameIssue && (
+            <p className="text-destructive text-xs">{usernameIssue}</p>
+          )}
         </div>
 
         <SkinHeadPickerDialog
@@ -129,7 +128,7 @@ export function AccountSheet({
         <SheetFooter>
           <Button
             onClick={handleSubmit}
-            disabled={!username.trim() || isSubmitting}
+            disabled={!trimmedUsername || !!usernameIssue || isSubmitting}
           >
             {isSubmitting ? 'Salvando...' : 'Salvar'}
           </Button>

@@ -14,6 +14,8 @@ pub struct LauncherSettings {
     pub root_group_icon: Option<String>,
     #[serde(default)]
     pub zerotier_api_token: Option<String>,
+    #[serde(default)]
+    pub auto_update_enabled: Option<bool>,
 }
 
 fn settings_path(app_data_dir: &Path) -> PathBuf {
@@ -36,10 +38,6 @@ pub fn write(app_data_dir: &Path, settings: &LauncherSettings) -> anyhow::Result
     Ok(())
 }
 
-/// Resolves the CurseForge API key: first the one configured by the user in
-/// settings.json, falling back to the key baked in at build time via the
-/// `CURSEFORGE_API_KEY` env var (set from a GitHub Actions secret, so it is
-/// never committed or logged). Returns `None` when neither is available.
 pub fn resolve_curseforge_api_key(app_data_dir: &Path) -> Option<String> {
     let configured = read(app_data_dir)
         .curseforge_api_key
@@ -53,8 +51,6 @@ fn build_time_curseforge_api_key() -> Option<String> {
         .filter(|k| !k.trim().is_empty())
 }
 
-/// Resolves the mcstat.org API key: user-configured first, falling back to
-/// the key baked in at build time via the `MCSTAT_API_KEY` env var.
 pub fn resolve_mcstat_api_key(app_data_dir: &Path) -> Option<String> {
     let configured = read(app_data_dir)
         .mcstat_api_key
@@ -68,8 +64,6 @@ fn build_time_mcstat_api_key() -> Option<String> {
         .filter(|k| !k.trim().is_empty())
 }
 
-/// Resolves the ZeroTier Central personal API token: user-configured only,
-/// no build-time fallback (this is a per-user secret, not a build secret).
 pub fn resolve_zerotier_api_token(app_data_dir: &Path) -> Option<String> {
     read(app_data_dir)
         .zerotier_api_token

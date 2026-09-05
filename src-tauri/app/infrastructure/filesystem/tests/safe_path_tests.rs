@@ -19,7 +19,6 @@ fn rejects_parent_traversal() {
 #[test]
 fn rejects_absolute_and_drive_paths() {
     assert!(safe_join(&base(), "/etc/passwd").is_none());
-    // Backslash + drive letter (Windows) must not escape either.
     assert!(safe_join(&base(), "C:\\Windows\\system32").is_none());
 }
 

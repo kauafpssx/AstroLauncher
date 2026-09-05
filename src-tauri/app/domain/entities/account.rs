@@ -8,9 +8,6 @@ pub struct Account {
     pub is_default: bool,
     pub last_used: Option<String>,
     pub created_at: String,
-    /// Path to a saved custom avatar (e.g. a cropped skin head), reusing the
-    /// same storage as instance/folder custom icons. `None` falls back to
-    /// the username-initials avatar in the UI.
     pub icon_path: Option<String>,
 }
 

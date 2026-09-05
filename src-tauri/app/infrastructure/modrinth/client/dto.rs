@@ -22,8 +22,6 @@ pub struct SearchHit {
 const LOADER_CATEGORIES: [&str; 4] = ["fabric", "forge", "quilt", "neoforge"];
 
 impl SearchHit {
-    /// Modrinth tags a modpack's loader as a regular category (alongside
-    /// things like "adventure" or "technology") rather than a separate field.
     pub fn primary_loader(&self) -> Option<&str> {
         self.categories
             .iter()
@@ -31,8 +29,6 @@ impl SearchHit {
             .map(|c| c.as_str())
     }
 
-    /// The newest Minecraft version this project supports: `versions` is
-    /// sorted oldest to newest, so the last entry is the most recent.
     pub fn latest_game_version(&self) -> Option<&str> {
         self.versions.last().map(String::as_str)
     }

@@ -6,7 +6,6 @@ export type KeybindCategory =
   | 'Interface'
   | 'Depuração'
   | 'Mods'
-
 export const KEYBIND_CATEGORY_ORDER: KeybindCategory[] = [
   'Movimento',
   'Jogabilidade',
@@ -16,8 +15,6 @@ export const KEYBIND_CATEGORY_ORDER: KeybindCategory[] = [
   'Depuração',
   'Mods',
 ]
-
-/** Same grouping as Minecraft's own Controls screen: hardcoded in the client, so curated by hand here. */
 const ACTION_CATEGORY: Record<string, KeybindCategory> = {
   forward: 'Movimento',
   left: 'Movimento',
@@ -26,13 +23,11 @@ const ACTION_CATEGORY: Record<string, KeybindCategory> = {
   jump: 'Movimento',
   sneak: 'Movimento',
   sprint: 'Movimento',
-
   attack: 'Jogabilidade',
   use: 'Jogabilidade',
   pickItem: 'Jogabilidade',
   drop: 'Jogabilidade',
   swapOffhand: 'Jogabilidade',
-
   inventory: 'Inventário',
   'hotbar.1': 'Inventário',
   'hotbar.2': 'Inventário',
@@ -45,7 +40,6 @@ const ACTION_CATEGORY: Record<string, KeybindCategory> = {
   'hotbar.9': 'Inventário',
   saveToolbarActivator: 'Inventário',
   loadToolbarActivator: 'Inventário',
-
   chat: 'Multiplayer',
   command: 'Multiplayer',
   playerlist: 'Multiplayer',
@@ -53,7 +47,6 @@ const ACTION_CATEGORY: Record<string, KeybindCategory> = {
   advancements: 'Multiplayer',
   friends: 'Multiplayer',
   quickActions: 'Multiplayer',
-
   fullscreen: 'Interface',
   screenshot: 'Interface',
   togglePerspective: 'Interface',
@@ -63,14 +56,11 @@ const ACTION_CATEGORY: Record<string, KeybindCategory> = {
   spectatorHotbar: 'Interface',
   toggleSpectatorShaderEffects: 'Interface',
 }
-
-/** Anything under `key_key.debug.*` goes to the `Depuração` (Debug) category; anything from an unrecognized namespace (mods add their own `key_<modid>.*` entries) falls back to Mods. */
 export function categoryForAction(action: string): KeybindCategory {
   if (ACTION_CATEGORY[action]) return ACTION_CATEGORY[action]
   if (action.startsWith('debug.')) return 'Depuração'
   return 'Mods'
 }
-
 const ACTION_LABELS: Record<string, string> = {
   attack: 'Atacar / Destruir',
   use: 'Usar Item / Colocar Bloco',
@@ -106,7 +96,6 @@ const ACTION_LABELS: Record<string, string> = {
   'hotbar.8': 'Barra de Acesso Rápido 8',
   'hotbar.9': 'Barra de Acesso Rápido 9',
 }
-
 const KEY_LABELS: Record<string, string> = {
   'key.mouse.left': 'Mouse Esquerdo',
   'key.mouse.right': 'Mouse Direito',
@@ -123,7 +112,6 @@ const KEY_LABELS: Record<string, string> = {
   'key.keyboard.caps.lock': 'Caps Lock',
   'key.keyboard.unknown': 'Não vinculado',
 }
-
 export function humanizeAction(action: string): string {
   return (
     ACTION_LABELS[action] ??
@@ -133,7 +121,6 @@ export function humanizeAction(action: string): string {
       .trim()
   )
 }
-
 export function humanizeKey(value: string): string {
   if (value in KEY_LABELS) return KEY_LABELS[value]
   const keyboardMatch = value.match(/^key\.keyboard\.(.+)$/)

@@ -1,5 +1,5 @@
 import { AlertTriangle, Loader2, Upload } from 'lucide-react'
-
+import { motion } from 'framer-motion'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -7,6 +7,8 @@ import { SearchInput } from '@/components/common/SearchInput'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+import { LAYOUT_SPRING_TRANSITION } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -17,17 +19,14 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { tooltipProps } from '@/lib/tooltip'
 import type { ModSortBy, ModSource } from '@/types/mods'
-
 import { SORT_OPTIONS, SOURCES } from './mod-browser-list.constants'
 import { ModBrowserListItem } from './ModBrowserListItem'
 import { normalizeName } from './selection-utils'
 import type { useModBrowser } from './useModBrowser'
 import { selectionKey } from './useModBrowser'
-
 interface ModBrowserListProps {
   browser: ReturnType<typeof useModBrowser>
 }
-
 export function ModBrowserList({ browser }: ModBrowserListProps) {
   const {
     source,
@@ -56,13 +55,11 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
     handleUploadCustom,
     handleDeleteInstalled,
   } = browser
-
   const { viewportRef, sentinelRef } = useInfiniteScroll({
     hasMore,
     isLoading: isLoadingMore,
     onLoadMore: loadMore,
   })
-
   return (
     <div className="flex h-full min-w-0 flex-col border-r">
       <div className="flex items-center gap-2 border-b p-3">
@@ -94,12 +91,15 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
         </Alert>
       )}
 
-      {isSearching ? (
+      {isSearching && results.length === 0 ? (
         <CenteredSpinner />
       ) : (
         <ScrollArea
           type="always"
-          className="min-h-0 flex-1"
+          className={cn(
+            'min-h-0 flex-1',
+            isSearching && 'pointer-events-none opacity-40 transition-opacity',
+          )}
           viewportRef={viewportRef}
         >
           <div className="flex flex-col gap-0.5 p-2">
@@ -116,16 +116,21 @@ export function ModBrowserList({ browser }: ModBrowserListProps) {
                 !!viewing &&
                 selectionKey(viewing.source, viewing.projectId) === key
               return (
-                <ModBrowserListItem
+                <motion.div
                   key={key}
-                  result={result}
-                  isSelected={isSelected}
-                  isInstalled={isInstalled}
-                  isViewing={isViewing}
-                  onView={setViewing}
-                  onToggleSelection={toggleSelection}
-                  onDeleteInstalled={handleDeleteInstalled}
-                />
+                  layout
+                  transition={LAYOUT_SPRING_TRANSITION}
+                >
+                  <ModBrowserListItem
+                    result={result}
+                    isSelected={isSelected}
+                    isInstalled={isInstalled}
+                    isViewing={isViewing}
+                    onView={setViewing}
+                    onToggleSelection={toggleSelection}
+                    onDeleteInstalled={handleDeleteInstalled}
+                  />
+                </motion.div>
               )
             })}
             {hasMore && (

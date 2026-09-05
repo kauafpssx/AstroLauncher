@@ -1,6 +1,5 @@
 import { listen } from '@tauri-apps/api/event'
 import { create } from 'zustand'
-
 import { InstanceAPI } from '@/features/instances/services/instance.api'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
 import { resolvePickerIconPngBase64 } from '@/lib/icon-src'
@@ -9,14 +8,12 @@ import type {
   InstanceDTO,
   UpdateInstanceInput,
 } from '@/types/instance'
-
 interface InstanceStore {
   instances: InstanceDTO[]
   selectedInstanceId: string | null
   shortcutIds: string[]
   isLoading: boolean
   error: string | null
-
   fetchInstances: () => Promise<void>
   fetchShortcuts: () => Promise<void>
   toggleShortcut: (id: string, iconPngBase64: string | null) => Promise<boolean>
@@ -28,14 +25,12 @@ interface InstanceStore {
   reorderInstances: (orderedIds: string[]) => Promise<void>
   selectInstance: (id: string | null) => void
 }
-
 export const useInstanceStore = create<InstanceStore>((set, get) => ({
   instances: [],
   selectedInstanceId: null,
   shortcutIds: [],
   isLoading: false,
   error: null,
-
   fetchInstances: async () => {
     set({ isLoading: true, error: null })
     try {
@@ -50,16 +45,12 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
       set({ isLoading: false, error: String(err) })
     }
   },
-
   fetchShortcuts: async () => {
     try {
       const shortcutIds = await InstanceWorkspaceAPI.listShortcuts()
       set({ shortcutIds })
-    } catch {
-      // Shortcut state is a convenience, not worth a full-page error.
-    }
+    } catch {}
   },
-
   toggleShortcut: async (id, iconPngBase64) => {
     const enabled = await InstanceWorkspaceAPI.toggleShortcut(id, iconPngBase64)
     set((state) => ({
@@ -69,7 +60,6 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
     }))
     return enabled
   },
-
   createInstance: async (input) => {
     const instance = await InstanceAPI.create(input)
     set((state) => ({
@@ -77,7 +67,6 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
       selectedInstanceId: instance.id,
     }))
   },
-
   duplicateInstance: async (id) => {
     const instance = await InstanceAPI.duplicate(id)
     set((state) => ({
@@ -85,7 +74,6 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
       selectedInstanceId: instance.id,
     }))
   },
-
   updateInstance: async (input) => {
     const instance = await InstanceAPI.update(input)
     set((state) => ({
@@ -93,7 +81,6 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
         i.id === instance.id ? instance : i,
       ),
     }))
-    // Keep an existing desktop shortcut's icon in sync with the instance's.
     if (get().shortcutIds.includes(instance.id)) {
       resolvePickerIconPngBase64(instance.iconPath)
         .then((iconPngBase64) =>
@@ -103,7 +90,6 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
     }
     return instance
   },
-
   deleteInstance: async (id) => {
     await InstanceAPI.delete(id)
     set((state) => {
@@ -115,7 +101,6 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
       return { instances, selectedInstanceId }
     })
   },
-
   moveInstance: async (id, folderId) => {
     const instance = await InstanceAPI.moveToFolder(id, folderId)
     set((state) => ({
@@ -124,12 +109,7 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
       ),
     }))
   },
-
   reorderInstances: async (orderedIds) => {
-    // `orderedIds` is only the subset being reordered (one folder/group at a
-    // time, see instance-grid-dnd.ts) — splice that new order back into the
-    // full list in place instead of replacing `instances` outright, which
-    // used to silently drop every instance outside that subset from state.
     const idSet = new Set(orderedIds)
     const byId = new Map(get().instances.map((i) => [i.id, i]))
     const reorderedSubset = orderedIds
@@ -142,19 +122,14 @@ export const useInstanceStore = create<InstanceStore>((set, get) => ({
     set({ instances })
     await InstanceAPI.reorder(orderedIds)
   },
-
   selectInstance: (id) => set({ selectedInstanceId: id }),
 }))
-
 export function useSelectedInstance(): InstanceDTO | null {
   return useInstanceStore(
     (state) =>
       state.instances.find((i) => i.id === state.selectedInstanceId) ?? null,
   )
 }
-
-// Reload instances when a game exits so denormalized playtime totals and the
-// last-played timestamp are reflected right away (see stores/launch.store.ts).
 listen<string>('instance://stopped', () => {
   void useInstanceStore.getState().fetchInstances()
 })

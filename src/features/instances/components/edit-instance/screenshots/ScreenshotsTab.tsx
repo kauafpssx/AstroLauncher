@@ -3,7 +3,6 @@ import { writeImage } from '@tauri-apps/plugin-clipboard-manager'
 import { Image as ImageIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
 import { TabHeader } from '@/components/common/TabHeader'
@@ -19,13 +18,10 @@ import {
   type LoadedScreenshot,
 } from '@/features/instances/hooks/useInstanceScreenshots'
 import { InstanceWorkspaceAPI } from '@/features/instances/services/instance-workspace.api'
-
 import { ScreenshotViewerDialog } from './ScreenshotViewerDialog'
-
 interface ScreenshotsTabProps {
   instanceId: string
 }
-
 function dataUriToBytes(dataUri: string): Uint8Array {
   const base64 = dataUri.slice(dataUri.indexOf(',') + 1)
   const binary = atob(base64)
@@ -33,12 +29,10 @@ function dataUriToBytes(dataUri: string): Uint8Array {
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
   return bytes
 }
-
 export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
   const { shots, isLoading, setShots } = useInstanceScreenshots(instanceId)
   const [columns, setColumns] = useState('4')
   const [viewing, setViewing] = useState<LoadedScreenshot | null>(null)
-
   const handleDownload = async (shot: LoadedScreenshot) => {
     const destPath = await saveFileDialog({
       defaultPath: shot.info.name,
@@ -55,10 +49,6 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
       toast.error(`Falha ao salvar: ${String(err)}`)
     }
   }
-
-  // The grid only ever loads the downscaled preview — fetch the real
-  // full-resolution PNG fresh so what lands on the clipboard isn't a small
-  // JPEG.
   const handleCopy = async (shot: LoadedScreenshot) => {
     try {
       const fullDataUri = await InstanceWorkspaceAPI.readScreenshot(
@@ -70,7 +60,6 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
       toast.error(`Falha ao copiar: ${String(err)}`)
     }
   }
-
   const handleRenamed = (oldName: string, newName: string) => {
     setShots((prev) =>
       prev.map((s) =>
@@ -85,7 +74,6 @@ export function ScreenshotsTab({ instanceId }: ScreenshotsTabProps) {
         : prev,
     )
   }
-
   return (
     <div className="flex flex-col gap-3">
       <TabHeader description="Capturas de tela desta instância.">

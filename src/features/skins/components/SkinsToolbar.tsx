@@ -1,5 +1,4 @@
 import { KeyRound } from 'lucide-react'
-
 import { SearchInput } from '@/components/common/SearchInput'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,37 +17,47 @@ import type {
   SkinSortBy,
   SkinSource,
 } from '@/types/skins'
-
-const SOURCES: { id: SkinSource; label: string; icon: string }[] = [
+const SOURCES: {
+  id: SkinSource
+  label: string
+  icon: string
+}[] = [
   { id: 'playermc', label: 'PlayerMC', icon: '/skins/playermc.ico' },
   { id: 'mcstat', label: 'MCStat', icon: '/skins/mcstat.ico' },
 ]
-
-const PLAYERMC_SORTS: { value: PlayerMcSortBy; label: string }[] = [
+const PLAYERMC_SORTS: {
+  value: PlayerMcSortBy
+  label: string
+}[] = [
   { value: 'popular-desc', label: 'Mais populares' },
   { value: 'popular-asc', label: 'Menos populares' },
 ]
-
-const MCSTAT_SORTS: { value: McstatSortBy; label: string }[] = [
+const MCSTAT_SORTS: {
+  value: McstatSortBy
+  label: string
+}[] = [
   { value: 'popular', label: 'Populares' },
   { value: 'trending', label: 'Em alta' },
   { value: 'recent', label: 'Recentes' },
 ]
-
-const MODEL_FILTERS: { value: 'all' | SkinModel; label: string }[] = [
+const MODEL_FILTERS: {
+  value: 'all' | SkinModel
+  label: string
+}[] = [
   { value: 'all', label: 'Todos os modelos' },
   { value: 'classic', label: 'Classic' },
   { value: 'slim', label: 'Slim' },
 ]
-
 const SORTS_BY_SOURCE: Record<
   SkinSource,
-  { value: SkinSortBy; label: string }[]
+  {
+    value: SkinSortBy
+    label: string
+  }[]
 > = {
   playermc: PLAYERMC_SORTS,
   mcstat: MCSTAT_SORTS,
 }
-
 interface SkinsToolbarProps {
   source: SkinSource
   sortBy: SkinSortBy
@@ -60,7 +69,6 @@ interface SkinsToolbarProps {
   onSourceChange: (source: SkinSource) => void
   onOpenKeyDialog: () => void
 }
-
 export function SkinsToolbar({
   source,
   sortBy,
@@ -81,7 +89,7 @@ export function SkinsToolbar({
         onChange={(e) => setQuery(e.target.value)}
       />
       <Select value={sortBy} onValueChange={(v) => setSortBy(v as SkinSortBy)}>
-        <SelectTrigger size="sm" className="w-40">
+        <SelectTrigger className="w-40">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -98,7 +106,7 @@ export function SkinsToolbar({
           value={model}
           onValueChange={(v) => setModel(v as 'all' | SkinModel)}
         >
-          <SelectTrigger size="sm" className="w-44">
+          <SelectTrigger className="w-44">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

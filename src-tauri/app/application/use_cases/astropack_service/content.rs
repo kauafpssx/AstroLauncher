@@ -13,11 +13,6 @@ use super::helpers::{icon_to_data_uri, target_folder};
 use super::AstroPackService;
 
 impl AstroPackService {
-    /// Tries to re-resolve a fresh download URL for a Modrinth/CurseForge mod
-    /// by matching the stored version display name against the project's
-    /// current version list. Lets the pack stay small (link, not file) for
-    /// anything that came from a real mod source; `None` means the caller
-    /// should fall back to embedding the local file instead.
     async fn resolve_download_url(
         &self,
         source: &str,
@@ -53,9 +48,6 @@ impl AstroPackService {
         }
     }
 
-    /// Resolves each enabled mod into a manifest content entry, embedding the
-    /// local file into `embed_files` whenever a fresh download URL can't be
-    /// re-resolved from its mod source.
     pub(super) async fn collect_contents(
         &self,
         enabled_mods: &[InstalledMod],
@@ -104,10 +96,6 @@ impl AstroPackService {
         contents
     }
 
-    /// Installs each selected manifest entry into the instance, downloading
-    /// from its re-resolved URL when present or extracting the embedded copy
-    /// from the archive otherwise, registering every success as an installed
-    /// mod. `current` is advanced for the shared progress counter.
     #[allow(clippy::too_many_arguments)]
     pub(super) async fn install_contents(
         &self,
@@ -137,7 +125,6 @@ impl AstroPackService {
                 });
                 continue;
             }
-            // `file_name` comes from the pack manifest: reject `..`/absolute.
             let Some(dest) = safe_join(&target_dir, &entry.file_name) else {
                 on_event(AstroPackEventDTO::Error {
                     message: format!("Caminho inválido no pacote: {}", entry.file_name),

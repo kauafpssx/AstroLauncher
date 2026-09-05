@@ -35,11 +35,6 @@ impl DeleteInstanceUseCase {
 
         let instance_dir = paths::instance_dir(&self.app_data_dir, id);
         if instance_dir.exists() {
-            // Windows briefly locks files that just had a handle closed
-            // (antivirus scan, search indexer, a just-exited java.exe).
-            // The instance is already gone from the DB/UI either way: a
-            // few retries clear the transient case, and if it's genuinely
-            // still in use we leave the folder rather than block deletion.
             if let Err(err) =
                 remove_dir_all_with_retry(&instance_dir, 5, Duration::from_millis(200))
             {

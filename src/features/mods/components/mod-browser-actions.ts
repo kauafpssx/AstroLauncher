@@ -1,7 +1,6 @@
 import { open as openFileDialog } from '@tauri-apps/plugin-dialog'
 import type { Dispatch, SetStateAction } from 'react'
 import { toast } from 'sonner'
-
 import type {
   ContentKind,
   InstalledMod,
@@ -9,14 +8,13 @@ import type {
   ModSource,
   ModVersion,
 } from '@/types/mods'
-
-import { ModAPI } from '../services/mod.api'
+import { ModAPI } from '@/features/mods/services/mod.api'
+import { toastDeleteModError } from './delete-mod-error'
 import {
   normalizeName,
   selectionKey,
   type SelectionMap,
 } from './selection-utils'
-
 interface ToggleSelectionDeps {
   selection: SelectionMap
   setSelection: Dispatch<SetStateAction<SelectionMap>>
@@ -28,7 +26,6 @@ interface ToggleSelectionDeps {
   effectiveLoader?: string | null
   setError: Dispatch<SetStateAction<string | null>>
 }
-
 export function createToggleSelection({
   selection,
   setSelection,
@@ -50,10 +47,7 @@ export function createToggleSelection({
       })
       return
     }
-
     if (pendingKeys.has(key)) {
-      // Second click while the version fetch is still in flight: cancel it,
-      // the checkbox flips back off instantly.
       setPendingKeys((prev) => {
         const next = new Set(prev)
         next.delete(key)
@@ -61,9 +55,7 @@ export function createToggleSelection({
       })
       return
     }
-
     if (installedKeys.has(key)) return
-
     if (version) {
       if (installedFileNames.has(version.fileName.toLowerCase())) {
         toast.error('Este mod já está instalado (mesmo arquivo).')
@@ -72,7 +64,6 @@ export function createToggleSelection({
       setSelection((prev) => ({ ...prev, [key]: { result, version } }))
       return
     }
-
     setPendingKeys((prev) => new Set(prev).add(key))
     try {
       const versions = await ModAPI.getVersions({
@@ -81,7 +72,6 @@ export function createToggleSelection({
         gameVersion,
         loader: effectiveLoader,
       })
-
       let wasCancelled = false
       setPendingKeys((prev) => {
         if (!prev.has(key)) {
@@ -93,7 +83,6 @@ export function createToggleSelection({
         return next
       })
       if (wasCancelled || !versions[0]) return
-
       if (installedFileNames.has(versions[0].fileName.toLowerCase())) {
         toast.error('Este mod já está instalado (mesmo arquivo).')
         return
@@ -112,14 +101,12 @@ export function createToggleSelection({
     }
   }
 }
-
 interface DeleteInstalledDeps {
   instanceId: string
   installedMods: InstalledMod[]
   setInstalledMods: Dispatch<SetStateAction<InstalledMod[]>>
   onInstalled: () => void
 }
-
 export function createDeleteInstalled({
   instanceId,
   installedMods,
@@ -135,17 +122,15 @@ export function createDeleteInstalled({
         normalizeName(m.name) === resultName,
     )
     if (!installed) return
-
     try {
       await ModAPI.deleteInstalled(instanceId, installed.id)
       setInstalledMods((prev) => prev.filter((m) => m.id !== installed.id))
       onInstalled()
     } catch (err) {
-      toast.error(`Falha ao remover: ${String(err)}`)
+      toastDeleteModError(err)
     }
   }
 }
-
 interface UploadCustomDeps {
   instanceId: string
   kind: ContentKind
@@ -155,7 +140,6 @@ interface UploadCustomDeps {
   onOpenChange: (open: boolean) => void
   onInstalled: () => void
 }
-
 export function createUploadCustom({
   instanceId,
   kind,
@@ -171,7 +155,6 @@ export function createUploadCustom({
       filters: [{ name: kindLabel, extensions: [fileFilter] }],
     })
     if (!filePath || Array.isArray(filePath)) return
-
     setIsUploading(true)
     try {
       await ModAPI.installCustom({ instanceId, filePath, kind })

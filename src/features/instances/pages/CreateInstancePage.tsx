@@ -2,38 +2,33 @@ import { open as openFileDialog } from '@tauri-apps/plugin-dialog'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-
 import { Button } from '@/components/ui/button'
 import { MC_ICONS } from '@/data/mc-icons'
 import { useDiscordPresence } from '@/hooks/useDiscordPresence'
 import { getFirstIssue, instanceNameSchema } from '@/lib/validation'
 import { useInstanceStore } from '@/stores/instance.store'
 import type { VersionDTO, VersionType } from '@/types/version'
-
-import { FiltersCard } from '../components/create-instance/FiltersCard'
-import { ImportAstropackDialog } from '../components/ImportAstropackDialog'
-import { InstanceInfoCard } from '../components/create-instance/InstanceInfoCard'
-import type { LoaderId } from '../components/create-instance/LoaderSelectionCard'
-import { LoaderSelectionCard } from '../components/create-instance/LoaderSelectionCard'
-import { ModpackBrowserPanel } from '../components/create-instance/ModpackBrowserPanel'
-import type { Platform } from '../components/create-instance/PlatformSidebar'
-import { PlatformSidebar } from '../components/create-instance/PlatformSidebar'
-import { SelectedVersionCard } from '../components/create-instance/SelectedVersionCard'
-import { SourcePlaceholder } from '../components/create-instance/SourcePlaceholder'
-import { VersionSelectionCard } from '../components/create-instance/VersionSelectionCard'
-import { useVersions } from '../hooks/useVersions'
-import { useFolders } from '../hooks/useFolders'
-
+import { VersionSelectionCard } from '@/features/instances/components/create-instance/custom/VersionSelectionCard'
+import { FiltersCard } from '@/features/instances/components/create-instance/custom/FiltersCard'
+import { InstanceInfoCard } from '@/features/instances/components/create-instance/custom/InstanceInfoCard'
+import type { LoaderId } from '@/features/instances/components/create-instance/custom/LoaderSelectionCard'
+import { LoaderSelectionCard } from '@/features/instances/components/create-instance/custom/LoaderSelectionCard'
+import { SelectedVersionCard } from '@/features/instances/components/create-instance/custom/SelectedVersionCard'
+import { ModpackBrowserPanel } from '@/features/instances/components/create-instance/modpack-browser/ModpackBrowserPanel'
+import type { Platform } from '@/features/instances/components/create-instance/PlatformSidebar'
+import { PlatformSidebar } from '@/features/instances/components/create-instance/PlatformSidebar'
+import { SourcePlaceholder } from '@/features/instances/components/create-instance/import/SourcePlaceholder'
+import { ImportAstropackDialog } from '@/features/instances/components/astropack/ImportAstropackDialog'
+import { useVersions } from '@/features/instances/hooks/useVersions'
+import { useFolders } from '@/features/instances/hooks/useFolders'
 function randomIconPath(): string {
   return MC_ICONS[Math.floor(Math.random() * MC_ICONS.length)].path
 }
-
 export function CreateInstancePage() {
   const navigate = useNavigate()
   const createInstance = useInstanceStore((s) => s.createInstance)
   const { versions, isLoading, refetch } = useVersions()
   const { folders } = useFolders()
-
   const [platform, setPlatform] = useState<Platform>('custom')
   const [name, setName] = useState('')
   const [group, setGroup] = useState<string | null>(null)
@@ -47,9 +42,7 @@ export function CreateInstancePage() {
   const [loader, setLoader] = useState<LoaderId | null>('vanilla')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [astropackPath, setAstropackPath] = useState<string | null>(null)
-
   useDiscordPresence('Criando uma instância', name.trim() || 'Nova instância')
-
   const handleImportAstropack = async () => {
     const filePath = await openFileDialog({
       multiple: false,
@@ -58,10 +51,6 @@ export function CreateInstancePage() {
     if (!filePath || Array.isArray(filePath)) return
     setAstropackPath(filePath)
   }
-
-  // Auto-select the first release once the version list loads. Done during
-  // render (React's "adjust state when a prop changes" pattern) instead of an
-  // effect, so the linter's set-state-in-effect rule stays satisfied.
   const [prevVersions, setPrevVersions] = useState<VersionDTO[]>(versions)
   if (prevVersions !== versions) {
     setPrevVersions(versions)
@@ -69,7 +58,6 @@ export function CreateInstancePage() {
       setVersion(versions.find((v) => v.type === 'release') ?? versions[0])
     }
   }
-
   const isCustom = platform === 'custom'
   const canSubmit =
     isCustom &&
@@ -77,7 +65,6 @@ export function CreateInstancePage() {
     version !== null &&
     loader !== null &&
     !isSubmitting
-
   const handleSubmit = async () => {
     if (!version || !loader) return
     const issue = getFirstIssue(instanceNameSchema, name)
@@ -101,7 +88,6 @@ export function CreateInstancePage() {
       setIsSubmitting(false)
     }
   }
-
   return (
     <div className="flex h-screen">
       <PlatformSidebar platform={platform} onChange={setPlatform} />

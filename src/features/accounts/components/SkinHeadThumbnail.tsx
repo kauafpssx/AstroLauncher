@@ -1,22 +1,15 @@
 import { useEffect, useState } from 'react'
-
 import { SkinAPI } from '@/features/skins/services/skin.api'
 import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
 import type { SkinSummary } from '@/types/skins'
-
 import { cropHeadToBase64Png } from './skin-head-crop'
-
 interface SkinHeadThumbnailProps {
   skin: SkinSummary
   matched?: boolean
   dimmed?: boolean
   onPick: (base64Png: string) => void
 }
-
-/** Fetches a skin's full texture, crops just the head out of it client-side,
- * and shows that as a pickable square — the search results only carry the
- * full-body texture URL, there's no head-only endpoint. */
 export function SkinHeadThumbnail({
   skin,
   matched,
@@ -24,7 +17,6 @@ export function SkinHeadThumbnail({
   onPick,
 }: SkinHeadThumbnailProps) {
   const [headSrc, setHeadSrc] = useState<string | null>(null)
-
   useEffect(() => {
     let cancelled = false
     SkinAPI.fetchTextureBase64(skin.skinUrl)
@@ -37,7 +29,6 @@ export function SkinHeadThumbnail({
       cancelled = true
     }
   }, [skin.skinUrl])
-
   return (
     <button
       type="button"

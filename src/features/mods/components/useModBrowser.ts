@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-
 import { CONTENT_KIND_LABELS } from '@/lib/content-kind'
 import type {
   ContentKind,
@@ -9,8 +8,7 @@ import type {
   ModSource,
 } from '@/types/mods'
 import { MOD_SEARCH_PAGE_SIZE } from '@/types/mods'
-
-import { ModAPI } from '../services/mod.api'
+import { ModAPI } from '@/features/mods/services/mod.api'
 import {
   createDeleteInstalled,
   createToggleSelection,
@@ -21,10 +19,8 @@ import {
   selectionKey,
   type SelectionMap,
 } from './selection-utils'
-
 export { selectionKey } from './selection-utils'
 export type { SelectionMap } from './selection-utils'
-
 interface UseModBrowserArgs {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -34,9 +30,6 @@ interface UseModBrowserArgs {
   kind: ContentKind
   onInstalled: () => void
 }
-
-/** State and logic for the mod browser: debounced search, selection with
- * on-demand version fetch, and custom file upload. */
 export function useModBrowser({
   open,
   onOpenChange,
@@ -59,19 +52,10 @@ export function useModBrowser({
   const [view, setView] = useState<'browse' | 'review'>('browse')
   const [isUploading, setIsUploading] = useState(false)
   const [installedMods, setInstalledMods] = useState<InstalledMod[]>([])
-  // Keys with an in-flight version fetch: checkbox reflects these instantly
-  // instead of waiting for the network round-trip.
   const [pendingKeys, setPendingKeys] = useState<Set<string>>(new Set())
-
-  // Only mods are loader-specific; resource packs/shaders shouldn't be
-  // filtered by fabric/forge/etc.
   const effectiveLoader = kind === 'mod' ? loader : null
   const { plural: kindLabel, fileFilter } = CONTENT_KIND_LABELS[kind]
-
   const requestIdRef = useRef(0)
-
-  // Reset the whole browsing state when the dialog closes: done during render
-  // ("adjust state when a prop changes") instead of in an effect.
   const [prevOpen, setPrevOpen] = useState(open)
   if (prevOpen !== open) {
     setPrevOpen(open)
@@ -86,19 +70,12 @@ export function useModBrowser({
       setView('browse')
     }
   }
-
   useEffect(() => {
     if (!open) return
     ModAPI.listInstalled(instanceId, kind)
       .then(setInstalledMods)
       .catch(() => setInstalledMods([]))
   }, [open, instanceId, kind])
-
-  // Mods already installed in this instance, matched three ways since
-  // CurseForge and Modrinth use different project IDs for what can be the
-  // same mod: exact source+projectId (reinstalling the same mod), name
-  // (spotting the equivalent mod on the other platform in the browse list),
-  // and jar filename (blocking an actual duplicate download at install time).
   const installedKeys = useMemo(
     () =>
       new Set(
@@ -114,11 +91,9 @@ export function useModBrowser({
     () => new Set(installedMods.map((m) => m.fileName.toLowerCase())),
     [installedMods],
   )
-
   useEffect(() => {
     if (!open) return
     const requestId = ++requestIdRef.current
-
     const handle = setTimeout(() => {
       setError(null)
       setIsSearching(true)
@@ -144,10 +119,8 @@ export function useModBrowser({
           setIsSearching(false)
         })
     }, 200)
-
     return () => clearTimeout(handle)
   }, [open, source, query, kind, gameVersion, effectiveLoader, sortBy])
-
   const loadMore = () => {
     if (isSearching || isLoadingMore || !hasMore) return
     const requestId = ++requestIdRef.current
@@ -175,7 +148,6 @@ export function useModBrowser({
         setIsLoadingMore(false)
       })
   }
-
   const toggleSelection = createToggleSelection({
     selection,
     setSelection,
@@ -187,16 +159,13 @@ export function useModBrowser({
     effectiveLoader,
     setError,
   })
-
   const selectedCount = Object.keys(selection).length
-
   const handleDeleteInstalled = createDeleteInstalled({
     instanceId,
     installedMods,
     setInstalledMods,
     onInstalled,
   })
-
   const handleUploadCustom = createUploadCustom({
     instanceId,
     kind,
@@ -206,7 +175,6 @@ export function useModBrowser({
     onOpenChange,
     onInstalled,
   })
-
   return {
     source,
     setSource,

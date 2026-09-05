@@ -4,7 +4,6 @@ import type {
   CreateAccountInput,
   UpdateAccountInput,
 } from '@/types/account'
-
 export const AccountAPI = {
   list(): Promise<AccountDTO[]> {
     return apiInvoke<AccountDTO[]>('list_accounts')

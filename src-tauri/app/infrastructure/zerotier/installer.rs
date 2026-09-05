@@ -2,9 +2,6 @@ use std::path::Path;
 
 #[cfg(target_os = "windows")]
 use super::cli;
-/// ZeroTier doesn't publish per-version release metadata like Adoptium does;
-/// this link always resolves to the latest stable Windows x64 build. Sourced
-/// from `plugins.env` in `tauri.conf.json` like every other external URL.
 #[cfg(target_os = "windows")]
 fn msi_url() -> &'static str {
     crate::infrastructure::config::api()
@@ -23,16 +20,6 @@ fn ps_single(value: &str) -> String {
     format!("'{}'", value.replace('\'', "''"))
 }
 
-/// Downloads the official ZeroTier One installer and runs it elevated and
-/// silent (`/quiet /norestart`): the ZeroTier client needs a signed TAP/tun
-/// network driver, which only ships through this installer — there is no
-/// portable/driverless distribution to unzip the way Java's JRE has.
-///
-/// A UAC consent prompt is unavoidable (Windows requires it for driver
-/// installation regardless of `/quiet`), but no installer wizard is shown
-/// once the user approves it. The downloaded MSI is Authenticode-verified
-/// before it runs elevated so a tampered download can never silently
-/// escalate.
 #[cfg(target_os = "windows")]
 pub async fn download_and_install(
     client: &reqwest::Client,
@@ -65,9 +52,6 @@ pub async fn download_and_install(
     Ok(())
 }
 
-/// Rejects a downloaded MSI that is not Authenticode-signed by ZeroTier: the
-/// file is fetched over HTTPS from the official host, but the signature is
-/// the last line of defense before it runs with administrator privileges.
 #[cfg(target_os = "windows")]
 fn verify_msi_signature(msi_path: &Path) -> anyhow::Result<()> {
     let msi_literal = ps_single(&msi_path.display().to_string());

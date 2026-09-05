@@ -1,6 +1,5 @@
 import { type Dispatch, type SetStateAction } from 'react'
 import { toast } from 'sonner'
-
 import { CharacterCounter } from '@/components/common/CharacterCounter'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,16 +17,13 @@ import {
   serverIpSchema,
   serverNameSchema,
 } from '@/lib/validation'
-
 import type { EditingState } from './server-editing'
-
 interface ServerEditDialogProps {
   editing: EditingState | null
   isSaving: boolean
   onEditingChange: Dispatch<SetStateAction<EditingState | null>>
   onSave: () => void
 }
-
 export function ServerEditDialog({
   editing,
   isSaving,
@@ -48,7 +44,6 @@ export function ServerEditDialog({
     }
     onSave()
   }
-
   return (
     <Dialog
       open={!!editing}

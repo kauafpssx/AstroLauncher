@@ -59,8 +59,6 @@ async fn fetch_jre_download_url(client: &reqwest::Client, major: u32) -> anyhow:
     Ok(asset.binary.package.link)
 }
 
-/// Downloads a portable Adoptium JRE zip and extracts it into `dest_dir`,
-/// stripping the single top-level folder Adoptium zips ship with.
 pub async fn download_portable_jre(
     client: &reqwest::Client,
     major: u32,
@@ -93,7 +91,6 @@ fn extract_jre_zip(bytes: &[u8], dest_dir: &Path) -> anyhow::Result<()> {
             continue;
         };
 
-        // Adoptium zips wrap everything in a single "jdk-21.0.2+13-jre/" folder; drop it.
         let relative: PathBuf = enclosed.components().skip(1).collect();
         if relative.as_os_str().is_empty() {
             continue;

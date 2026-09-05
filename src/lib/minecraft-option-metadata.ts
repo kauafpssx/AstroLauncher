@@ -6,7 +6,6 @@ export type OptionCategory =
   | 'Acessibilidade'
   | 'Aparência'
   | 'Geral'
-
 export const OPTION_CATEGORY_ORDER: OptionCategory[] = [
   'Vídeo',
   'Áudio',
@@ -16,8 +15,6 @@ export const OPTION_CATEGORY_ORDER: OptionCategory[] = [
   'Aparência',
   'Geral',
 ]
-
-/** Grouping mirrors Minecraft's own options screens as closely as reasonable: there's no metadata file for this, it's hardcoded in the game's client, so it's curated here by hand. */
 const CATEGORY_BY_KEY: Record<string, OptionCategory> = {
   ao: 'Vídeo',
   biomeBlendRadius: 'Vídeo',
@@ -62,12 +59,10 @@ const CATEGORY_BY_KEY: Record<string, OptionCategory> = {
   menuBackgroundBlurriness: 'Vídeo',
   panoramaScrollSpeed: 'Vídeo',
   hideSplashTexts: 'Vídeo',
-
   soundDevice: 'Áudio',
   directionalAudio: 'Áudio',
   musicToast: 'Áudio',
   musicFrequency: 'Áudio',
-
   autoJump: 'Controles',
   rotateWithMinecart: 'Controles',
   invertXMouse: 'Controles',
@@ -87,7 +82,6 @@ const CATEGORY_BY_KEY: Record<string, OptionCategory> = {
   discrete_mouse_scroll: 'Controles',
   operatorItemsTab: 'Controles',
   autoSuggestions: 'Controles',
-
   chatColors: 'Chat',
   chatLinks: 'Chat',
   chatLinksPrompt: 'Chat',
@@ -107,7 +101,6 @@ const CATEGORY_BY_KEY: Record<string, OptionCategory> = {
   onlyShowSecureChat: 'Chat',
   saveChatDrafts: 'Chat',
   hideMatchedNames: 'Chat',
-
   narrator: 'Acessibilidade',
   showSubtitles: 'Acessibilidade',
   highContrast: 'Acessibilidade',
@@ -116,7 +109,6 @@ const CATEGORY_BY_KEY: Record<string, OptionCategory> = {
   damageTiltStrength: 'Acessibilidade',
   darknessEffectScale: 'Acessibilidade',
   onboardAccessibility: 'Acessibilidade',
-
   lang: 'Geral',
   resourcePacks: 'Geral',
   incompatibleResourcePacks: 'Geral',
@@ -135,8 +127,6 @@ const CATEGORY_BY_KEY: Record<string, OptionCategory> = {
   realmsNotifications: 'Geral',
   pauseOnLostFocus: 'Geral',
 }
-
-/** Real min/max as used by the game's own sliders: most floats are 0 to 1, these are the exceptions. */
 const FLOAT_RANGE_BY_KEY: Record<string, [number, number]> = {
   entityDistanceScaling: [0.5, 5],
   mouseSensitivity: [0, 2],
@@ -144,11 +134,9 @@ const FLOAT_RANGE_BY_KEY: Record<string, [number, number]> = {
   chatDelay: [0, 6],
   gamma: [0, 1],
 }
-
 export function floatRangeForKey(key: string): [number, number] {
   return FLOAT_RANGE_BY_KEY[key] ?? [0, 1]
 }
-
 export function categoryForOptionKey(key: string): OptionCategory {
   if (key.startsWith('soundCategory_')) return 'Áudio'
   if (key.startsWith('modelPart_')) return 'Aparência'

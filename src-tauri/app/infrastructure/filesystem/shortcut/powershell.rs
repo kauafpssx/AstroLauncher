@@ -5,12 +5,9 @@ use std::os::windows::process::CommandExt;
 
 use anyhow::Context;
 
-/// Prevents the PowerShell console window from flashing on the user's screen
-/// when spawning the process: every `Command` on Windows runs hidden.
 #[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
-/// Single-quotes a PowerShell string literal, doubling embedded quotes.
 pub(super) fn ps_single(value: &str) -> String {
     format!("'{}'", value.replace('\'', "''"))
 }

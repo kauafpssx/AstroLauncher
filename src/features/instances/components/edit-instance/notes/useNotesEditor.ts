@@ -58,11 +58,9 @@ export function useNotesEditor(instanceId: string) {
             markdown: { getMarkdown: () => string }
           }
         ).markdown.getMarkdown()
-        InstanceWorkspaceAPI.writeNote(
-          instanceId,
-          noteId,
-          md,
-        ).catch((err) => toast.error(`Falha ao salvar nota: ${String(err)}`))
+        InstanceWorkspaceAPI.writeNote(instanceId, noteId, md).catch((err) =>
+          toast.error(`Falha ao salvar nota: ${String(err)}`),
+        )
       }, SAVE_DEBOUNCE_MS)
     },
   })

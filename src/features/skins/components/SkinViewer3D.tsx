@@ -1,13 +1,10 @@
 import { Download, Pause, Play } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { IdleAnimation, SkinViewer, WalkingAnimation } from 'skinview3d'
-
 import { Button } from '@/components/ui/button'
 import { tooltipProps } from '@/lib/tooltip'
 import type { SkinSource } from '@/types/skins'
-
-import { SkinAPI } from '../services/skin.api'
-
+import { SkinAPI } from '@/features/skins/services/skin.api'
 interface SkinViewer3DProps {
   source: SkinSource
   skinUrl: string
@@ -16,7 +13,6 @@ interface SkinViewer3DProps {
   onDownload: () => void
   isDownloading?: boolean
 }
-
 export function SkinViewer3D({
   source,
   skinUrl,
@@ -29,7 +25,6 @@ export function SkinViewer3D({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const viewerRef = useRef<SkinViewer | null>(null)
   const [walking, setWalking] = useState(false)
-
   useEffect(() => {
     if (!canvasRef.current) return
     const viewer = new SkinViewer({
@@ -44,11 +39,6 @@ export function SkinViewer3D({
     viewerRef.current = viewer
     return () => viewer.dispose()
   }, [])
-
-  // The box stretches to match the height of the player list next to it
-  // (see SkinDetailDialog) instead of a fixed size, so the render resolution
-  // has to track that actual box size or the model would end up cropped or
-  // leave a gap underneath.
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -59,18 +49,15 @@ export function SkinViewer3D({
     observer.observe(container)
     return () => observer.disconnect()
   }, [])
-
   useEffect(() => {
     const viewer = viewerRef.current
     if (!viewer) return
     let cancelled = false
-    const options: { model: 'slim' | 'default' } = {
+    const options: {
+      model: 'slim' | 'default'
+    } = {
       model: model === 'slim' ? 'slim' : 'default',
     }
-
-    // mcstat.org sends no CORS headers, so the WebGL texture load fails
-    // silently if fed the raw URL directly: fetch it server-side instead
-    // and hand skinview3d a same-origin data URL.
     if (source !== 'playermc') {
       SkinAPI.fetchTextureBase64(skinUrl)
         .then((base64) => {
@@ -81,12 +68,10 @@ export function SkinViewer3D({
     } else {
       viewer.loadSkin(skinUrl, options).catch(() => {})
     }
-
     return () => {
       cancelled = true
     }
   }, [source, skinUrl, model])
-
   const toggleWalking = () => {
     const viewer = viewerRef.current
     if (!viewer) return
@@ -95,7 +80,6 @@ export function SkinViewer3D({
     viewer.autoRotate = !next
     viewer.animation = next ? new WalkingAnimation() : new IdleAnimation()
   }
-
   return (
     <div className={className}>
       <div

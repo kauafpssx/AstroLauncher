@@ -1,14 +1,12 @@
-import type { useInstancesPage } from '../hooks/useInstancesPage'
-import { ConfirmDeleteFolderDialog } from './ConfirmDeleteFolderDialog'
+import { ExportAstropackDialog } from '@/features/instances/components/astropack/ExportAstropackDialog'
+import { ImportAstropackDialog } from '@/features/instances/components/astropack/ImportAstropackDialog'
+import { ConfirmDeleteFolderDialog } from '@/features/instances/components/folders/ConfirmDeleteFolderDialog'
+import { FolderNameDialog } from '@/features/instances/components/folders/FolderNameDialog'
+import type { useInstancesPage } from '@/features/instances/hooks/useInstancesPage'
 import { DeleteInstanceDialog } from './DeleteInstanceDialog'
-import { ExportAstropackDialog } from './ExportAstropackDialog'
-import { FolderNameDialog } from './FolderNameDialog'
-import { ImportAstropackDialog } from './ImportAstropackDialog'
-
 interface InstancesPageDialogsProps {
   page: ReturnType<typeof useInstancesPage>
 }
-
 export function InstancesPageDialogs({ page }: InstancesPageDialogsProps) {
   const {
     folderDialog,
@@ -30,7 +28,6 @@ export function InstancesPageDialogs({ page }: InstancesPageDialogsProps) {
     setImportFilePath,
     refresh,
   } = page
-
   return (
     <>
       {folderDialog && (

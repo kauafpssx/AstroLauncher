@@ -1,6 +1,5 @@
 import { apiInvoke } from '@/lib/api/client'
 import type { InstanceDTO } from '@/types/instance'
-
 interface AstroPackContentEntry {
   kind: string
   source: string
@@ -11,17 +10,14 @@ interface AstroPackContentEntry {
   downloadUrl: string | null
   iconUrl: string | null
 }
-
 interface AstroPackServerEntry {
   name: string
   ip: string
 }
-
 interface AstroPackNoteEntry {
   title: string
   content: string
 }
-
 export interface AstroPackManifest {
   schemaVersion: number
   name: string
@@ -38,10 +34,11 @@ export interface AstroPackManifest {
   worlds: string[]
   servers: AstroPackServerEntry[]
   screenshots: string[]
+  configs: string[]
 }
-
 export interface ExportSelection {
   settings: boolean
+  configs: boolean
   worlds: boolean
   notes: boolean
   mods: boolean
@@ -50,7 +47,6 @@ export interface ExportSelection {
   servers: boolean
   screenshots: boolean
 }
-
 export interface ExportSummary {
   mods: number
   resourcepacks: number
@@ -58,12 +54,13 @@ export interface ExportSummary {
   worlds: number
   hasNotes: boolean
   hasSettings: boolean
+  configs: number
   servers: number
   screenshots: number
 }
-
 export const ALL_SELECTED: ExportSelection = {
   settings: true,
+  configs: true,
   worlds: true,
   notes: true,
   mods: true,
@@ -72,16 +69,13 @@ export const ALL_SELECTED: ExportSelection = {
   servers: true,
   screenshots: true,
 }
-
 export interface ExportResult {
   filePath: string
 }
-
 export interface ImportAstroPackInput {
   filePath: string
   selection: ExportSelection
 }
-
 export type AstroPackEvent =
   | {
       type: 'progress'
@@ -91,9 +85,14 @@ export type AstroPackEvent =
       current: number
       total: number
     }
-  | { type: 'done'; instanceId: string }
-  | { type: 'error'; message: string }
-
+  | {
+      type: 'done'
+      instanceId: string
+    }
+  | {
+      type: 'error'
+      message: string
+    }
 export const AstroPackAPI = {
   getExportSummary(instanceId: string): Promise<ExportSummary> {
     return apiInvoke<ExportSummary>('get_astropack_export_summary', {
