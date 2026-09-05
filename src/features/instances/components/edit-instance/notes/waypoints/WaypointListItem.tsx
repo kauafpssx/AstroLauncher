@@ -35,11 +35,7 @@ export function WaypointListItem({
         </p>
       </div>
       <div className="flex shrink-0 gap-1">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => onEdit(waypoint)}
-        >
+        <Button variant="ghost" size="icon-sm" onClick={() => onEdit(waypoint)}>
           <Pencil className="size-3.5" />
         </Button>
         <Button
