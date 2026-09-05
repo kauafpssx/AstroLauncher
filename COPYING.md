@@ -78,7 +78,7 @@ As seguintes bibliotecas Rust são utilizadas pelo AstroLauncher. As versões li
 | `tauri-plugin-fs`                | 2.5.1   | Apache-2.0 OR MIT |
 | `tauri-plugin-shell`             | 2.3.5   | Apache-2.0 OR MIT |
 | `tauri-plugin-clipboard-manager` | 2       | Apache-2.0 OR MIT |
-| `tauri-plugin-updater`           | 2.10.1  | Apache-2.0 OR MIT |
+| `tauri-plugin-updater`           | 2.11.0  | Apache-2.0 OR MIT |
 | `tauri-plugin-process`           | 2.3.1   | Apache-2.0 OR MIT |
 | `serde`                          | 1       | MIT OR Apache-2.0 |
 | `serde_json`                     | 1       | MIT OR Apache-2.0 |
@@ -233,7 +233,7 @@ As seguintes bibliotecas JavaScript são utilizadas pelo AstroLauncher. As licen
 | `@tauri-apps/plugin-shell`             | 2.3.5  | MIT OR Apache-2.0 |
 | `@tauri-apps/plugin-clipboard-manager` | 2.3.2  | MIT OR Apache-2.0 |
 | `@tauri-apps/plugin-process`           | 2.3.1  | MIT OR Apache-2.0 |
-| `@tauri-apps/plugin-updater`           | 2.10.1 | MIT OR Apache-2.0 |
+| `@tauri-apps/plugin-updater`           | 2.11.0 | MIT OR Apache-2.0 |
 
 ### Estado
 
