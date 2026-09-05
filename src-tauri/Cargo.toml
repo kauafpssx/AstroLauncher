@@ -54,7 +54,7 @@ futures = "0.3.33"
 fastnbt = "2.6.1"
 flate2 = "1.0"
 base64 = "0.23.0"
-tauri-plugin-updater = "2.10.1"
+tauri-plugin-updater = "2.11"
 tauri-plugin-process = "2.3.1"
 rayon = "1"
 

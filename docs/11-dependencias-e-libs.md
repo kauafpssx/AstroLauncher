@@ -14,7 +14,7 @@ Versões exatas conforme `Cargo.toml` / `package.json` no momento desta revisão
 | `tauri-plugin-fs`                | 2.5.1                   | Acesso ao sistema de arquivos                          |
 | `tauri-plugin-shell`             | 2.3.5                   | Spawn de processos                                     |
 | `tauri-plugin-clipboard-manager` | 2                       | Área de transferência                                  |
-| `tauri-plugin-updater`           | 2.10.1                  | Auto-update in-app                                     |
+| `tauri-plugin-updater`           | 2.11.0  | Auto-update in-app                                     |
 | `tauri-plugin-process`           | 2.3.1                   | Controle do processo do próprio app (restart/exit)     |
 | `tauri-plugin-single-instance`   | 2                       | Instância única + repasse de argv (atalhos/.astropack) |
 | `tauri-plugin-log`               | 2                       | Logging integrado ao Tauri                             |
@@ -154,7 +154,7 @@ O Seed Map usa o [Cubiomes](https://github.com/Cubitect/cubiomes) (C, MIT) vendo
 | `@tauri-apps/plugin-shell`             | 2.3.5  | Shell/processos                   |
 | `@tauri-apps/plugin-clipboard-manager` | 2.3.2  | Clipboard                         |
 | `@tauri-apps/plugin-process`           | 2.3.1  | Controle do processo do app       |
-| `@tauri-apps/plugin-updater`           | 2.10.1 | Auto-update                       |
+| `@tauri-apps/plugin-updater`           | 2.11.0  | Auto-update                       |
 | `zod`                                  | 4.4.3  | Validação de input/forms (v0.6.0) |
 
 ### UI (shadcn/ui)
