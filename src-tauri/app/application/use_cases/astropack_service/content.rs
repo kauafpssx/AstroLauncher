@@ -72,14 +72,16 @@ impl AstroPackService {
                 .unwrap_or("unknown")
                 .to_string();
 
-            if download_url.is_none() {
-                let source_path = Path::new(&m.file_path);
-                if source_path.exists() {
-                    embed_files.push((
-                        format!("content/{}/{}", target_folder(&m.kind), file_name),
-                        source_path.to_path_buf(),
-                    ));
-                }
+            // Always embed the exact installed file, even when a download URL was
+            // resolved: matching by version name against the remote source can land
+            // a different build (e.g. an RC with different content) than what the
+            // user actually has installed and tested.
+            let source_path = Path::new(&m.file_path);
+            if source_path.exists() {
+                embed_files.push((
+                    format!("content/{}/{}", target_folder(&m.kind), file_name),
+                    source_path.to_path_buf(),
+                ));
             }
 
             contents.push(AstroPackContentEntry {
@@ -132,26 +134,40 @@ impl AstroPackService {
                 continue;
             };
 
-            let write_result = if let Some(url) = &entry.download_url {
-                crate::infrastructure::downloader::file_downloader::download_to_file(
-                    &self.http_client,
-                    url,
-                    &dest,
-                    None,
-                )
-                .await
-                .context("baixar")
-            } else {
-                let zip_entry_name = format!("content/{}/{}", target_subdir, entry.file_name);
-                match archive.by_name(&zip_entry_name) {
-                    Ok(mut zip_entry) => std::fs::File::create(&dest)
+            // Prefer the file embedded in the pack itself: it's exactly the build the
+            // user had installed and tested. Only fall back to re-downloading when
+            // the pack doesn't carry it (e.g. packs exported before this fix).
+            // The extraction is fully resolved (and the non-Send ZipFile dropped)
+            // before any `.await`, so this stays usable from an async command.
+            let zip_entry_name = format!("content/{}/{}", target_subdir, entry.file_name);
+            let embedded_result = match archive.by_name(&zip_entry_name) {
+                Ok(mut zip_entry) => Some(
+                    std::fs::File::create(&dest)
                         .with_context(|| format!("criar {}", dest.display()))
                         .and_then(|mut out| {
                             std::io::copy(&mut zip_entry, &mut out)
                                 .context("gravar conteúdo")
                                 .map(|_| ())
                         }),
-                    Err(e) => Err(anyhow::anyhow!("extrair {}: {}", entry.name, e)),
+                ),
+                Err(_) => None,
+            };
+
+            let write_result = match embedded_result {
+                Some(result) => result,
+                None => {
+                    if let Some(url) = &entry.download_url {
+                        crate::infrastructure::downloader::file_downloader::download_to_file(
+                            &self.http_client,
+                            url,
+                            &dest,
+                            None,
+                        )
+                        .await
+                        .context("baixar")
+                    } else {
+                        Err(anyhow::anyhow!("arquivo ausente no pacote: {}", entry.name))
+                    }
                 }
             };
 
