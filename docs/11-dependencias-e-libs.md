@@ -194,8 +194,8 @@ Discord é controlado inteiramente pelo backend Rust (`discord-rich-presence`). 
 | Pacote                                                                          | Versão                         | Finalidade                            |
 | ------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------- |
 | `@uiw/react-codemirror` + `@codemirror/lang-json`                               | 4.25.11 / 6.0.2                | Editor de código (arquivos de config) |
-| `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/extension-image` | 3.29.0                         | Editor rich-text (notas de instância) |
-| `@tiptap/suggestion`                                                          | 3.29.2                         | Sugestão `@` de waypoints nas notas (v1.0.0) |
+| `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/extension-image` | 3.31.3                         | Editor rich-text (notas de instância) |
+| `@tiptap/suggestion`                                                          | 3.31.3                         | Sugestão `@` de waypoints nas notas (v1.0.0) |
 | `tiptap-markdown`                                                               | 0.9.0                          | Export/import markdown do Tiptap      |
 | `react-markdown`, `remark-gfm`, `rehype-raw`, `rehype-sanitize`                 | 10.1.0 / 4.0.1 / 7.0.0 / 6.0.0 | Renderização de markdown              |
 
