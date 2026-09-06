@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { SettingsAPI } from '@/features/settings/services/settings.api'
 import { SkinAPI } from '@/features/skins/services/skin.api'
@@ -65,10 +65,10 @@ export function useMcstatKeyManager(): UseMcstatKeyManagerResult {
       throw err
     }
   }
-  const markInvalid = () => {
+  const markInvalid = useCallback(() => {
     setMcstatKeyInvalid(true)
     setMcstatKeyDialogOpen(true)
-  }
+  }, [])
   return {
     mcstatApiKey,
     setMcstatApiKey,
