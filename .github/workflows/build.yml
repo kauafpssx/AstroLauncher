@@ -56,6 +56,13 @@ jobs:
       contents: write
     strategy:
       fail-fast: false
+      # Sequencial de propósito: cada leg lê o latest.json do release, mescla
+      # a própria plataforma e regrava. Em paralelo, duas legs concorrentes
+      # podem regravar uma por cima da outra e derrubar uma entrada de
+      # plataforma (visto na prática: v1.1.0 saiu sem darwin-* porque o job
+      # macOS tinha um bug de bundle, mas o mecanismo de merge do
+      # tauri-action não tem lock/retry documentado para esse cenário).
+      max-parallel: 1
       matrix:
         include:
           - platform: windows-latest
@@ -175,7 +182,22 @@ jobs:
           tagName: ${{ needs.prepare.outputs.tag }}
           releaseName: AstroLauncher ${{ needs.prepare.outputs.tag }}
           releaseBody: ${{ needs.prepare.outputs.release_notes }}
-          releaseDraft: false
+          releaseDraft: true
           prerelease: false
           uploadUpdaterSignatures: false
           args: ${{ matrix.args }}
+
+  publish:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish release (só depois que Windows, macOS e Linux terminaram)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "${{ needs.prepare.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --draft=false \
+            --latest
