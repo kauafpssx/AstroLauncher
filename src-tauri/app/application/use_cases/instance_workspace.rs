@@ -47,7 +47,7 @@ impl InstanceWorkspaceService {
         }
 
         #[cfg_attr(not(target_os = "windows"), allow(unused_mut))]
-        let mut cmd = std::process::Command::new("explorer");
+        let mut cmd = std::process::Command::new(file_manager_bin());
         cmd.arg(&dir);
         #[cfg(target_os = "windows")]
         {
@@ -66,5 +66,15 @@ impl InstanceWorkspaceService {
             return Ok(0);
         }
         Ok(dir_size(&dir))
+    }
+}
+
+fn file_manager_bin() -> &'static str {
+    if cfg!(target_os = "windows") {
+        "explorer"
+    } else if cfg!(target_os = "macos") {
+        "open"
+    } else {
+        "xdg-open"
     }
 }
