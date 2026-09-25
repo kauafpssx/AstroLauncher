@@ -2,7 +2,7 @@
   <img src="public/logos/logo.svg" alt="AstroLauncher" width="294" />
 </p>
 
-<h1 align="center" style="border-bottom: 0;">[AstroLauncher](https://astrolauncher.kauafpss.com.br/)</h1>
+<h1 align="center" style="border-bottom: 0;"><a href="https://astrolauncher.kauafpss.com.br">AstroLauncher</a></h1>
 
 <p align="center">
   Launcher de Minecraft: Rust + Tauri no backend, React + shadcn/ui no frontend. 🚀
