@@ -74,10 +74,7 @@ export function AstropackImportProgress({
                         fallbackClassName="text-[10px]"
                       />
                       <div className="min-w-0 flex-1 overflow-hidden">
-                        <p
-                          className="truncate text-sm"
-                          title={entry.name}
-                        >
+                        <p className="truncate text-sm" title={entry.name}>
                           {entry.name}
                         </p>
                       </div>
