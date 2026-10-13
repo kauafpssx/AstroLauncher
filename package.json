@@ -82,7 +82,7 @@
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "typescript": "~6.0.2",
-    "typescript-eslint": "^8.66.0",
+    "typescript-eslint": "^8.70.0",
     "vite": "^8.2.1"
   },
   "description": "<p align=\"center\">   <img src=\"public/logos/logo.svg\" alt=\"AstroLauncher\" width=\"294\" /> </p>",
