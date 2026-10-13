@@ -27,9 +27,6 @@ pub struct FileIndex {
 }
 
 impl ModEntry {
-    /// The primary loader this modpack targets, if any of its listed file
-    /// indexes carries a recognized `modLoader` value (CurseForge's enum:
-    /// 1=Forge, 4=Fabric, 5=Quilt, 6=NeoForge).
     pub fn primary_loader(&self) -> Option<&'static str> {
         self.latest_files_indexes
             .iter()
@@ -42,7 +39,6 @@ impl ModEntry {
             })
     }
 
-    /// The newest Minecraft version this modpack has a build for.
     pub fn latest_game_version(&self) -> Option<&str> {
         self.latest_files_indexes
             .first()

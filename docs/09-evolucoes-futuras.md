@@ -2,17 +2,17 @@
 
 Se a base arquitetural for seguida desde o início, adicionar novas funcionalidades será principalmente criar novos módulos e casos de uso, sem alterar o restante da aplicação.
 
-> ✅ Já implementado (não mais "futuro"): Forge/NeoForge, LiteLoader, playtime tracking, pastas, Mod Browser (Modrinth + CurseForge), AstroPack, editor de config/keybinds, notas, ícones customizados, visualizador de skins 3D, Discord RPC, auto-update (plugin-updater), sugestão de memória, idioma automático, persistência de janela, rede ZeroTier, Java por instância, janela do jogo configurável e avatares de conta (todos até v0.6.0).
+> ✅ Já implementado (não mais "futuro"): Forge/NeoForge, LiteLoader, playtime tracking, pastas, Mod Browser (Modrinth + CurseForge), AstroPack, editor de config/keybinds, notas, ícones customizados, visualizador de skins 3D, Discord RPC, auto-update (plugin-updater), sugestão de memória, idioma automático, persistência de janela, rede ZeroTier, Java por instância, janela do jogo configurável e avatares de conta (todos até v0.6.0). Seed Map completo — biomas, estruturas, slime chunks, strongholds, spawn, marcadores customizados e seed customizada via Cubiomes/FFI (v1.0.0) — e Waypoints com menções `@` nas notas (v1.0.0); ver [13](13-seed-map-spec.md).
 
 ## 9.1 Curto Prazo
 
-| Funcionalidade                                                                     | Esforço | Impacto |
-| ---------------------------------------------------------------------------------- | ------- | ------- |
-| Sistema de plugins do launcher                                                     | Alto    | Alto    |
-| Retry/backoff no download manager (sem dependência de retry hoje — código próprio) | Baixo   | Médio   |
-| Autenticação Microsoft oficial                                                     | Alto    | Alto    |
-| Cache de manifests/buscas (Modrinth/CurseForge)                                    | Médio   | Médio   |
-| Temas e personalização da interface                                                | Baixo   | Médio   |
+| Funcionalidade                                                                       | Esforço | Impacto |
+| ------------------------------------------------------------------------------------ | ------- | ------- |
+| Sistema de plugins do launcher                                                       | Alto    | Alto    |
+| Retry/backoff no download manager (sem dependência de retry hoje — código próprio)   | Baixo   | Médio   |
+| Autenticação Microsoft oficial                                                       | Alto    | Alto    |
+| Cache de manifests/buscas (Modrinth/CurseForge)                                      | Médio   | Médio   |
+| Temas e personalização da interface                                                  | Baixo   | Médio   |
 
 ## 9.2 Médio Prazo
 

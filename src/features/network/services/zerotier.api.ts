@@ -5,7 +5,6 @@ import type {
   LocalNetworkDTO,
   ZeroTierStatusDTO,
 } from '@/types/zerotier'
-
 export const ZeroTierAPI = {
   status(): Promise<ZeroTierStatusDTO> {
     return apiInvoke<ZeroTierStatusDTO>('zerotier_status')

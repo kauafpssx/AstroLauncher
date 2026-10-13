@@ -4,11 +4,12 @@ use parking_lot::Mutex;
 
 use crate::domain::repositories::{
     AccountRepository, FolderRepository, InstanceRepository, ModRepository, PlaytimeRepository,
+    WaypointRepository,
 };
 use crate::infrastructure::persistence::migrations;
 use crate::infrastructure::persistence::repositories::{
     SqliteAccountRepository, SqliteFolderRepository, SqliteInstanceRepository, SqliteModRepository,
-    SqlitePlaytimeRepository,
+    SqlitePlaytimeRepository, SqliteWaypointRepository,
 };
 use crate::infrastructure::persistence::sqlite::connection;
 use crate::presentation::state::AppState;
@@ -31,20 +32,14 @@ pub fn build_app_state(
         Arc::new(SqliteFolderRepository::new(conn.clone()));
     let mod_repository: Arc<dyn ModRepository> = Arc::new(SqliteModRepository::new(conn.clone()));
     let playtime_repository: Arc<dyn PlaytimeRepository> =
-        Arc::new(SqlitePlaytimeRepository::new(conn));
-    // Any session still open at this point predates this process: the app
-    // crashed or was force-killed mid-game last run, since a normal stop
-    // always closes its session before the process exits. Close them now so
-    // `get_summary` never adds elapsed time since a stale crash timestamp to
-    // displayed playtime.
+        Arc::new(SqlitePlaytimeRepository::new(conn.clone()));
+    let waypoint_repository: Arc<dyn WaypointRepository> =
+        Arc::new(SqliteWaypointRepository::new(conn.clone()));
     playtime_repository
         .close_orphaned_sessions()
         .expect("failed to reconcile orphaned playtime sessions");
     let http_client = reqwest::Client::builder()
         .user_agent("AstroLauncher/0.1.0")
-        // Only caps connection setup, not the whole transfer: this client is
-        // shared with large file downloads (mods, Java, game files) that can
-        // legitimately take minutes; a full request timeout would kill those.
         .connect_timeout(std::time::Duration::from_secs(10))
         .build()
         .expect("failed to build http client");
@@ -55,6 +50,7 @@ pub fn build_app_state(
         folder_repository,
         mod_repository,
         playtime_repository,
+        waypoint_repository,
         http_client,
         app_data_dir.to_path_buf(),
         discord_client_id,

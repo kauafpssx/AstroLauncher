@@ -13,11 +13,6 @@ use super::helpers::{icon_to_data_uri, target_folder};
 use super::AstroPackService;
 
 impl AstroPackService {
-    /// Tries to re-resolve a fresh download URL for a Modrinth/CurseForge mod
-    /// by matching the stored version display name against the project's
-    /// current version list. Lets the pack stay small (link, not file) for
-    /// anything that came from a real mod source; `None` means the caller
-    /// should fall back to embedding the local file instead.
     async fn resolve_download_url(
         &self,
         source: &str,
@@ -53,9 +48,6 @@ impl AstroPackService {
         }
     }
 
-    /// Resolves each enabled mod into a manifest content entry, embedding the
-    /// local file into `embed_files` whenever a fresh download URL can't be
-    /// re-resolved from its mod source.
     pub(super) async fn collect_contents(
         &self,
         enabled_mods: &[InstalledMod],
@@ -80,14 +72,16 @@ impl AstroPackService {
                 .unwrap_or("unknown")
                 .to_string();
 
-            if download_url.is_none() {
-                let source_path = Path::new(&m.file_path);
-                if source_path.exists() {
-                    embed_files.push((
-                        format!("content/{}/{}", target_folder(&m.kind), file_name),
-                        source_path.to_path_buf(),
-                    ));
-                }
+            // Always embed the exact installed file, even when a download URL was
+            // resolved: matching by version name against the remote source can land
+            // a different build (e.g. an RC with different content) than what the
+            // user actually has installed and tested.
+            let source_path = Path::new(&m.file_path);
+            if source_path.exists() {
+                embed_files.push((
+                    format!("content/{}/{}", target_folder(&m.kind), file_name),
+                    source_path.to_path_buf(),
+                ));
             }
 
             contents.push(AstroPackContentEntry {
@@ -104,10 +98,6 @@ impl AstroPackService {
         contents
     }
 
-    /// Installs each selected manifest entry into the instance, downloading
-    /// from its re-resolved URL when present or extracting the embedded copy
-    /// from the archive otherwise, registering every success as an installed
-    /// mod. `current` is advanced for the shared progress counter.
     #[allow(clippy::too_many_arguments)]
     pub(super) async fn install_contents(
         &self,
@@ -137,7 +127,6 @@ impl AstroPackService {
                 });
                 continue;
             }
-            // `file_name` comes from the pack manifest: reject `..`/absolute.
             let Some(dest) = safe_join(&target_dir, &entry.file_name) else {
                 on_event(AstroPackEventDTO::Error {
                     message: format!("Caminho inválido no pacote: {}", entry.file_name),
@@ -145,26 +134,40 @@ impl AstroPackService {
                 continue;
             };
 
-            let write_result = if let Some(url) = &entry.download_url {
-                crate::infrastructure::downloader::file_downloader::download_to_file(
-                    &self.http_client,
-                    url,
-                    &dest,
-                    None,
-                )
-                .await
-                .context("baixar")
-            } else {
-                let zip_entry_name = format!("content/{}/{}", target_subdir, entry.file_name);
-                match archive.by_name(&zip_entry_name) {
-                    Ok(mut zip_entry) => std::fs::File::create(&dest)
+            // Prefer the file embedded in the pack itself: it's exactly the build the
+            // user had installed and tested. Only fall back to re-downloading when
+            // the pack doesn't carry it (e.g. packs exported before this fix).
+            // The extraction is fully resolved (and the non-Send ZipFile dropped)
+            // before any `.await`, so this stays usable from an async command.
+            let zip_entry_name = format!("content/{}/{}", target_subdir, entry.file_name);
+            let embedded_result = match archive.by_name(&zip_entry_name) {
+                Ok(mut zip_entry) => Some(
+                    std::fs::File::create(&dest)
                         .with_context(|| format!("criar {}", dest.display()))
                         .and_then(|mut out| {
                             std::io::copy(&mut zip_entry, &mut out)
                                 .context("gravar conteúdo")
                                 .map(|_| ())
                         }),
-                    Err(e) => Err(anyhow::anyhow!("extrair {}: {}", entry.name, e)),
+                ),
+                Err(_) => None,
+            };
+
+            let write_result = match embedded_result {
+                Some(result) => result,
+                None => {
+                    if let Some(url) = &entry.download_url {
+                        crate::infrastructure::downloader::file_downloader::download_to_file(
+                            &self.http_client,
+                            url,
+                            &dest,
+                            None,
+                        )
+                        .await
+                        .context("baixar")
+                    } else {
+                        Err(anyhow::anyhow!("arquivo ausente no pacote: {}", entry.name))
+                    }
                 }
             };
 

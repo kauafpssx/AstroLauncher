@@ -1,18 +1,12 @@
 import { save } from '@tauri-apps/plugin-dialog'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
 import type { SkinDetail, SkinSource } from '@/types/skins'
-
-import { SkinAPI } from '../services/skin.api'
-
+import { SkinAPI } from '@/features/skins/services/skin.api'
 interface UseSkinDetailArgs {
   source: SkinSource | null
   id: string | null
 }
-
-/** State, data and handlers for the skin detail dialog (fetch, name/URL
- * copy and download). */
 export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
   const [detail, setDetail] = useState<SkinDetail | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -20,13 +14,7 @@ export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
   const [copiedUuid, setCopiedUuid] = useState<string | null>(null)
   const [copyAsCommand, setCopyAsCommand] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
-  // `null` means "use the model the API reported": set once the user
-  // overrides it, since detection isn't always right (e.g. a classic skin
-  // that's actually meant to be worn as slim).
   const [copyModel, setCopyModel] = useState<'classic' | 'slim' | null>(null)
-
-  // Clear/reset during render when the selected skin changes (the effect
-  // below only performs the fetch).
   const [prevId, setPrevId] = useState<typeof id>(null)
   if (prevId !== id) {
     setPrevId(id)
@@ -37,7 +25,6 @@ export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
       setDetail(null)
     }
   }
-
   useEffect(() => {
     if (!id || !source) return
     SkinAPI.getSkin(source, id)
@@ -45,7 +32,6 @@ export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
       .catch((err) => toast.error(`Falha ao carregar skin: ${String(err)}`))
       .finally(() => setIsLoading(false))
   }, [source, id])
-
   const copyName = async (uuid: string, username: string) => {
     await navigator.clipboard.writeText(
       copyAsCommand ? `/skin set mojang ${username}` : username,
@@ -56,14 +42,8 @@ export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
       1500,
     )
   }
-
-  // SkinRestorer (the most common skin plugin on servers that don't use
-  // Mojang accounts) can apply a skin straight from its PNG URL: no
-  // username or Mojang lookup needed, which works even for skins nobody's
-  // currently wearing. Syntax: `/skin set web <classic|slim> "<url>"`.
   const effectiveModel =
     copyModel ?? (detail?.model === 'slim' ? 'slim' : 'classic')
-
   const copySkinUrlCommand = async () => {
     if (!detail) return
     await navigator.clipboard.writeText(
@@ -72,7 +52,6 @@ export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
     setCopiedUrl(true)
     setTimeout(() => setCopiedUrl(false), 1500)
   }
-
   const downloadSkin = async () => {
     if (!detail) return
     const urlName = detail.skinUrl
@@ -84,7 +63,6 @@ export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
       filters: [{ name: 'Skin PNG', extensions: ['png'] }],
     })
     if (!destPath || Array.isArray(destPath)) return
-
     setIsDownloading(true)
     try {
       await SkinAPI.downloadSkin(detail.skinUrl, destPath)
@@ -94,7 +72,6 @@ export function useSkinDetail({ source, id }: UseSkinDetailArgs) {
       setIsDownloading(false)
     }
   }
-
   return {
     detail,
     isLoading,

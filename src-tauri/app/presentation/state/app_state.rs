@@ -3,19 +3,25 @@ use std::sync::Arc;
 
 use crate::application::use_cases::{
     AstroPackService, CreateAccountUseCase, CreateFolderUseCase, CreateInstanceUseCase,
-    CustomIconService, DeleteAccountUseCase, DeleteFolderUseCase, DeleteInstanceUseCase,
-    DuplicateInstanceUseCase, FetchVersionManifestUseCase, InstanceWorkspaceService,
-    LaunchInstanceUseCase, ListAccountsUseCase, ListFoldersUseCase, ListInstancesUseCase,
-    ModBrowserService, ModManagerService, ModpackInstallerService, MoveInstanceToFolderUseCase,
-    PlaytimeService, ReorderAccountsUseCase, ReorderFoldersUseCase, ReorderInstancesUseCase,
-    SetDefaultAccountUseCase, SettingsService, SkinBrowserService, StopInstanceUseCase,
-    SuggestMemoryUseCase, UpdateAccountUseCase, UpdateFolderUseCase, UpdateInstanceUseCase,
+    CreateWaypointUseCase, CustomIconService, DeleteAccountUseCase, DeleteFolderUseCase,
+    DeleteInstanceUseCase, DeleteWaypointUseCase, DuplicateInstanceUseCase,
+    FetchVersionManifestUseCase, FilterSupportedVersionsUseCase, GenerateBiomeTileUseCase,
+    GetColumnInfoUseCase, GetSpawnPointUseCase, GetStructureVariantUseCase,
+    InstanceWorkspaceService, LaunchInstanceUseCase, ListAccountsUseCase, ListBiomePaletteUseCase,
+    ListFoldersUseCase, ListInstancesUseCase, ListSlimeChunksUseCase, ListStrongholdsUseCase,
+    ListStructuresUseCase, ListWaypointsUseCase, ModBrowserService, ModManagerService,
+    ModpackInstallerService, MoveInstanceToFolderUseCase, PlaytimeService, ReorderAccountsUseCase,
+    ReorderFoldersUseCase, ReorderInstancesUseCase, SetDefaultAccountUseCase, SettingsService,
+    SkinBrowserService, StopInstanceUseCase, SuggestMemoryUseCase, UpdateAccountUseCase,
+    UpdateFolderUseCase, UpdateInstanceUseCase, UpdateWaypointUseCase,
 };
 use crate::domain::repositories::{
     AccountRepository, FolderRepository, InstanceRepository, ModRepository, PlaytimeRepository,
+    WaypointRepository,
 };
 use crate::infrastructure::discord::DiscordRpcHandle;
 use crate::infrastructure::process::manager::ProcessManager;
+use crate::infrastructure::worldgen::cubiomes_provider::WorldgenService;
 use crate::infrastructure::zerotier::ZeroTierService;
 
 pub struct AppState {
@@ -36,6 +42,10 @@ pub struct AppState {
     pub delete_account: DeleteAccountUseCase,
     pub set_default_account: SetDefaultAccountUseCase,
     pub reorder_accounts: ReorderAccountsUseCase,
+    pub list_waypoints: ListWaypointsUseCase,
+    pub create_waypoint: CreateWaypointUseCase,
+    pub update_waypoint: UpdateWaypointUseCase,
+    pub delete_waypoint: DeleteWaypointUseCase,
     pub zerotier: ZeroTierService,
     pub list_folders: ListFoldersUseCase,
     pub create_folder: CreateFolderUseCase,
@@ -52,11 +62,19 @@ pub struct AppState {
     pub skin_browser: SkinBrowserService,
     pub playtime: Arc<PlaytimeService>,
     pub discord: DiscordRpcHandle,
+    pub generate_biome_tile: GenerateBiomeTileUseCase,
+    pub list_biome_palette: ListBiomePaletteUseCase,
+    pub filter_supported_versions: FilterSupportedVersionsUseCase,
+    pub get_spawn_point: GetSpawnPointUseCase,
+    pub get_structure_variant: GetStructureVariantUseCase,
+    pub get_column_info: GetColumnInfoUseCase,
+    pub list_slime_chunks: ListSlimeChunksUseCase,
+    pub list_structures: ListStructuresUseCase,
+    pub list_strongholds: ListStrongholdsUseCase,
     pub app_data_dir: PathBuf,
 }
 
 impl AppState {
-    // Dependency-injection constructor: many parameters are expected here.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         instance_repository: Arc<dyn InstanceRepository>,
@@ -64,6 +82,7 @@ impl AppState {
         folder_repository: Arc<dyn FolderRepository>,
         mod_repository: Arc<dyn ModRepository>,
         playtime_repository: Arc<dyn PlaytimeRepository>,
+        waypoint_repository: Arc<dyn WaypointRepository>,
         http_client: reqwest::Client,
         app_data_dir: PathBuf,
         discord_client_id: String,
@@ -77,6 +96,8 @@ impl AppState {
         let zerotier_service = ZeroTierService::new(http_client.clone(), app_data_dir.clone());
         let discord = DiscordRpcHandle::spawn(discord_client_id, discord_logo_asset_key);
         discord.set_idle();
+
+        let worldgen = Arc::new(WorldgenService::new());
 
         Self {
             list_instances: ListInstancesUseCase::new(instance_repository.clone()),
@@ -124,6 +145,15 @@ impl AppState {
             ),
             custom_icon: CustomIconService::new(app_data_dir.clone()),
             skin_browser: SkinBrowserService::new(http_client.clone(), app_data_dir.clone()),
+            generate_biome_tile: GenerateBiomeTileUseCase::new(worldgen.clone()),
+            list_biome_palette: ListBiomePaletteUseCase::new(worldgen.clone()),
+            filter_supported_versions: FilterSupportedVersionsUseCase::new(worldgen.clone()),
+            get_spawn_point: GetSpawnPointUseCase::new(worldgen.clone()),
+            get_structure_variant: GetStructureVariantUseCase::new(worldgen.clone()),
+            get_column_info: GetColumnInfoUseCase::new(worldgen.clone()),
+            list_slime_chunks: ListSlimeChunksUseCase::new(worldgen.clone()),
+            list_structures: ListStructuresUseCase::new(worldgen.clone()),
+            list_strongholds: ListStrongholdsUseCase::new(worldgen.clone()),
             fetch_version_manifest: FetchVersionManifestUseCase::new(http_client.clone()),
             app_data_dir: app_data_dir.clone(),
             launch_instance: LaunchInstanceUseCase::new(
@@ -145,6 +175,10 @@ impl AppState {
             delete_account: DeleteAccountUseCase::new(account_repository.clone()),
             set_default_account: SetDefaultAccountUseCase::new(account_repository.clone()),
             reorder_accounts: ReorderAccountsUseCase::new(account_repository),
+            list_waypoints: ListWaypointsUseCase::new(waypoint_repository.clone()),
+            create_waypoint: CreateWaypointUseCase::new(waypoint_repository.clone()),
+            update_waypoint: UpdateWaypointUseCase::new(waypoint_repository.clone()),
+            delete_waypoint: DeleteWaypointUseCase::new(waypoint_repository),
             zerotier: zerotier_service,
             list_folders: ListFoldersUseCase::new(folder_repository.clone()),
             create_folder: CreateFolderUseCase::new(folder_repository.clone()),

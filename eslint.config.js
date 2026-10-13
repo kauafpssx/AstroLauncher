@@ -22,6 +22,24 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // Empty `catch {}` blocks are intentional error-swallowing (their
+      // explanatory comments were removed project-wide by explicit request).
+      'no-empty': ['error', { allowEmptyCatch: true }],
+      // Force '@/*' path aliases instead of parent-traversal relative imports.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*'],
+              message:
+                "Use the '@/*' path alias instead of relative parent imports (e.g. '@/components/ui/button').",
+            },
+          ],
+        },
+      ],
+    },
   },
   // Prettier owns formatting: disable ESLint rules that would conflict with it.
   {

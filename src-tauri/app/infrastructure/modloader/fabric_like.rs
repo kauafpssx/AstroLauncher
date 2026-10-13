@@ -13,9 +13,6 @@ struct LoaderInfo {
     stable: bool,
 }
 
-/// Fabric and Quilt both expose a Fabric-Meta-compatible API (Quilt was
-/// explicitly designed as a drop-in-compatible fork), so both loaders share
-/// this client, parameterized by their meta server's base URL.
 pub fn meta_base_for(loader: &str) -> Option<&'static str> {
     let api = crate::infrastructure::config::api();
     match loader {

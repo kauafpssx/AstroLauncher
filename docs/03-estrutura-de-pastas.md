@@ -25,10 +25,10 @@ src-tauri/
 │   │   └── mappers/            # Entidade → DTO (account, folder, instance)
 │   │
 │   ├── domain/
-│   │   ├── entities/          # Instance, Account, Folder, InstalledMod, PlaytimeSession
+│   │   ├── entities/          # Instance, Account, Folder, InstalledMod, PlaytimeSession, Waypoint (v1.0.0)
 │   │   ├── repositories/      # Traits: InstanceRepository, AccountRepository, FolderRepository,
-│   │   │                       #   ModRepository, PlaytimeRepository
-│   │   └── errors/            # InstanceError, AccountError, FolderError (thiserror)
+│   │   │                       #   ModRepository, PlaytimeRepository, WaypointRepository (v1.0.0)
+│   │   └── errors/            # InstanceError, AccountError, FolderError, WaypointError, WorldgenError (thiserror)
 │   │
 │   ├── infrastructure/
 │   │   ├── minecraft/         # manifest, rules, servers_dat, version_meta
@@ -43,16 +43,16 @@ src-tauri/
 │   │   ├── playermc/           # client — texturas de skins (api.playermc.site)
 │   │   ├── mcstat/             # client — busca/detalhe de skins (mcstat.org)
 │   │   ├── zerotier/           # ZeroTier (v0.6.0) — via reqwest + CLI local
+│   │   ├── worldgen/           # Cubiomes via FFI (v1.0.0): provider, ffi
 │   │   └── persistence/
 │   │       ├── sqlite/         # connection.rs
-│   │       ├── migrations/     # v1..v10 (function-pointer table; sem v7)
+│   │       ├── migrations/     # v1..v12 (function-pointer table; sem v7)
 │   │       ├── repositories/   # Sqlite*Repository (implementações)
 │   │       └── config/         # json_settings_repository.rs (settings.json)
 │   │
 │   ├── presentation/
-│   │   ├── commands/           # *_commands.rs — um arquivo por domínio, #[tauri::command]
-│   │   ├── state/               # app_state.rs — AppState (managed state), é módulo, não arquivo único
-│   │   └── ipc/                 # instance.rs — layout legado paralelo, não usado pelos commands atuais
+│   │   ├── commands/           # *_commands.rs — um arquivo por domínio (+ subpasta seed_map_commands/), #[tauri::command]
+│   │   └── state/               # app_state.rs — AppState (managed state), é módulo, não arquivo único
 │   │
 │   └── bootstrap/
 │       └── setup.rs            # build_app_state() — DI manual, única fonte de wiring
@@ -62,7 +62,8 @@ src-tauri/
 ├── tauri.ci.conf.json         # override de CI (desliga signing do updater no build de validação)
 ├── deny.toml                  # config do cargo-deny (licenças/audit no CI)
 ├── Cargo.toml
-└── build.rs
+├── build.rs                 # compila o Cubiomes vendorizado via cc (v1.0.0)
+└── vendor/                  # Cubiomes C (fork xpple) + update-cubiomes.sh (v1.0.0)
 ```
 
 ## 3.3 Frontend (src/)
@@ -77,7 +78,8 @@ src/
 │
 ├── features/               # Feature-first — pastas reais:
 │   ├── instances/          # maior feature: criar/editar/listar instâncias, pastas, astropack,
-│   │                        #   ícones, workspace (notas, mundos, servers, screenshots, config)
+│   │                        #   ícones, workspace (notas, mundos, servers, screenshots, config),
+│   │                        #   seed-map (OpenLayers, v1.0.0), waypoints com menções @ (v1.0.0)
 │   ├── mods/                # Mod Browser + gerenciamento de mods instalados
 │   ├── accounts/            # contas offline (CRUD, sheet, dialog)
 │   ├── skins/                # busca e preview 3D de skins
@@ -94,7 +96,8 @@ src/
 │   └── useBlockNativeContextMenu.ts
 │
 ├── data/
-│   └── mc-icons.ts
+│   ├── mc-icons.ts
+│   └── biome/structure-metadata.ts (v1.0.0, seed map)
 │
 ├── lib/
 │   ├── api/client.ts       # apiInvoke<T>() — wrapper fino sobre @tauri-apps/api invoke

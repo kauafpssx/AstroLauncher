@@ -1,7 +1,6 @@
 import { Check, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { MarkdownBody } from '@/components/common/MarkdownBody'
@@ -16,9 +15,7 @@ import {
 import { ModAPI } from '@/features/mods/services/mod.api'
 import { useLinkPreviewStore } from '@/stores/link-preview.store'
 import type { ModProject, ModSearchResult, ModVersion } from '@/types/mods'
-
 import { ModDetailLinks } from './ModDetailLinks'
-
 interface ModDetailPanelProps {
   result: ModSearchResult
   gameVersion?: string
@@ -28,7 +25,6 @@ interface ModDetailPanelProps {
   installedFileNames?: Set<string>
   onToggleSelect: (version: ModVersion) => void
 }
-
 export function ModDetailPanel({
   result,
   gameVersion,
@@ -43,9 +39,6 @@ export function ModDetailPanel({
   const [versionId, setVersionId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const openLink = useLinkPreviewStore((s) => s.open)
-
-  // Reset the panel during render whenever another mod is selected (the effect
-  // below only performs the fetch, so setState stays out of effects).
   const detailKey = `${result.source}:${result.projectId}`
   const [prevDetailKey, setPrevDetailKey] = useState(detailKey)
   if (prevDetailKey !== detailKey) {
@@ -55,10 +48,8 @@ export function ModDetailPanel({
     setVersions([])
     setVersionId(null)
   }
-
   useEffect(() => {
     let cancelled = false
-
     Promise.all([
       ModAPI.getProject(result.source, result.projectId),
       ModAPI.getVersions({
@@ -80,22 +71,18 @@ export function ModDetailPanel({
           toast.error(`Falha ao carregar detalhes: ${String(err)}`),
       )
       .finally(() => !cancelled && setIsLoading(false))
-
     return () => {
       cancelled = true
     }
   }, [result, gameVersion, loader])
-
   const selectedVersion = versions.find((v) => v.id === versionId) ?? null
   const isSelectedVersionDuplicate =
     !!selectedVersion &&
     !!installedFileNames?.has(selectedVersion.fileName.toLowerCase())
   const isBlocked = isInstalled || isSelectedVersionDuplicate
-
   if (isLoading) {
     return <CenteredSpinner className="h-full" />
   }
-
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">

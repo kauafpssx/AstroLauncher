@@ -1,10 +1,8 @@
 import { ArrowLeft } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-
 import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
-
 export interface SidebarNavItem<T extends string> {
   id: T
   label: string
@@ -12,7 +10,6 @@ export interface SidebarNavItem<T extends string> {
   iconSrc?: string
   disabled?: boolean
 }
-
 interface SidebarNavProps<T extends string> {
   title: string
   items: SidebarNavItem<T>[]
@@ -24,7 +21,6 @@ interface SidebarNavProps<T extends string> {
   footer?: ReactNode
   className?: string
 }
-
 export function SidebarNav<T extends string>({
   title,
   items,

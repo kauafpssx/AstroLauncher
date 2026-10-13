@@ -75,9 +75,6 @@ impl SkinBrowserService {
                         skin_url: s.png_path,
                         model: s.model,
                         player_count: s.players_using_count,
-                        // The skin's own name is what identifies it in this
-                        // gallery: `owner` is usually mcstat's own bulk-import
-                        // bot account (`MojangSkins`), not a meaningful label.
                         first_seen_player: SkinPlayerDTO {
                             uuid: String::new(),
                             username: s.name,
@@ -153,12 +150,6 @@ impl SkinBrowserService {
         Ok(())
     }
 
-    /// Fetches a texture PNG server-side and returns it standard base64
-    /// encoded: mcstat.org doesn't send CORS headers, so the webview can't
-    /// `fetch()` it directly, and feeding it through here also guarantees a
-    /// same-origin `data:` URI for the local skinview3d thumbnail renderer
-    /// (a cross-origin image without a CORS-clean response taints the
-    /// canvas, breaking `toDataURL`).
     pub async fn fetch_texture_base64(&self, url: String) -> anyhow::Result<String> {
         let bytes = self
             .http_client
@@ -172,9 +163,6 @@ impl SkinBrowserService {
     }
 }
 
-/// PlayerMC serves texture URLs as plain `http://`, which the webview blocks
-/// as mixed content when loaded from an `https` origin; the same host serves
-/// `https` just fine.
 fn to_https(url: String) -> String {
     url.replacen("http://", "https://", 1)
 }

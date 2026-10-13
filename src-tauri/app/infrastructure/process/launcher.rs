@@ -16,24 +16,15 @@ pub struct LaunchOptions<'a> {
     pub assets_dir: &'a Path,
     pub game_dir: &'a Path,
     pub version_meta: &'a VersionMeta,
-    /// The class actually invoked: the vanilla client's main class, or a mod
-    /// loader's own entry point (e.g. Fabric/Quilt's Knot launcher) when one
-    /// is installed.
     pub main_class: &'a str,
     pub username: &'a str,
     pub uuid: &'a str,
     pub min_memory_mb: i64,
     pub max_memory_mb: i64,
-    /// Extra JVM flags some loaders require (e.g. Forge's module `--add-opens`
-    /// set on 1.17+): inserted before `-cp`. Empty for vanilla/Fabric/Quilt.
     pub extra_jvm_args: &'a [String],
-    /// Extra game arguments some loaders require (e.g. LiteLoader's
-    /// `--tweakClass`): appended after Mojang's standard set.
     pub extra_game_args: &'a [String],
 }
 
-/// Resolves a Maven coordinate (`group:artifact:version[:classifier]`) to the
-/// on-disk jar path used by Mojang's launcher layout.
 pub fn library_path(libraries_dir: &Path, maven_name: &str) -> PathBuf {
     let parts: Vec<&str> = maven_name.split(':').collect();
     let (group, artifact, version) = (parts[0], parts[1], parts[2]);
@@ -125,10 +116,6 @@ pub fn spawn_game(
     )
 }
 
-/// Spawns a Java process with a pre-built argument list, piping stdout/stderr
-/// to the instance's log file. Shared by the vanilla/Fabric/Quilt/LiteLoader
-/// argument builder above and the Forge/NeoForge branch, which builds its
-/// argument list via `mc-launcher-core`'s command builder instead.
 pub fn spawn_with_parts(
     java_bin: &Path,
     args: &[String],

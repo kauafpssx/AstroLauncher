@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react'
-
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
-
 interface ProgressGroupProps {
   label: ReactNode
   value?: number
@@ -11,7 +9,6 @@ interface ProgressGroupProps {
   barClassName?: string
   children?: ReactNode
 }
-
 export function ProgressGroup({
   label,
   value,

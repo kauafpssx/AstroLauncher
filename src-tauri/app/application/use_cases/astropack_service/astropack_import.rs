@@ -64,7 +64,13 @@ impl AstroPackService {
         } else {
             0
         };
-        let total = (selected_contents.len() + world_count + screenshot_count) as u64;
+        let config_count = if selection.configs {
+            manifest.configs.len()
+        } else {
+            0
+        };
+        let total =
+            (selected_contents.len() + world_count + screenshot_count + config_count) as u64;
         let mut current: u64 = 0;
 
         self.install_contents(
@@ -113,8 +119,6 @@ impl AstroPackService {
 
                 for entry_name in entry_names {
                     let relative = &entry_name[prefix.len()..];
-                    // `world_name` and `relative` come from untrusted zip entry
-                    // names: reject any `..`/absolute that would escape saves/.
                     let Some(dest) = safe_join(&saves_dir, &format!("{world_name}/{relative}"))
                     else {
                         continue;
@@ -160,6 +164,34 @@ impl AstroPackService {
                 let Some(dest) = safe_join(&shots_dir, name) else {
                     continue;
                 };
+                if let Ok(mut zip_entry) = archive.by_name(&zip_entry_name) {
+                    if let Ok(mut out) = std::fs::File::create(&dest) {
+                        let _ = std::io::copy(&mut zip_entry, &mut out);
+                    }
+                }
+            }
+        }
+
+        if selection.configs {
+            let config_dir = instance_dir.join("config");
+            let _ = std::fs::create_dir_all(&config_dir);
+            for relative in &manifest.configs {
+                on_event(AstroPackEventDTO::Progress {
+                    kind: "config".to_string(),
+                    name: relative.clone(),
+                    icon_url: None,
+                    current,
+                    total,
+                });
+                current += 1;
+
+                let zip_entry_name = format!("content/configs/{relative}");
+                let Some(dest) = safe_join(&config_dir, relative) else {
+                    continue;
+                };
+                if let Some(parent) = dest.parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
                 if let Ok(mut zip_entry) = archive.by_name(&zip_entry_name) {
                     if let Ok(mut out) = std::fs::File::create(&dest) {
                         let _ = std::io::copy(&mut zip_entry, &mut out);

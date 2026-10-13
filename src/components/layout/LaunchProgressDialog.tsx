@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/dialog'
 import { formatBytes } from '@/lib/format'
 import { useLaunchStore } from '@/stores/launch.store'
-
 export function LaunchProgressDialog() {
   const isOpen = useLaunchStore((s) => s.isOpen)
   const stageLabel = useLaunchStore((s) => s.stageLabel)
@@ -16,7 +15,6 @@ export function LaunchProgressDialog() {
   const error = useLaunchStore((s) => s.error)
   const close = useLaunchStore((s) => s.close)
   const cancel = useLaunchStore((s) => s.cancel)
-
   const overallPercent = progress
     ? Math.min(
         100,
@@ -29,7 +27,6 @@ export function LaunchProgressDialog() {
         (progress.stageCurrent / Math.max(1, progress.stageTotal)) * 100,
       )
     : 0
-
   return (
     <Dialog
       open={isOpen}

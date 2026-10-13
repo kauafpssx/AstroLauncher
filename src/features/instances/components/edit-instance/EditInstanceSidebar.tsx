@@ -17,10 +17,8 @@ import {
   Trash2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-
 import { SidebarNav, type SidebarNavItem } from '@/components/common/SidebarNav'
 import { Button } from '@/components/ui/button'
-
 export type EditInstanceTab =
   | 'settings'
   | 'log'
@@ -33,14 +31,12 @@ export type EditInstanceTab =
   | 'servers'
   | 'screenshots'
   | 'config-editor'
-
 interface TabItem {
   id: EditInstanceTab
   label: string
   icon: LucideIcon
   available: boolean
 }
-
 const tabs: TabItem[] = [
   { id: 'settings', label: 'Configurações', icon: Settings, available: true },
   { id: 'log', label: 'Log', icon: ScrollText, available: true },
@@ -51,7 +47,7 @@ const tabs: TabItem[] = [
     available: true,
   },
   { id: 'worlds', label: 'Mundos', icon: Globe, available: true },
-  { id: 'seed-map', label: 'Mapa de Seed', icon: Map, available: false },
+  { id: 'seed-map', label: 'Mapa de Seed', icon: Map, available: true },
   { id: 'notes', label: 'Notas', icon: FileText, available: true },
   { id: 'mods', label: 'Mods', icon: Puzzle, available: true },
   {
@@ -69,7 +65,6 @@ const tabs: TabItem[] = [
   { id: 'servers', label: 'Servers', icon: Server, available: true },
   { id: 'screenshots', label: 'Screenshots', icon: Image, available: true },
 ]
-
 interface EditInstanceSidebarProps {
   instanceName: string
   active: EditInstanceTab
@@ -82,7 +77,6 @@ interface EditInstanceSidebarProps {
   onExport: () => void
   onDelete: () => void
 }
-
 export function EditInstanceSidebar({
   instanceName,
   active,

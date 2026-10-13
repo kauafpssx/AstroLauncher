@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Copy } from 'lucide-react'
 import { toast } from 'sonner'
-
 import { Button } from '@/components/ui/button'
 import { CenteredSpinner } from '@/components/common/CenteredSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -17,13 +16,11 @@ import type {
   CentralMemberDTO,
   CentralNetworkSummaryDTO,
 } from '@/types/zerotier'
-
 interface PendingMembersSectionProps {
   hasToken: boolean
   onOpenTokenDialog: () => void
   onInvalidToken?: () => void
 }
-
 export function PendingMembersSection({
   hasToken,
   onOpenTokenDialog,
@@ -39,21 +36,16 @@ export function PendingMembersSection({
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingNetworks, setIsLoadingNetworks] = useState(hasToken)
   const [approvingNodeId, setApprovingNodeId] = useState<string | null>(null)
-
-  // Reset during render (not inside the fetch effects below) so the loading
-  // state flips the instant the trigger changes, not after the effect runs.
   const [prevNetworkId, setPrevNetworkId] = useState(selectedNetworkId)
   if (prevNetworkId !== selectedNetworkId) {
     setPrevNetworkId(selectedNetworkId)
     if (selectedNetworkId) setIsLoading(true)
   }
-
   const [prevHasToken, setPrevHasToken] = useState(hasToken)
   if (prevHasToken !== hasToken) {
     setPrevHasToken(hasToken)
     setIsLoadingNetworks(hasToken)
   }
-
   useEffect(() => {
     if (!hasToken) return
     ZeroTierAPI.listOwnedNetworks()
@@ -66,9 +58,7 @@ export function PendingMembersSection({
         if (String(err).includes('inválido')) onInvalidToken?.()
       })
       .finally(() => setIsLoadingNetworks(false))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasToken])
-
   useEffect(() => {
     if (!selectedNetworkId) return
     ZeroTierAPI.listPendingMembers(selectedNetworkId)
@@ -76,7 +66,6 @@ export function PendingMembersSection({
       .catch((err) => toast.error(String(err)))
       .finally(() => setIsLoading(false))
   }, [selectedNetworkId])
-
   const handleApprove = async (nodeId: string) => {
     if (!selectedNetworkId) return
     setApprovingNodeId(nodeId)
@@ -90,7 +79,6 @@ export function PendingMembersSection({
       setApprovingNodeId(null)
     }
   }
-
   if (!hasToken) {
     return (
       <EmptyState
@@ -105,11 +93,9 @@ export function PendingMembersSection({
       />
     )
   }
-
   if (isLoadingNetworks) {
     return <CenteredSpinner className="py-6" />
   }
-
   if (ownedNetworks.length === 0) {
     return (
       <EmptyState
@@ -119,13 +105,11 @@ export function PendingMembersSection({
       />
     )
   }
-
   const handleCopyId = async () => {
     if (!selectedNetworkId) return
     await navigator.clipboard.writeText(selectedNetworkId)
     toast.success('ID da rede copiado.')
   }
-
   return (
     <div className="flex flex-col gap-3">
       <Select

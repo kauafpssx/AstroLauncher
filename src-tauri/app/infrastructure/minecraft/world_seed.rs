@@ -3,32 +3,38 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-/// Extracts the world seed from a Minecraft world's `level.dat`.
-///
-/// The file is NBT compressed with gzip (older and current versions). The
-/// seed lives in different places depending on the version:
-/// - 1.16.2+ stores it as a `TAG_Long` under `Data.WorldGenSettings.seed`.
-/// - older versions store `Data.RandomSeed`.
-///
-/// Best-effort: a missing/corrupt file must never fail the world listing, so
-/// any error degrades to `None` (the UI shows "—" for unknown seeds).
 pub fn world_seed(world_dir: &Path) -> Option<i64> {
-    let data = std::fs::read(world_dir.join("level.dat")).ok()?;
-    let raw = if data.starts_with(&[0x1F, 0x8B]) {
-        let mut decoder = flate2::read::GzDecoder::new(&data[..]);
-        let mut buf = Vec::new();
-        decoder.read_to_end(&mut buf).ok()?;
-        buf
-    } else {
-        data
-    };
+    read_seed_from_level_dat(world_dir).or_else(|| read_seed_from_world_gen_settings(world_dir))
+}
 
+fn read_seed_from_level_dat(world_dir: &Path) -> Option<i64> {
+    let data = std::fs::read(world_dir.join("level.dat")).ok()?;
+    let raw = decompress_nbt(&data)?;
     let level: LevelDat = fastnbt::from_bytes(&raw).ok()?;
     level
         .data
         .world_gen_settings
         .and_then(|wgs| wgs.seed)
         .or(level.data.random_seed)
+}
+
+fn read_seed_from_world_gen_settings(world_dir: &Path) -> Option<i64> {
+    let path = world_dir.join("data/minecraft/world_gen_settings.dat");
+    let data = std::fs::read(path).ok()?;
+    let raw = decompress_nbt(&data)?;
+    let file: WorldGenSettingsFile = fastnbt::from_bytes(&raw).ok()?;
+    file.data.seed
+}
+
+fn decompress_nbt(data: &[u8]) -> Option<Vec<u8>> {
+    if data.starts_with(&[0x1F, 0x8B]) {
+        let mut decoder = flate2::read::GzDecoder::new(data);
+        let mut buf = Vec::new();
+        decoder.read_to_end(&mut buf).ok()?;
+        Some(buf)
+    } else {
+        Some(data.to_vec())
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -47,6 +53,16 @@ struct Data {
 
 #[derive(Debug, Deserialize)]
 struct WorldGenSettings {
+    seed: Option<i64>,
+}
+
+#[derive(Debug, Deserialize)]
+struct WorldGenSettingsFile {
+    data: WorldGenSettingsData,
+}
+
+#[derive(Debug, Deserialize)]
+struct WorldGenSettingsData {
     seed: Option<i64>,
 }
 

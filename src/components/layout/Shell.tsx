@@ -1,11 +1,9 @@
 import type { ReactNode } from 'react'
-
 interface ShellProps {
   topBar: ReactNode
   statusBar: ReactNode
   children: ReactNode
 }
-
 export function Shell({ topBar, statusBar, children }: ShellProps) {
   return (
     <div className="flex h-screen flex-col">

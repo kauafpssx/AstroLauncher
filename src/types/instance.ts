@@ -19,7 +19,6 @@ export interface InstanceDTO {
   windowMonitor: string | null
   lastJavaMajor: number | null
 }
-
 export interface CreateInstanceInput {
   name: string
   version: string
@@ -28,12 +27,10 @@ export interface CreateInstanceInput {
   folderId?: string | null
   iconPath?: string | null
 }
-
 export interface SuggestedMemoryDTO {
   minMb: number
   maxMb: number
 }
-
 export interface UpdateInstanceInput {
   id: string
   name: string

@@ -1,5 +1,8 @@
 export type LaunchEvent =
-  | { type: 'stage'; label: string }
+  | {
+      type: 'stage'
+      label: string
+    }
   | {
       type: 'progress'
       stage: string
@@ -9,4 +12,7 @@ export type LaunchEvent =
       overallCurrent: number
       overallTotal: number
     }
-  | { type: 'error'; message: string }
+  | {
+      type: 'error'
+      message: string
+    }

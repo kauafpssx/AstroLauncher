@@ -39,8 +39,6 @@ pub fn read_manifest(bytes: &[u8]) -> anyhow::Result<Manifest> {
     Ok(serde_json::from_str(&contents)?)
 }
 
-/// Extracts the pack's `overrides` folder (its name is declared in the
-/// manifest, conventionally `overrides`) directly into the instance directory.
 pub fn extract_overrides(
     bytes: &[u8],
     overrides_folder: &str,
@@ -77,8 +75,6 @@ pub fn extract_overrides(
     Ok(())
 }
 
-/// CurseForge modpack manifests encode the loader as `"<loader>-<version>"`
-/// (e.g. `"forge-47.2.0"`, `"neoforge-20.4.80"`) in the primary `modLoaders` entry.
 pub fn parse_loader_id(id: &str) -> Option<(String, String)> {
     let (loader, version) = id.split_once('-')?;
     match loader {

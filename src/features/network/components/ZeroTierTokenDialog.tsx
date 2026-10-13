@@ -1,7 +1,6 @@
 import { SingleFieldDialog } from '@/components/common/SingleFieldDialog'
 import { useAppEnvConfig } from '@/lib/app-config'
 import { MAX, zerotierApiTokenSchema } from '@/lib/validation'
-
 interface ZeroTierTokenDialogProps {
   open: boolean
   currentToken: string
@@ -9,7 +8,6 @@ interface ZeroTierTokenDialogProps {
   onOpenChange: (open: boolean) => void
   onSubmit: (token: string) => Promise<void>
 }
-
 export function ZeroTierTokenDialog({
   open,
   currentToken,
@@ -18,7 +16,6 @@ export function ZeroTierTokenDialog({
   onSubmit,
 }: ZeroTierTokenDialogProps) {
   const env = useAppEnvConfig()
-
   return (
     <SingleFieldDialog
       open={open}

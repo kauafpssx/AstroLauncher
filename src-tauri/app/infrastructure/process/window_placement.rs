@@ -1,11 +1,3 @@
-//! Best-effort placement of the spawned Minecraft window onto a specific
-//! monitor. Minecraft has no `--monitor`/`--x`/`--y` launch argument, so this
-//! is the only way to influence which display it opens on: poll for the
-//! game's top-level window by process id after spawn, then move it there
-//! with `SetWindowPos`. Purely cosmetic — a miss (window never appears in
-//! time, monitor got unplugged) must never affect the launch itself, so this
-//! never returns anything the caller has to check.
-
 #[cfg(target_os = "windows")]
 pub fn place_window_on_monitor(pid: u32, monitor_device_name: String) {
     log::info!(
@@ -33,10 +25,6 @@ mod win32 {
         HWND_TOP, SWP_NOACTIVATE, SWP_NOSIZE, SWP_NOZORDER,
     };
 
-    /// Polls for up to ~30s (JVM startup plus mod/asset loading before the
-    /// window appears can take a while on heavier instances) for a visible,
-    /// ownerless top-level window belonging to `pid`, then moves it to the
-    /// top-left corner of `monitor_device_name`.
     pub fn place_window_on_monitor(pid: u32, monitor_device_name: &str) {
         let Some((x, y)) = monitor_origin(monitor_device_name) else {
             log::warn!(

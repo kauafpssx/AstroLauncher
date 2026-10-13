@@ -1,5 +1,4 @@
 import { Download, Plus, Trash2 } from 'lucide-react'
-
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import {
   EntityContextMenu,
@@ -9,7 +8,6 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import type { ModSearchResult } from '@/types/mods'
-
 interface ModBrowserListItemProps {
   result: ModSearchResult
   isSelected: boolean
@@ -19,7 +17,6 @@ interface ModBrowserListItemProps {
   onToggleSelection: (result: ModSearchResult) => void
   onDeleteInstalled: (result: ModSearchResult) => void
 }
-
 export function ModBrowserListItem({
   result,
   isSelected,

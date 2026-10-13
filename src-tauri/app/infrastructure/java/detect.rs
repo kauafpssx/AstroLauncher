@@ -7,7 +7,6 @@ use std::os::windows::process::CommandExt;
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 fn silent_command(bin: &str) -> Command {
-    // `mut` is only needed on Windows (creation_flags); on other OSes it goes unused.
     #[cfg_attr(not(target_os = "windows"), allow(unused_mut))]
     let mut cmd = Command::new(bin);
     #[cfg(target_os = "windows")]
@@ -15,9 +14,6 @@ fn silent_command(bin: &str) -> Command {
     cmd
 }
 
-/// Looks for a usable `java` binary. Bundled JRE management (per
-/// docs/08-infraestrutura.md) is a follow-up; for now this relies on
-/// JAVA_HOME or PATH.
 pub fn find_java() -> anyhow::Result<String> {
     let candidate = std::env::var("JAVA_HOME")
         .map(|home| format!("{home}/bin/java"))
@@ -31,9 +27,6 @@ pub fn find_java() -> anyhow::Result<String> {
     }
 }
 
-/// Parses the major version out of `java -version` output (printed to
-/// stderr), handling both the legacy `1.8.0_x` scheme and the modern
-/// `17`, `21.0.2` scheme.
 pub fn detect_major_version(java_bin: &str) -> anyhow::Result<u32> {
     let output = silent_command(java_bin)
         .arg("-version")
@@ -52,7 +45,6 @@ pub fn detect_major_version(java_bin: &str) -> anyhow::Result<u32> {
     let mut parts = version_str.split('.');
     let first: u32 = parts.next().unwrap_or("0").parse().unwrap_or(0);
     if first == 1 {
-        // Legacy scheme: "1.8.0_361" -> major version 8
         let second: u32 = parts.next().unwrap_or("0").parse().unwrap_or(0);
         Ok(second)
     } else {

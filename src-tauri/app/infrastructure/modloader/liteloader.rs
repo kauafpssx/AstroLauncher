@@ -4,10 +4,6 @@ use super::profile::{LoaderProfile, ProfileLibrary};
 
 const LAUNCHWRAPPER: &str = "net.minecraft:launchwrapper:1.12";
 
-/// LiteLoader tops out at 1.12.2 and never adopted a stable versioned API:
-/// its `versions.json` mixes `"artefacts"`/`"snapshots"` keys and either a
-/// `"latest"` or a build-hash key per Minecraft version across the file, so
-/// this walks the JSON by hand instead of a strict schema.
 pub async fn fetch_profile(
     client: &reqwest::Client,
     game_version: &str,

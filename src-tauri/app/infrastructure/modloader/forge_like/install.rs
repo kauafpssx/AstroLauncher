@@ -12,21 +12,12 @@ use mc_launcher_core::progress::ProgressReporter;
 
 use super::kind_for;
 
-/// Persists the vanilla version JSON to `<minecraft_dir>/versions/<id>/<id>.json`
-/// Required for the Forge/NeoForge profile's `inheritsFrom` merge to find
-/// its parent. Our own launch pipeline only ever keeps this in memory.
 pub fn ensure_vanilla_json_on_disk(minecraft_dir: &Path, mc_version: &str) -> anyhow::Result<()> {
     let version = fetch_vanilla_version(mc_version)?;
     write_version_json(minecraft_dir, &version)?;
     Ok(())
 }
 
-/// Forge/NeoForge's installer jar hardcodes a check for `launcher_profiles.json`
-/// in the target dir and aborts with "There is no minecraft launcher profile
-/// in ..., you need to run the launcher first!" if it's missing: a leftover
-/// assumption from the vanilla Mojang launcher. AstroLauncher never writes
-/// this file, so we stub a minimal valid one before invoking the installer.
-/// Only created if absent: never overwrites a real profile file.
 pub fn ensure_launcher_profile_stub(minecraft_dir: &Path) -> anyhow::Result<()> {
     let profile_path = minecraft_dir.join("launcher_profiles.json");
     if profile_path.exists() {
@@ -40,16 +31,6 @@ pub fn ensure_launcher_profile_stub(minecraft_dir: &Path) -> anyhow::Result<()> 
     Ok(())
 }
 
-/// Runs the downloaded installer jar with our own resolved Java runtime.
-/// Blocking: spawns `java -jar installer.jar --installClient <dir>` and
-/// waits for it to exit.
-///
-/// Builds and spawns the process ourselves instead of calling the crate's
-/// own `run_loader_installer` — that helper doesn't set `CREATE_NO_WINDOW`,
-/// so the installer would flash a console window (same reasoning as
-/// `process/launcher.rs` bypassing the crate's `Launcher` facade for the
-/// actual game process). Still reuses `installer_command_args` so the
-/// argument list stays in sync with the crate.
 pub fn run_installer(
     java_bin: &Path,
     installer_path: &Path,
@@ -88,31 +69,12 @@ pub fn run_installer(
     Ok(())
 }
 
-/// Loads the merged version JSON (Forge/NeoForge profile + inherited vanilla
-/// metadata): main class, full library set, and JVM/game argument templates.
-///
-/// The crate's own merge (`VersionJson::merge_child`) concatenates the
-/// parent's and child's `libraries` with no de-dup by Maven coordinate — if
-/// both declare the same artifact (e.g. `log4j-core`, at different
-/// versions), both jars end up on the classpath and the JVM's classloader
-/// resolves whichever it finds first, which can silently be the
-/// vanilla-declared version instead of the one Forge/NeoForge actually
-/// needs. Observed in practice as `NoSuchMethodError` inside Forge's own
-/// log4j integration classes (`TransformingThrowablePatternConverter`,
-/// `ThrowableProxy`) right after mod loading finishes. De-duped here by
-/// group:artifact:classifier via `dedupe_libraries`.
 pub fn load_merged_version(minecraft_dir: &Path, version_id: &str) -> anyhow::Result<VersionJson> {
     let mut version = load_version_json(minecraft_dir, version_id)?;
     version.libraries = dedupe_libraries(version.libraries);
     Ok(version)
 }
 
-/// Keeps the last-declared library per group:artifact:classifier. Vanilla's
-/// libraries are always first in the list (`merge_child` appends the
-/// loader's on top), so keeping the last occurrence of a duplicate always
-/// prefers what Forge/NeoForge itself declared — which is the whole reason
-/// it re-declares that artifact in the first place. Overall relative order
-/// is otherwise preserved (only the earlier duplicate entries are dropped).
 fn dedupe_libraries(libraries: Vec<Library>) -> Vec<Library> {
     let mut seen = HashSet::new();
     let mut kept: Vec<Library> = libraries
@@ -129,13 +91,6 @@ fn dedupe_libraries(libraries: Vec<Library>) -> Vec<Library> {
     kept
 }
 
-/// Downloads the client jar, merged libraries, assets, and extracts natives
-/// for the given (already merged) version. Replaces our own per-library
-/// download loop and asset downloader for this loader family only.
-///
-/// Forwards the crate's raw `ProgressEvent`s instead of pre-formatting them:
-/// mapping to a user-facing label/DTO is a presentation concern that belongs
-/// in the use case, not in this infra wrapper.
 pub fn install_files(
     version: &VersionJson,
     minecraft_dir: &Path,
@@ -159,7 +114,6 @@ pub fn installer_local_path(minecraft_dir: &Path, loader: &str, loader_version: 
         .join(format!("{loader}-{loader_version}-installer.jar"))
 }
 
-/// Downloads the installer jar to `installer_local_path`. Blocking.
 pub fn download_installer(
     minecraft_dir: &Path,
     loader: &str,

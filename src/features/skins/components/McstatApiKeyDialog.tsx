@@ -1,7 +1,6 @@
 import { SingleFieldDialog } from '@/components/common/SingleFieldDialog'
 import { useAppEnvConfig } from '@/lib/app-config'
 import { MAX, mcstatApiKeySchema } from '@/lib/validation'
-
 interface McstatApiKeyDialogProps {
   open: boolean
   currentKey: string
@@ -9,7 +8,6 @@ interface McstatApiKeyDialogProps {
   onOpenChange: (open: boolean) => void
   onSubmit: (key: string) => Promise<void>
 }
-
 export function McstatApiKeyDialog({
   open,
   currentKey,
@@ -18,7 +16,6 @@ export function McstatApiKeyDialog({
   onSubmit,
 }: McstatApiKeyDialogProps) {
   const env = useAppEnvConfig()
-
   return (
     <SingleFieldDialog
       open={open}

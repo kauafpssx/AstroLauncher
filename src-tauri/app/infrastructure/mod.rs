@@ -13,4 +13,5 @@ pub mod persistence;
 pub mod playermc;
 pub mod process;
 pub mod window_state;
+pub mod worldgen;
 pub mod zerotier;

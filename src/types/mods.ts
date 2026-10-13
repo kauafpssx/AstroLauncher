@@ -1,8 +1,6 @@
 export type ModSource = 'modrinth' | 'curseforge'
 type ProjectType = 'mod' | 'modpack' | 'resourcepack' | 'shader'
-/** Installable content kinds: excludes 'modpack', which creates a whole new instance instead. */
 export type ContentKind = 'mod' | 'resourcepack' | 'shader'
-
 export interface ModSearchResult {
   source: ModSource
   projectId: string
@@ -14,7 +12,6 @@ export interface ModSearchResult {
   loader: string | null
   gameVersion: string | null
 }
-
 export interface ModVersion {
   id: string
   name: string
@@ -23,7 +20,6 @@ export interface ModVersion {
   downloadUrl: string | null
   requiredDependencyProjectIds: string[]
 }
-
 export interface ModProject {
   source: ModSource
   projectId: string
@@ -37,7 +33,6 @@ export interface ModProject {
   wikiUrl: string | null
   discordUrl: string | null
 }
-
 export interface InstalledMod {
   id: string
   modId: string
@@ -49,13 +44,8 @@ export interface InstalledMod {
   kind: ContentKind
   enabled: boolean
 }
-
 export type ModSortBy = 'relevance' | 'downloads' | 'newest' | 'updated'
-
-/** Results per search page: mirrors `PAGE_SIZE` on both provider clients
- * (backend). A page shorter than this means there's nothing left to load. */
 export const MOD_SEARCH_PAGE_SIZE = 30
-
 export interface SearchModsInput {
   source: ModSource
   query: string
@@ -63,17 +53,14 @@ export interface SearchModsInput {
   gameVersion?: string | null
   loader?: string | null
   sort?: ModSortBy | null
-  /** Pagination offset (results already loaded). Omit/0 for the first page. */
   offset?: number | null
 }
-
 export interface GetModVersionsInput {
   source: ModSource
   projectId: string
   gameVersion?: string | null
   loader?: string | null
 }
-
 export interface InstallModInput {
   instanceId: string
   source: ModSource
@@ -85,14 +72,12 @@ export interface InstallModInput {
   iconUrl: string | null
   kind: ContentKind
 }
-
 export interface InstallModpackInput {
   instanceName: string
   downloadUrl: string
   iconUrl?: string | null
   folderId?: string | null
 }
-
 export interface InstallCustomModInput {
   instanceId: string
   filePath: string

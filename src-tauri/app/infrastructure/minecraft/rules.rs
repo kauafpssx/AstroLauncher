@@ -21,8 +21,6 @@ fn current_os_name() -> &'static str {
     }
 }
 
-/// Evaluates a Mojang version-manifest rule list against the current OS.
-/// Absent rules means "always allowed" (Mojang's own convention).
 pub fn rules_allow(rules: &Option<Vec<Rule>>) -> bool {
     let Some(rules) = rules else { return true };
 

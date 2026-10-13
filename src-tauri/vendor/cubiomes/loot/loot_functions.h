@@ -1,0 +1,314 @@
+#ifndef _LOOT_FUNCTIONS_H
+#define _LOOT_FUNCTIONS_H
+
+#include "../rng.h"
+#include <inttypes.h>
+
+// ----------------------------------------------------------------------------------------
+// Enums
+
+enum ItemType {
+    NO_ITEM,
+    HELMET,
+    CHESTPLATE,
+    LEGGINGS,
+    BOOTS,
+    SWORD,
+    PICKAXE,
+    SHOVEL,
+    AXE,
+    HOE,
+    FISHING_ROD,
+    BOW,
+    CROSSBOW,
+    TRIDENT,
+    MACE,
+    BOOK,
+    SPEAR
+};
+
+enum Enchantment {
+    NO_ENCHANTMENT = 0,
+
+    // armor
+
+    PROTECTION,
+    FIRE_PROTECTION,
+    BLAST_PROTECTION,
+    PROJECTILE_PROTECTION,
+    RESPIRATION,
+    AQUA_AFFINITY,
+    THORNS,
+    SWIFT_SNEAK,
+    FEATHER_FALLING,
+    DEPTH_STRIDER,
+    FROST_WALKER,
+    SOUL_SPEED,
+
+    // swords
+
+    SHARPNESS,
+    SMITE,
+    BANE_OF_ARTHROPODS,
+    KNOCKBACK,
+    FIRE_ASPECT,
+    LOOTING,
+    SWEEPING_EDGE,
+
+    // tools
+
+    EFFICIENCY,
+    SILK_TOUCH,
+    FORTUNE,
+
+    // fishing rods
+
+    LUCK_OF_THE_SEA,
+    LURE,
+
+    // bows
+
+    POWER,
+    PUNCH,
+    FLAME,
+    INFINITY_ENCHANTMENT,
+
+    // crossbows
+
+    QUICK_CHARGE,
+    MULTISHOT,
+    PIERCING,
+
+    // tridents
+
+    IMPALING,
+    RIPTIDE,
+    LOYALTY,
+    CHANNELING,
+
+    // maces
+
+    DENSITY,
+    BREACH,
+    WIND_BURST,
+
+    // general
+
+    MENDING,
+    UNBREAKING,
+    CURSE_OF_VANISHING,
+    CURSE_OF_BINDING,
+
+    // 1.21.11+
+    LUNGE
+};
+
+enum MobEffectType {
+    EFFECT_SPEED,
+    EFFECT_SLOWNESS,
+    EFFECT_HASTE,
+    EFFECT_MINING_FATIGUE,
+    EFFECT_STRENGTH,
+    EFFECT_INSTANT_HEALTH,
+    EFFECT_INSTANT_DAMAGE,
+    EFFECT_JUMP_BOOST,
+    EFFECT_NAUSEA,
+    EFFECT_REGENERATION,
+    EFFECT_RESISTANCE,
+    EFFECT_FIRE_RESISTANCE,
+    EFFECT_WATER_BREATHING,
+    EFFECT_INVISIBILITY,
+    EFFECT_BLINDNESS,
+    EFFECT_NIGHT_VISION,
+    EFFECT_HUNGER,
+    EFFECT_WEAKNESS,
+    EFFECT_POISON,
+    EFFECT_WITHER,
+    EFFECT_HEALTH_BOOST,
+    EFFECT_ABSORPTION,
+    EFFECT_SATURATION,
+    EFFECT_GLOWING,
+    EFFECT_LEVITATION,
+    EFFECT_LUCK,
+    EFFECT_UNLUCK,
+    EFFECT_SLOW_FALLING,
+    EFFECT_CONDUIT_POWER,
+    EFFECT_DOLPHINS_GRACE,
+    EFFECT_BAD_OMEN,
+    EFFECT_HERO_OF_THE_VILLAGE,
+    EFFECT_DARKNESS,
+    EFFECT_TRIAL_OMEN,
+    EFFECT_RAID_OMEN,
+    EFFECT_WIND_CHARGED,
+    EFFECT_WEAVING,
+    EFFECT_OOZING,
+    EFFECT_INFESTED,
+    EFFECT_BREATH_OF_THE_NAUTILUS,
+    EFFECT_NUM
+};
+
+enum PotionType {
+    POTION_WATER,
+    POTION_MUNDANE,
+    POTION_THICK,
+    POTION_AWKWARD,
+    POTION_NIGHT_VISION,
+    POTION_LONG_NIGHT_VISION,
+    POTION_INVISIBILITY,
+    POTION_LONG_INVISIBILITY,
+    POTION_LEAPING,
+    POTION_LONG_LEAPING,
+    POTION_STRONG_LEAPING,
+    POTION_FIRE_RESISTANCE,
+    POTION_LONG_FIRE_RESISTANCE,
+    POTION_SWIFTNESS,
+    POTION_LONG_SWIFTNESS,
+    POTION_STRONG_SWIFTNESS,
+    POTION_SLOWNESS,
+    POTION_LONG_SLOWNESS,
+    POTION_STRONG_SLOWNESS,
+    POTION_TURTLE_MASTER,
+    POTION_LONG_TURTLE_MASTER,
+    POTION_STRONG_TURTLE_MASTER,
+    POTION_WATER_BREATHING,
+    POTION_LONG_WATER_BREATHING,
+    POTION_HEALING,
+    POTION_STRONG_HEALING,
+    POTION_HARMING,
+    POTION_STRONG_HARMING,
+    POTION_POISON,
+    POTION_LONG_POISON,
+    POTION_STRONG_POISON,
+    POTION_REGENERATION,
+    POTION_LONG_REGENERATION,
+    POTION_STRONG_REGENERATION,
+    POTION_STRENGTH,
+    POTION_LONG_STRENGTH,
+    POTION_STRONG_STRENGTH,
+    POTION_WEAKNESS,
+    POTION_LONG_WEAKNESS,
+    POTION_LUCK,
+    POTION_SLOW_FALLING,
+    POTION_LONG_SLOW_FALLING,
+    POTION_WIND_CHARGED,
+    POTION_WEAVING,
+    POTION_OOZING,
+    POTION_INFESTED,
+    POTION_NUM,
+};
+
+typedef enum ItemType ItemType;
+typedef enum Enchantment Enchantment;
+
+// ----------------------------------------------------------------------------------------
+
+STRUCT(MobEffect) {
+    const char* effect_name;
+    const int effect;
+    const int is_instantaneous;
+};
+
+extern const struct MobEffect MOB_EFFECTS[EFFECT_NUM];
+
+STRUCT(MobEffectEntry) {
+    const MobEffect *mob_effect;
+    int min;
+    int max;
+};
+
+STRUCT(MobEffectInstance) {
+    int effect;
+    int duration;
+};
+
+STRUCT(Potion) {
+    const char *potion_name;
+    const int potion;
+    const int mob_effect_count;
+    const MobEffectInstance mob_effects[2]; // 2 is the max currently
+};
+
+extern const struct Potion POTIONS[POTION_NUM];
+
+typedef struct EnchantInstance EnchantInstance;
+struct EnchantInstance {
+    int enchantment;
+    int level;
+};
+
+typedef struct ItemStack ItemStack;
+struct ItemStack {
+    int item;
+    int count;
+
+    int enchantment_count;
+    EnchantInstance enchantments[16]; // 12 is the theoretical maximum for 1.17 and below, 16 should be safe for all versions
+
+    MobEffectInstance mob_effect;
+};
+
+// ----------------------------------------------------------------------------------------
+
+STRUCT(LootItemCondition) {
+    // condition function
+    int (*fun)(RandomSource* rand, const void* params);
+    // pointer to the param array used by the function
+    const void* params;
+    // predefined params
+    float params_float[1];
+};
+
+void create_random_chance(LootItemCondition* lic, float chance);
+
+typedef int (*RollCountFunction)(RandomSource*, const int, const int);
+
+STRUCT(LootFunction) {
+    // actual function pointer
+    void (*fun)(RandomSource* rand, ItemStack* is, const void* params);
+    // pointer to the param array used by the function
+    const void* params;
+
+    // predefined function parameter arrays
+    int params_int[2];          // for simple functions
+    int* varparams_int;         // for enchantRandomly
+    int** varparams_int_arr;    // for enchantWithLevels
+    int varparams_int_arr_size; // for cleaning up after enchantWithLevels
+};
+
+// ----------------------------------------------------------------------------------------
+// Roll count choice functions
+
+static inline int roll_count_constant(RandomSource*, const int min, int unused_)
+{
+    (void)(unused_); // Unused
+    return min;
+}
+
+static inline int roll_count_uniform(RandomSource* rand, const int min, const int max)
+{
+    const int bound = max - min + 1;
+    return absNextInt(rand, bound) + min;
+}
+
+// ----------------------------------------------------------------------------------------
+// Loot function initializers
+
+void create_set_count(LootFunction* lf, const int min, const int max);
+void create_set_effect(LootFunction* lf, const int count, const MobEffectEntry mobEffects[]);
+void create_set_potion(LootFunction* lf, const Potion *potion);
+void create_set_damage(LootFunction* lf);
+void create_skip_calls(LootFunction* lf, const int skip_count);
+void create_no_op(LootFunction* lf);
+void create_enchant_randomly_one_enchant(LootFunction* lf, const Enchantment enchantment);
+void create_enchant_randomly_list(LootFunction* lf, const Enchantment* list, const int list_length);
+void create_enchant_randomly(LootFunction* lf, const int version, const ItemType item, const int isTreasure);
+void create_enchant_randomly_tag(LootFunction* lf, const int version, const ItemType item, const char* tag, const int allowTreasure);
+void create_enchant_with_levels(LootFunction* lf, const int version, const char* item_name, const ItemType item_type, const int min_level, const int max_level, const int isTreasure);
+void create_enchant_with_levels_tag(LootFunction* lf, const int version, const char* item_name, const ItemType item_type, const int min_level, const int max_level, const char* tag, const int allowTreasure);
+void create_set_enchantments(LootFunction* lf, const Enchantment* enchantments, const int* levels, const int list_length);
+const char* get_enchantment_name(const Enchantment enchantment);
+
+// test TODO remove
+void test_enchant_vec();
+
+#endif

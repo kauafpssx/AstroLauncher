@@ -36,8 +36,9 @@ Binários para Windows gerados automaticamente pelo CI/CD ⚡
 
 ## 💾 Instaladores
 
-- 🖥️ **NSIS Installer (`.exe`)**  
-  Instalador padrão para Windows.
+- 🖥️ **Windows (`.msi`)**
+- 🍎 **macOS (`.dmg`, universal — Intel e Apple Silicon)**
+- 🐧 **Linux (`.deb`, `.rpm`, `.AppImage`)**
 
 ---
 

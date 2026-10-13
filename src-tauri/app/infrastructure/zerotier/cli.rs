@@ -16,9 +16,6 @@ fn silent_command(bin: &str) -> Command {
     cmd
 }
 
-/// `zerotier-cli` isn't on PATH in a stock Windows install: ZeroTier One
-/// ships its CLI as a flag on the service executable itself, reading
-/// `authtoken.secret` from the same directory.
 #[cfg(target_os = "windows")]
 fn candidates() -> Vec<Vec<String>> {
     vec![
@@ -123,8 +120,6 @@ pub fn leave(network_id: &str) -> anyhow::Result<()> {
     parse_join_leave_result(&raw)
 }
 
-/// `zerotier-cli join`/`leave` print a `200 <cmd> OK` style line on success
-/// rather than exiting non-zero on failure, so the real signal is the text.
 fn parse_join_leave_result(raw: &str) -> anyhow::Result<()> {
     if raw.trim_start().starts_with("200") {
         Ok(())
