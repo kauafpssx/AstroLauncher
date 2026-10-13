@@ -7,17 +7,12 @@ use crate::infrastructure::filesystem::safe_path::safe_join;
 use super::InstanceWorkspaceService;
 
 impl InstanceWorkspaceService {
-    /// Resolves a `/`-separated relative path against the instance directory,
-    /// rejecting anything that would escape it (`..`, absolute/drive paths).
     fn config_file_path(&self, id: &str, relative_path: &str) -> Result<PathBuf, InstanceError> {
         let dir = self.instance_dir(id)?;
         safe_join(&dir, relative_path)
             .ok_or_else(|| InstanceError::InvalidName(relative_path.to_string()))
     }
 
-    /// `options.txt`/`optionsof.txt` (Minecraft's own settings) plus every
-    /// file under `config/` (where mods keep theirs): the practical surface
-    /// a "config editor" needs, without special-casing individual mods.
     pub fn list_config_files(&self, id: &str) -> Result<Vec<ConfigFileDTO>, InstanceError> {
         let instance_dir = self.instance_dir(id)?;
         let mut files = Vec::new();

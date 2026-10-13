@@ -1,16 +1,9 @@
 import { cn } from '@/lib/utils'
-
 interface CharacterCounterProps {
   value: string
   max: number
   className?: string
 }
-
-/**
- * Discreet `{length}/{max}` counter shown only while the field is close to
- * its limit (10 characters left or less), turning destructive at the limit.
- * Returns null otherwise so it never affects the layout.
- */
 export function CharacterCounter({
   value,
   max,

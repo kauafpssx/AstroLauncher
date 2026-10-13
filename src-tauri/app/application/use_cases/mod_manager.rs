@@ -17,8 +17,6 @@ pub struct ModManagerService {
     app_data_dir: PathBuf,
 }
 
-/// Maps a content kind (shared with Modrinth's own project-type vocabulary)
-/// to the subfolder Minecraft expects it in.
 fn target_folder(kind: &str) -> &'static str {
     match kind {
         "resourcepack" => "resourcepacks",
@@ -91,9 +89,6 @@ impl ModManagerService {
         Ok(to_dto(installed))
     }
 
-    /// Copies a user-picked local file into the instance's mods/resourcepacks/
-    /// shaderpacks folder and registers it with source `"custom"`: no
-    /// update source, no re-fetch.
     pub fn install_custom(&self, input: InstallCustomModInput) -> anyhow::Result<InstalledModDTO> {
         let source_path = std::path::Path::new(&input.file_path);
         let file_name = source_path
@@ -127,13 +122,6 @@ impl ModManagerService {
         Ok(to_dto(installed))
     }
 
-    /// Toggling a mod renames its file with a `.disabled` suffix: the
-    /// convention every Minecraft loader already ignores: instead of
-    /// deleting it, so re-enabling doesn't need a re-download.
-    ///
-    /// The renamed path must be persisted back to `file_path`, otherwise the
-    /// next toggle compares against the stale original name and never
-    /// detects the file is already suffixed: silently breaking re-enable.
     pub fn set_enabled(
         &self,
         instance_id: &str,
@@ -168,11 +156,22 @@ impl ModManagerService {
     pub fn delete(&self, instance_id: &str, id: &str) -> Result<(), InstanceError> {
         let mods = self.mod_repository.find_by_instance(instance_id)?;
         if let Some(installed) = mods.into_iter().find(|m| m.id == id) {
-            let _ = std::fs::remove_file(&installed.file_path);
-            let _ = std::fs::remove_file(format!("{}.disabled", installed.file_path));
+            remove_file_if_exists(&installed.file_path)?;
+            remove_file_if_exists(&format!("{}.disabled", installed.file_path))?;
         }
         self.mod_repository.delete(id)
     }
+}
+
+fn remove_file_if_exists(path: &str) -> Result<(), InstanceError> {
+    if !std::path::Path::new(path).exists() {
+        return Ok(());
+    }
+    std::fs::remove_file(path).map_err(|e| {
+        InstanceError::Persistence(format!(
+            "Failed to delete file '{path}': {e} (file may be in use, close the game before deleting)"
+        ))
+    })
 }
 
 fn to_dto(m: InstalledMod) -> InstalledModDTO {

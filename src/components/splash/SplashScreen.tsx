@@ -3,30 +3,36 @@ import { relaunch } from '@tauri-apps/plugin-process'
 import { check } from '@tauri-apps/plugin-updater'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-
+import { SettingsAPI } from '@/features/settings/services/settings.api'
 const MIN_SPLASH_DURATION_MS = 1600
-
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
-
 export function SplashScreen() {
   const [status, setStatus] = useState<string | null>(null)
-
   useEffect(() => {
     let cancelled = false
-
     async function run() {
       const startedAt = Date.now()
-
       try {
+        const settings = await SettingsAPI.get().catch(() => null)
+        if (settings?.autoUpdateEnabled === false) {
+          const elapsed = Date.now() - startedAt
+          if (elapsed < MIN_SPLASH_DURATION_MS) {
+            await sleep(MIN_SPLASH_DURATION_MS - elapsed)
+          }
+          if (!cancelled) {
+            invoke('finish_splash').catch((error) =>
+              console.error('Failed to finish splash:', error),
+            )
+          }
+          return
+        }
         const update = await check()
-
         if (update?.available && !cancelled) {
           setStatus('Baixando atualização…')
           let downloaded = 0
           let contentLength = 0
-
           await update.downloadAndInstall((event) => {
             switch (event.event) {
               case 'Started':
@@ -44,7 +50,6 @@ export function SplashScreen() {
                 break
             }
           })
-
           if (!cancelled) {
             await relaunch()
           }
@@ -53,26 +58,21 @@ export function SplashScreen() {
       } catch (error) {
         console.error('Update check failed:', error)
       }
-
       const elapsed = Date.now() - startedAt
       if (elapsed < MIN_SPLASH_DURATION_MS) {
         await sleep(MIN_SPLASH_DURATION_MS - elapsed)
       }
-
       if (!cancelled) {
         invoke('finish_splash').catch((error) =>
           console.error('Failed to finish splash:', error),
         )
       }
     }
-
     run()
-
     return () => {
       cancelled = true
     }
   }, [])
-
   return (
     <div
       data-tauri-drag-region

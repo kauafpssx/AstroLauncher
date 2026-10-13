@@ -33,7 +33,6 @@ impl AstroPackService {
             })
             .collect();
 
-        // Files that must be embedded in the zip: (zip entry path, local source path).
         let mut embed_files: Vec<(String, PathBuf)> = Vec::new();
 
         let contents = self.collect_contents(&enabled_mods, &mut embed_files).await;
@@ -48,6 +47,28 @@ impl AstroPackService {
         } else {
             Vec::new()
         };
+
+        let mut config_paths = Vec::new();
+        if selection.configs {
+            let config_dir = instance_dir.join("config");
+            for file_entry in walkdir::WalkDir::new(&config_dir)
+                .into_iter()
+                .filter_map(|e| e.ok())
+            {
+                if !file_entry.file_type().is_file() {
+                    continue;
+                }
+                let Ok(relative) = file_entry.path().strip_prefix(&config_dir) else {
+                    continue;
+                };
+                let relative = relative.to_string_lossy().replace('\\', "/");
+                embed_files.push((
+                    format!("content/configs/{relative}"),
+                    file_entry.path().to_path_buf(),
+                ));
+                config_paths.push(relative);
+            }
+        }
 
         let mut world_names = Vec::new();
         if selection.worlds {
@@ -113,7 +134,7 @@ impl AstroPackService {
         }
 
         let manifest = AstroPackManifest {
-            schema_version: 2,
+            schema_version: 3,
             name: instance.name.clone(),
             version: instance.version.clone(),
             loader: instance.loader.clone(),
@@ -128,6 +149,7 @@ impl AstroPackService {
             worlds: world_names,
             servers,
             screenshots: screenshot_names,
+            configs: config_paths,
         };
 
         let manifest_json = serde_json::to_string_pretty(&manifest)?;

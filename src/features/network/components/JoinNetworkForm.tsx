@@ -1,17 +1,14 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getFirstIssue, MAX, zerotierNetworkIdSchema } from '@/lib/validation'
-
 interface JoinNetworkFormProps {
   joinedNetworkIds: string[]
   disabled?: boolean
   onJoin: (networkId: string) => Promise<void>
 }
-
 export function JoinNetworkForm({
   joinedNetworkIds,
   disabled,
@@ -19,7 +16,6 @@ export function JoinNetworkForm({
 }: JoinNetworkFormProps) {
   const [networkId, setNetworkId] = useState('')
   const [isJoining, setIsJoining] = useState(false)
-
   const handleJoin = async () => {
     const trimmed = networkId.trim()
     const issue = getFirstIssue(zerotierNetworkIdSchema, trimmed)
@@ -42,7 +38,6 @@ export function JoinNetworkForm({
       setIsJoining(false)
     }
   }
-
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor="zerotier-network-id">ID da rede ZeroTier</Label>

@@ -23,7 +23,6 @@ pub struct SearchSkinsInput {
     pub query: String,
     pub page: u32,
     pub sort_by: String,
-    /// MCStat only: Classic/Slim skin model filter.
     #[serde(default)]
     pub model: Option<String>,
 }
@@ -38,7 +37,6 @@ pub struct SkinPlayerDTO {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SkinSummaryDTO {
-    /// Source-scoped identifier: PlayerMC's texture hash or mcstat.org's slug.
     pub id: String,
     pub source: SkinSource,
     pub skin_url: String,

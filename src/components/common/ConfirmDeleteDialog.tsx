@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,7 +9,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-
 interface ConfirmDeleteDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -22,7 +20,6 @@ interface ConfirmDeleteDialogProps {
   hideConfirm?: boolean
   onConfirm: () => void
 }
-
 export function ConfirmDeleteDialog({
   open,
   onOpenChange,

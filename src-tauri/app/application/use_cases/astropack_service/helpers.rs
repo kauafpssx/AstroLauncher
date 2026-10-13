@@ -26,8 +26,6 @@ pub(super) fn target_folder(kind: &str) -> &'static str {
     }
 }
 
-/// Reverses `target_folder` (plus the `worlds`/`screenshots` entries added
-/// separately) from a zip entry's path, for progress events during export.
 pub(super) fn kind_for_export_entry(entry_name: &str) -> &'static str {
     if entry_name.starts_with("content/resourcepacks/") {
         "resourcepack"
@@ -37,6 +35,8 @@ pub(super) fn kind_for_export_entry(entry_name: &str) -> &'static str {
         "world"
     } else if entry_name.starts_with("content/screenshots/") {
         "screenshot"
+    } else if entry_name.starts_with("content/configs/") {
+        "config"
     } else {
         "mod"
     }
@@ -73,9 +73,6 @@ pub(super) fn count_files(dir: &Path, ext: &str) -> usize {
         .unwrap_or(0)
 }
 
-/// Reads every note as an export entry. Falls back to the legacy single
-/// `notes.txt` when the instance hasn't been opened (and thus migrated to
-/// `notes/`) since multi-note support landed.
 pub(super) fn read_all_notes(instance_dir: &Path) -> Vec<AstroPackNoteEntry> {
     let notes_dir = instance_dir.join("notes");
     if notes_dir.exists() {
@@ -117,4 +114,12 @@ pub(super) fn count_dirs(dir: &Path) -> usize {
     std::fs::read_dir(dir)
         .map(|entries| entries.flatten().filter(|e| e.path().is_dir()).count())
         .unwrap_or(0)
+}
+
+pub(super) fn count_files_recursive(dir: &Path) -> usize {
+    walkdir::WalkDir::new(dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file())
+        .count()
 }

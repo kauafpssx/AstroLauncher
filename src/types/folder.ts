@@ -5,11 +5,9 @@ export interface FolderDTO {
   collapsed: boolean
   iconPath: string | null
 }
-
 export interface CreateFolderInput {
   name: string
 }
-
 export interface UpdateFolderInput {
   id: string
   name: string

@@ -19,11 +19,6 @@ pub struct Instance {
     pub window_height: Option<i64>,
     pub java_path: Option<String>,
     pub window_monitor: Option<String>,
-    /// Major version of the Java actually used the last time this instance
-    /// launched (system or portable, whichever `ensure_java` picked) — set
-    /// right before spawn, `None` until the first successful launch. Powers
-    /// the Settings tab's "automatic" Java display without having to
-    /// re-fetch the version manifest just to show info.
     pub last_java_major: Option<i64>,
 }
 

@@ -19,9 +19,6 @@ pub async fn preview_astropack(
         .map_err(|e| e.to_string())
 }
 
-/// Returns and clears the `.astropack` path the app was opened with via its
-/// file association (`bundle.fileAssociations`): consumed once by the
-/// frontend right after startup.
 #[tauri::command]
 pub fn take_pending_astropack_path() -> Option<String> {
     crate::infrastructure::cli::take_pending_astropack_path()

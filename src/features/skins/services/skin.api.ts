@@ -5,7 +5,6 @@ import type {
   SkinSource,
   SkinSummary,
 } from '@/types/skins'
-
 export const SkinAPI = {
   search(input: SearchSkinsInput): Promise<SkinSummary[]> {
     return apiInvoke<SkinSummary[]>('search_skins', { input })

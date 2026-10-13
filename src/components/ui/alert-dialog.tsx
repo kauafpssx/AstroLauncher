@@ -1,17 +1,13 @@
 'use client'
-
 import * as React from 'react'
 import { AlertDialog as AlertDialogPrimitive } from 'radix-ui'
-
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-
 function AlertDialog({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
 }
-
 function AlertDialogTrigger({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Trigger>) {
@@ -19,7 +15,6 @@ function AlertDialogTrigger({
     <AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />
   )
 }
-
 function AlertDialogPortal({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Portal>) {
@@ -27,7 +22,6 @@ function AlertDialogPortal({
     <AlertDialogPrimitive.Portal data-slot="alert-dialog-portal" {...props} />
   )
 }
-
 function AlertDialogOverlay({
   className,
   ...props
@@ -43,7 +37,6 @@ function AlertDialogOverlay({
     />
   )
 }
-
 function AlertDialogContent({
   className,
   size = 'default',
@@ -66,7 +59,6 @@ function AlertDialogContent({
     </AlertDialogPortal>
   )
 }
-
 function AlertDialogHeader({
   className,
   ...props
@@ -82,7 +74,6 @@ function AlertDialogHeader({
     />
   )
 }
-
 function AlertDialogFooter({
   className,
   ...props
@@ -98,7 +89,6 @@ function AlertDialogFooter({
     />
   )
 }
-
 function AlertDialogMedia({
   className,
   ...props
@@ -114,7 +104,6 @@ function AlertDialogMedia({
     />
   )
 }
-
 function AlertDialogTitle({
   className,
   ...props
@@ -130,7 +119,6 @@ function AlertDialogTitle({
     />
   )
 }
-
 function AlertDialogDescription({
   className,
   ...props
@@ -146,7 +134,6 @@ function AlertDialogDescription({
     />
   )
 }
-
 function AlertDialogAction({
   className,
   variant = 'default',
@@ -164,7 +151,6 @@ function AlertDialogAction({
     </Button>
   )
 }
-
 function AlertDialogCancel({
   className,
   variant = 'outline',
@@ -182,7 +168,6 @@ function AlertDialogCancel({
     </Button>
   )
 }
-
 export {
   AlertDialog,
   AlertDialogAction,

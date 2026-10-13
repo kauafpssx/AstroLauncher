@@ -4,7 +4,7 @@
 
 Diferente do organizado "por domínio" (um `mod.rs` por feature contendo entity/service/repository/events), o código está organizado **por camada**: `domain/{entities,repositories,errors}` e `application/{use_cases,dto,mappers}`. Não existem eventos de domínio nem tipos `Command`/`Query` — leitura e escrita são separadas por convenção (structs diferentes), não por tipagem formal.
 
-Apenas 5 entidades de domínio existem hoje. Tudo o que não está na lista abaixo (mods, modpacks, java, skins, astropack, settings, workspace de instância) é implementado só na application layer, sobre infraestrutura de filesystem/HTTP — sem entidade, trait de repositório ou erro dedicado no domínio.
+Apenas 6 entidades de domínio existem hoje. Tudo o que não está na lista abaixo (mods, modpacks, java, skins, astropack, settings, workspace de instância, seed map) é implementado só na application layer, sobre infraestrutura de filesystem/HTTP — sem entidade, trait de repositório ou erro dedicado no domínio.
 
 ## 4.2 Entidades de Domínio (`src-tauri/app/domain/entities/`)
 
@@ -28,6 +28,10 @@ id, instance_id, mod_id, source, name, version, file_path, icon_url, kind (`mod`
 
 id, instance_id, started_at, ended_at, duration_seconds.
 
+### `Waypoint` (waypoint.rs, v1.0.0)
+
+id, instance_id, name, icon, dimension (`overworld`/`nether`/`end`), x, y (nullable), z, created_at. Pontos de interesse por instância, mencionáveis com `@` no editor de notas.
+
 ## 4.3 Traits de Repositório (`domain/repositories/`)
 
 - **InstanceRepository**: find_all, find_by_id, find_by_folder, save, delete, update_playtime, reorder
@@ -35,6 +39,7 @@ id, instance_id, started_at, ended_at, duration_seconds.
 - **FolderRepository**: find_all, find_by_id, save, delete, reorder
 - **ModRepository**: find_by_instance, find_by_instance_and_kind, save, delete, set_enabled
 - **PlaytimeRepository**: insert, find_by_id, find_latest_by_instance, find_open_by_instance, update_end
+- **WaypointRepository** (v1.0.0): find_by_instance, find_by_id, save, update, delete
 
 Todos síncronos (sem `async_trait`) — comentário no código: "Local SQLite database; no async needed."
 
@@ -43,6 +48,7 @@ Todos síncronos (sem `async_trait`) — comentário no código: "Local SQLite d
 - `InstanceError`: NotFound, AlreadyExists, InvalidName, AlreadyRunning, Persistence — também reaproveitado como erro de `ModRepository` e `PlaytimeRepository`
 - `AccountError`: NotFound, InvalidUsername, Persistence
 - `FolderError`: NotFound, InvalidName, Persistence
+- `WaypointError` (waypoints) e `WorldgenError` (engine Cubiomes) — thiserror, v1.0.0
 
 ## 4.5 Application Layer — Use Cases e Services (`application/use_cases/`)
 
@@ -55,6 +61,8 @@ Padrão "um struct por ação" para CRUD simples:
 | Folder   | `CreateFolderUseCase`, `UpdateFolderUseCase`, `DeleteFolderUseCase`, `ListFoldersUseCase`, `ReorderFoldersUseCase`                                                                                                                                                       |
 | Versões  | `FetchVersionManifestUseCase` (async) → `Vec<VersionDTO>`                                                                                                                                                                                                                |
 | Memória  | `SuggestMemoryUseCase` (v0.5.2): consulta `ModRepository::find_by_instance` e aplica a heurística pura `suggest_memory_mb(content_count)` → `SuggestedMemoryDTO { minMb, maxMb }`, aplicada no fim da instalação de modpack e exposta via comando `get_suggested_memory` |
+| Waypoints | CRUD em `list/create/update/delete_waypoint.rs` → `WaypointDTO`, via `WaypointRepository` (v1.0.0) |
+| Seed Map | `generate_biome_tile`, `list_biome_palette`, `filter_supported_seed_map_versions`, `get_spawn_point`, `get_column_info`, `list_structures`, `list_strongholds`, `list_slime_chunks`, `get_structure_variant` — Cubiomes via `worldgen` (v1.0.0) |
 
 Features maiores usam um único "Service" com vários métodos em vez de um use case por ação:
 
@@ -70,6 +78,6 @@ Features maiores usam um único "Service" com vários métodos em vez de um use 
 
 ## 4.6 DTOs (`application/dto/`)
 
-Um arquivo por domínio: `account_dto.rs`, `folder_dto.rs`, `instance_dto.rs` (inclui `SuggestedMemoryDTO` desde v0.5.2), `mod_dto.rs`, `playtime_dto.rs`, `settings_dto.rs`, `astropack_dto.rs`, além de DTOs sem entidade de domínio (derivados de filesystem): `NoteDTO`, `WorldDTO`, `ScreenshotDTO`, `ServerEntryDTO`, `ConfigFileDTO`, `CustomIconDTO`, `LaunchEventDTO`, `VersionDTO`, `SkinPlayerDTO`/`SkinSummaryDTO`/`SkinDetailDTO`.
+Um arquivo por domínio: `account_dto.rs`, `folder_dto.rs`, `instance_dto.rs` (inclui `SuggestedMemoryDTO` desde v0.5.2), `mod_dto.rs`, `playtime_dto.rs`, `settings_dto.rs`, `astropack_dto.rs`, além de DTOs sem entidade de domínio (derivados de filesystem): `NoteDTO`, `WorldDTO`, `ScreenshotDTO`, `ServerEntryDTO`, `ConfigFileDTO`, `CustomIconDTO`, `LaunchEventDTO`, `VersionDTO`, `SkinPlayerDTO`/`SkinSummaryDTO`/`SkinDetailDTO`. Waypoints/seed map (v1.0.0): `WaypointDTO`, `SeedMapDTOs` (tile, paleta, spawn, slime, estruturas, coluna, variante).
 
-Mappers (`application/mappers/`) só fazem entidade → DTO: `account_mapper`, `folder_mapper`, `instance_mapper`.
+Mappers (`application/mappers/`) só fazem entidade → DTO: `account_mapper`, `folder_mapper`, `instance_mapper`, `waypoint_mapper` (v1.0.0).

@@ -48,9 +48,6 @@ struct SkinDetailResponse {
     error: Option<String>,
 }
 
-/// Searches PlayerMC's index of Minecraft skins observed on servers running
-/// their tracking plugin. `sort_by` mirrors their own site's values, e.g.
-/// `"popular-desc"` / `"popular-asc"`.
 pub async fn search(
     client: &reqwest::Client,
     query: &str,
@@ -80,8 +77,6 @@ pub async fn search(
     Ok(response.data)
 }
 
-/// Fetches a skin's detail, including every player profile currently wearing
-/// it: used to let the user copy a specific in-game name for a skin they like.
 pub async fn get_skin(client: &reqwest::Client, hash: &str) -> anyhow::Result<SkinDetail> {
     let response = client
         .get(format!("{}/skins/{hash}", base_url()))

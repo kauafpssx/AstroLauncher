@@ -1,12 +1,9 @@
 import { Lightbulb, SlidersHorizontal, Upload } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-
 import { SidebarNav } from '@/components/common/SidebarNav'
 import type { SidebarNavItem } from '@/components/common/SidebarNav'
 import { useModpackInstallStore } from '@/stores/modpack-install.store'
-
 export type Platform = 'custom' | 'import' | 'modrinth' | 'curseforge'
-
 const sources: SidebarNavItem<Platform>[] = [
   { id: 'custom', label: 'Customizado', icon: SlidersHorizontal },
   { id: 'import', label: 'Importar', icon: Upload },
@@ -17,16 +14,13 @@ const sources: SidebarNavItem<Platform>[] = [
     iconSrc: '/providers/curseforge.png',
   },
 ]
-
 interface PlatformSidebarProps {
   platform: Platform
   onChange: (platform: Platform) => void
 }
-
 export function PlatformSidebar({ platform, onChange }: PlatformSidebarProps) {
   const navigate = useNavigate()
   const isInstalling = useModpackInstallStore((s) => s.isInstalling)
-
   return (
     <SidebarNav
       title="Nova Instância"

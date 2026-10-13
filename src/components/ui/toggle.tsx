@@ -1,10 +1,8 @@
 import * as React from 'react'
 import { type VariantProps } from 'class-variance-authority'
 import { Toggle as TogglePrimitive } from 'radix-ui'
-
 import { cn } from '@/lib/utils'
 import { toggleVariants } from '@/components/ui/toggle-variants'
-
 function Toggle({
   className,
   variant = 'default',
@@ -20,5 +18,4 @@ function Toggle({
     />
   )
 }
-
 export { Toggle }

@@ -9,12 +9,6 @@ pub use install::{
     installer_local_path, load_merged_version, run_installer,
 };
 
-/// Forge and NeoForge both ship a headless installer jar that resolves
-/// libraries and runs its own binary-patch processors: unlike Fabric/Quilt,
-/// there's no ready-made profile JSON to fetch. `mc-launcher-core` already
-/// implements this; this module wires our own Java runtime and progress
-/// events into it instead of the crate's `Launcher` facade (which hardcodes
-/// `java` from PATH: this launcher deliberately avoids relying on that).
 fn kind_for(loader: &str) -> Option<LoaderKind> {
     match loader {
         "forge" => Some(LoaderKind::Forge),
@@ -27,14 +21,6 @@ pub fn is_supported(loader: &str) -> bool {
     kind_for(loader).is_some()
 }
 
-/// Forge's Maven artifact ids are always `<mc>-<forge>` (`1.20.1-47.4.10`),
-/// but modpack manifests (Modrinth `dependencies.forge`, CurseForge
-/// `forge-47.4.10`) carry only the bare loader version. The launch path
-/// stores whatever the manifest said, so we re-add the Minecraft prefix
-/// before building the installer URL/profile id: otherwise the download
-/// 404s (`forge-47.4.10-installer.jar` doesn't exist, only
-/// `forge-1.20.1-47.4.10-installer.jar`). NeoForge ids are standalone
-/// (`20.4.80`), so it's a Forge-only concern.
 pub fn normalize_loader_version(loader: &str, mc_version: &str, loader_version: &str) -> String {
     let already_prefixed = loader_version.starts_with(&format!("{mc_version}-"));
     if loader == "forge" && !already_prefixed {

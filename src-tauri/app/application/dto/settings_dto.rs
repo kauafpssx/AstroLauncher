@@ -8,6 +8,7 @@ pub struct SettingsDTO {
     pub root_group_name: Option<String>,
     pub root_group_icon: Option<String>,
     pub zerotier_api_token: Option<String>,
+    pub auto_update_enabled: bool,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -21,4 +22,6 @@ pub struct UpdateSettingsInput {
     pub root_group_icon: Option<String>,
     #[serde(default)]
     pub zerotier_api_token: Option<String>,
+    #[serde(default)]
+    pub auto_update_enabled: Option<bool>,
 }

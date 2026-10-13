@@ -1,19 +1,15 @@
 import { Check, Loader2, X } from 'lucide-react'
-
 import { EntityAvatar } from '@/components/common/EntityAvatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { tooltipProps } from '@/lib/tooltip'
-
 import type { EntryStatus, ReviewEntry } from './mod-review.types'
-
 interface ModReviewRowProps {
   entry: ReviewEntry
   status: EntryStatus | undefined
   isInstalling: boolean
   onRemove: (key: string) => void
 }
-
 export function ModReviewRow({
   entry,
   status,

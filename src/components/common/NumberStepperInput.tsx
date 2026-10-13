@@ -1,9 +1,7 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-
 import { tooltipProps } from '@/lib/tooltip'
 import { cn } from '@/lib/utils'
-
 interface NumberStepperInputProps {
   value: number
   onChange: (value: number) => void
@@ -13,7 +11,6 @@ interface NumberStepperInputProps {
   disabled?: boolean
   className?: string
 }
-
 export function NumberStepperInput({
   value,
   onChange,
@@ -25,13 +22,10 @@ export function NumberStepperInput({
 }: NumberStepperInputProps) {
   const [draft, setDraft] = useState(String(value))
   const isFocused = useRef(false)
-
   useEffect(() => {
     if (!isFocused.current) setDraft(String(value))
   }, [value])
-
   const clamp = (v: number) => Math.min(Math.max(v, min), max)
-
   const handleTextChange = (raw: string) => {
     const cleaned = raw.replace(/[^0-9.-]/g, '')
     setDraft(cleaned)
@@ -40,7 +34,6 @@ export function NumberStepperInput({
       onChange(clamp(parsed))
     }
   }
-
   return (
     <div
       className={cn(

@@ -3,146 +3,11 @@ use std::path::Path;
 
 use super::*;
 
-fn read_u8(r: &mut impl Read) -> io::Result<u8> {
-    let mut b = [0u8; 1];
-    r.read_exact(&mut b)?;
-    Ok(b[0])
-}
+mod guards;
+mod primitives;
 
-fn read_u16(r: &mut impl Read) -> io::Result<u16> {
-    let mut b = [0u8; 2];
-    r.read_exact(&mut b)?;
-    Ok(u16::from_be_bytes(b))
-}
-
-fn read_i32(r: &mut impl Read) -> io::Result<i32> {
-    let mut b = [0u8; 4];
-    r.read_exact(&mut b)?;
-    Ok(i32::from_be_bytes(b))
-}
-
-fn read_i64(r: &mut impl Read) -> io::Result<i64> {
-    let mut b = [0u8; 8];
-    r.read_exact(&mut b)?;
-    Ok(i64::from_be_bytes(b))
-}
-
-fn read_string(r: &mut impl Read) -> io::Result<String> {
-    let len = read_u16(r)? as usize;
-    let mut buf = vec![0u8; len];
-    r.read_exact(&mut buf)?;
-    Ok(String::from_utf8_lossy(&buf).into_owned())
-}
-
-/// Guards against a corrupt/hostile `servers.dat` (e.g. from an imported pack):
-/// caps NBT nesting so deep trees can't overflow the stack.
-const MAX_DEPTH: u32 = 512;
-
-/// Caps list/array element counts. A real `servers.dat` holds a handful of
-/// servers; a malformed file could claim `i32::MAX` elements and spin the
-/// loop for billions of no-op iterations (DoS).
-const MAX_LIST_LEN: u64 = 100_000;
-
-/// Validates a `TAG_LIST` header before iterating: a non-empty list whose
-/// element type is `TAG_END` reads zero bytes per element, so a huge length
-/// would loop forever making no progress; an over-long list is also rejected.
-fn validate_list(elem_type: u8, len: u64) -> io::Result<()> {
-    if elem_type == TAG_END && len > 0 {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "non-empty TAG_END list",
-        ));
-    }
-    if len > MAX_LIST_LEN {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "NBT list too long",
-        ));
-    }
-    Ok(())
-}
-
-/// Rejects negative NBT lengths (a `-1` would become a multi-exabyte `usize`)
-/// and returns the count as `u64` for streaming skips without pre-allocating.
-fn checked_len(r: &mut impl Read) -> io::Result<u64> {
-    let len = read_i32(r)?;
-    if len < 0 {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "negative NBT length",
-        ));
-    }
-    Ok(len as u64)
-}
-
-/// Discards `n` bytes without allocating a buffer sized by untrusted input;
-/// a truncated file surfaces as an `UnexpectedEof` error, never an abort.
-fn skip_bytes(r: &mut impl Read, n: u64) -> io::Result<()> {
-    let copied = io::copy(&mut r.by_ref().take(n), &mut io::sink())?;
-    if copied < n {
-        return Err(io::ErrorKind::UnexpectedEof.into());
-    }
-    Ok(())
-}
-
-/// Reads and discards the payload of a tag whose type we don't care about
-/// (icon, acceptTextures, or anything else Minecraft may have written).
-fn skip_payload(r: &mut impl Read, tag: u8, depth: u32) -> io::Result<()> {
-    if depth > MAX_DEPTH {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "NBT nesting too deep",
-        ));
-    }
-    match tag {
-        TAG_END => {}
-        TAG_BYTE => {
-            read_u8(r)?;
-        }
-        TAG_SHORT => {
-            read_u16(r)?;
-        }
-        TAG_INT | TAG_FLOAT => {
-            read_i32(r)?;
-        }
-        TAG_LONG | TAG_DOUBLE => {
-            read_i64(r)?;
-        }
-        TAG_BYTE_ARRAY => {
-            let len = checked_len(r)?;
-            skip_bytes(r, len)?;
-        }
-        TAG_STRING => {
-            read_string(r)?;
-        }
-        TAG_LIST => {
-            let elem_type = read_u8(r)?;
-            let len = checked_len(r)?;
-            validate_list(elem_type, len)?;
-            for _ in 0..len {
-                skip_payload(r, elem_type, depth + 1)?;
-            }
-        }
-        TAG_COMPOUND => loop {
-            let t = read_u8(r)?;
-            if t == TAG_END {
-                break;
-            }
-            read_string(r)?;
-            skip_payload(r, t, depth + 1)?;
-        },
-        TAG_INT_ARRAY => {
-            let len = checked_len(r)?;
-            skip_bytes(r, len.saturating_mul(4))?;
-        }
-        TAG_LONG_ARRAY => {
-            let len = checked_len(r)?;
-            skip_bytes(r, len.saturating_mul(8))?;
-        }
-        _ => {}
-    }
-    Ok(())
-}
+use guards::{checked_len, skip_payload, validate_list};
+use primitives::{read_string, read_u8};
 
 fn read_server_compound(r: &mut impl Read) -> io::Result<ServerEntry> {
     let mut entry = ServerEntry::default();
@@ -161,8 +26,6 @@ fn read_server_compound(r: &mut impl Read) -> io::Result<ServerEntry> {
     Ok(entry)
 }
 
-/// Reads Minecraft's `servers.dat` (uncompressed big-endian NBT). Missing
-/// file or unreadable root just means "no servers saved yet".
 pub fn read_servers(path: &Path) -> io::Result<Vec<ServerEntry>> {
     if !path.exists() {
         return Ok(Vec::new());
@@ -175,7 +38,7 @@ pub fn read_servers(path: &Path) -> io::Result<Vec<ServerEntry>> {
     if root_tag != TAG_COMPOUND {
         return Ok(Vec::new());
     }
-    read_string(&mut cursor)?; // root name, always empty in servers.dat
+    read_string(&mut cursor)?;
 
     let mut servers = Vec::new();
     loop {

@@ -9,9 +9,6 @@ mod servers_commands;
 mod shortcut_commands;
 mod worlds_commands;
 
-// Re-exported so every command (plus the hidden items `#[tauri::command]`
-// generates) resolves at this module path, keeping the `generate_handler!`
-// registrations in `lib.rs` unchanged.
 pub use config_commands::*;
 pub use notes_commands::*;
 pub use screenshots_commands::*;

@@ -9,12 +9,10 @@ export interface AccountDTO {
   createdAt: string
   iconPath: string | null
 }
-
 export interface CreateAccountInput {
   username: string
   iconPath?: string | null
 }
-
 export interface UpdateAccountInput {
   id: string
   username: string

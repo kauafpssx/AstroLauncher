@@ -2,14 +2,11 @@ import {
   categoryForOptionKey,
   type OptionCategory,
 } from './minecraft-option-metadata'
-
 export {
   floatRangeForKey,
   OPTION_CATEGORY_ORDER,
 } from './minecraft-option-metadata'
-
 export type OptionValueType = 'boolean' | 'integer' | 'float' | 'string'
-
 export interface ParsedOption {
   key: string
   label: string
@@ -18,18 +15,14 @@ export interface ParsedOption {
   type: OptionValueType
   category: OptionCategory
 }
-
 const LINE = /^([^:]+):(.*)$/
-/** Keys that are internal bookkeeping, not something a user should edit. */
 const SKIP_KEYS = new Set(['version'])
-
 function inferType(rawValue: string): OptionValueType {
   if (rawValue === 'true' || rawValue === 'false') return 'boolean'
   if (/^-?\d+$/.test(rawValue)) return 'integer'
   if (/^-?\d*\.\d+$/.test(rawValue)) return 'float'
   return 'string'
 }
-
 function toEditable(rawValue: string, type: OptionValueType): string {
   if (
     type === 'string' &&
@@ -41,7 +34,6 @@ function toEditable(rawValue: string, type: OptionValueType): string {
   }
   return rawValue
 }
-
 export function toRawValue(
   editableValue: string,
   originalRawValue: string,
@@ -51,15 +43,12 @@ export function toRawValue(
     return `"${editableValue}"`
   return editableValue
 }
-
 function humanizeOptionKey(key: string): string {
   const spaced = key
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .replace(/[._]/g, ' ')
   return spaced.charAt(0).toUpperCase() + spaced.slice(1)
 }
-
-/** Every `options.txt` entry except keybinds (`key_*`) and internal fields. */
 export function parseMinecraftOptions(optionsTxt: string): ParsedOption[] {
   const result: ParsedOption[] = []
   for (const rawLine of optionsTxt.split('\n')) {
@@ -81,8 +70,6 @@ export function parseMinecraftOptions(optionsTxt: string): ParsedOption[] {
   }
   return result
 }
-
-/** Rewrites the given non-keybind option lines from `updates` (key -> new raw value), leaving everything else untouched. */
 export function applyMinecraftOptionUpdates(
   optionsTxt: string,
   updates: Record<string, string>,

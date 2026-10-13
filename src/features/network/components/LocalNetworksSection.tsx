@@ -1,11 +1,9 @@
 import { Copy } from 'lucide-react'
 import { toast } from 'sonner'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/common/EmptyState'
 import type { LocalNetworkDTO, LocalNetworkStatus } from '@/types/zerotier'
-
 const STATUS_LABEL: Record<LocalNetworkStatus, string> = {
   OK: 'Conectado',
   REQUESTING_CONFIGURATION: 'Aguardando aprovação',
@@ -15,7 +13,6 @@ const STATUS_LABEL: Record<LocalNetworkStatus, string> = {
   CLIENT_TOO_OLD: 'Cliente desatualizado',
   AUTHENTICATION_REQUIRED: 'Autenticação necessária',
 }
-
 const STATUS_VARIANT: Record<
   LocalNetworkStatus,
   'default' | 'secondary' | 'destructive' | 'outline'
@@ -28,13 +25,11 @@ const STATUS_VARIANT: Record<
   CLIENT_TOO_OLD: 'destructive',
   AUTHENTICATION_REQUIRED: 'destructive',
 }
-
 interface LocalNetworksSectionProps {
   networks: LocalNetworkDTO[]
   leavingNetworkId: string | null
   onLeave: (networkId: string) => Promise<void>
 }
-
 export function LocalNetworksSection({
   networks,
   leavingNetworkId,
@@ -49,7 +44,6 @@ export function LocalNetworksSection({
       />
     )
   }
-
   const handleLeave = async (id: string) => {
     try {
       await onLeave(id)
@@ -57,14 +51,11 @@ export function LocalNetworksSection({
       toast.error(String(err))
     }
   }
-
   const handleCopyId = async (id: string) => {
     await navigator.clipboard.writeText(id)
     toast.success('ID da rede copiado.')
   }
-
   const isBusy = leavingNetworkId !== null
-
   return (
     <div className="flex flex-col gap-2">
       {networks.map((network) => {

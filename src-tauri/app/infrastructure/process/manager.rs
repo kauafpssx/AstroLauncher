@@ -10,14 +10,6 @@ use parking_lot::Mutex;
 #[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
-/// Tracks spawned game processes so the UI can reflect "running" state and
-/// let the user stop a running instance.
-///
-/// The `Child` itself is owned exclusively by the background wait task (never
-/// shared behind a lock): `Child::wait` blocks for as long as the game runs,
-/// so sharing it via a `Mutex` would make `stop()` deadlock waiting for the
-/// same lock the waiter holds for the process's entire lifetime. Killing is
-/// done by PID instead, which needs no lock at all.
 pub struct ProcessManager {
     pids: Mutex<HashMap<String, u32>>,
 }
@@ -29,8 +21,6 @@ impl ProcessManager {
         })
     }
 
-    /// Registers a freshly spawned child and waits for it in the background,
-    /// removing it from the registry and notifying `on_exit` once it exits.
     pub fn register(
         self: &Arc<Self>,
         instance_id: String,

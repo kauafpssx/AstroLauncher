@@ -1,9 +1,6 @@
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 
-/// External API endpoints and shared links, sourced from
-/// `plugins.env` in `tauri.conf.json` (the source of truth). The defaults
-/// below are only a safety net if the key is ever removed from the file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ApiConfig {
@@ -19,9 +16,7 @@ pub struct ApiConfig {
     pub liteloader_versions: String,
     pub liteloader_repo: String,
     pub maven_central: String,
-    /// ZeroTier Central API base URL (network/member management).
     pub zerotier_central: String,
-    /// Official ZeroTier One installer (MSI) for Windows.
     pub zerotier_download: String,
 }
 
@@ -51,13 +46,12 @@ impl Default for ApiConfig {
 #[serde(rename_all = "camelCase", default)]
 pub struct ExternalConfig {
     pub api: ApiConfig,
+    pub github_base: String,
     pub github_repo: String,
     pub mcstat_dashboard: String,
     pub mcstat_docs: String,
     pub curseforge_console: String,
-    /// ZeroTier Central account page where users generate their API token.
     pub zerotier_account: String,
-    /// ZeroTier download page (manual install fallback).
     pub zerotier_download_page: String,
 }
 
@@ -65,6 +59,7 @@ impl Default for ExternalConfig {
     fn default() -> Self {
         Self {
             api: ApiConfig::default(),
+            github_base: "https://github.com".into(),
             github_repo: "kauafpssx/AstroLauncher".into(),
             mcstat_dashboard: "https://mcstat.org/dashboard/api-keys".into(),
             mcstat_docs: "https://mcstat.org/api-docs".into(),
@@ -77,8 +72,6 @@ impl Default for ExternalConfig {
 
 static ENV: OnceCell<ExternalConfig> = OnceCell::new();
 
-/// Loads the `plugins.env` block from the Tauri config into a process-wide
-/// global. Must be called once during setup, before any command runs.
 pub fn init(config: &tauri::Config) {
     let external: ExternalConfig = config
         .plugins
@@ -90,19 +83,15 @@ pub fn init(config: &tauri::Config) {
     let _ = ENV.set(external);
 }
 
-/// The resolved external config, falling back to defaults when unset.
 pub fn env() -> &'static ExternalConfig {
     ENV.get()
         .expect("env config not initialized; call config::init during setup")
 }
 
-/// Convenience accessor for the API endpoint block.
 pub fn api() -> &'static ApiConfig {
     &env().api
 }
 
-/// Exposes the resolved external config to the frontend (repo link, docs
-/// URLs, API endpoints) so the UI never hardcodes a URL either.
 #[tauri::command]
 pub fn get_app_env_config() -> ExternalConfig {
     env().clone()
