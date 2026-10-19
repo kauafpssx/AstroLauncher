@@ -33,7 +33,7 @@
     "@tauri-apps/plugin-updater": "^2.13.3",
     "@tiptap/extension-image": "^3.31.3",
     "@tiptap/pm": "^3.31.3",
-    "@tiptap/react": "^3.31.3",
+    "@tiptap/react": "^3.32.0",
     "@tiptap/starter-kit": "^3.31.3",
     "@tiptap/suggestion": "^3.31.3",
     "@uiw/react-codemirror": "^4.25.11",
